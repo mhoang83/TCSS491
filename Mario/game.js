@@ -279,12 +279,14 @@ Entity.prototype.rotateAndCache = function (image, angle) {
 function Mario(init_x, init_y, game) {
     this.isRunning = false;
     this.isWalking = false;
+    this.isRight = true;
     this.steps = 0;
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
-     this.animation = new Animation(this.sprite, 200, 80, 40, 40, 0.1, 1, false, false);
-     this.walkAnimation = new Animation(this.sprite, 200, 80, 40, 40, .1, 2, false, false);
-     this.runAnimation = new Animation(this.sprite, 200, 160, 40, 40, .06, 2, false, false)
-     Entity.call(this, game, init_x, init_y);
+    this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.1, 2, false, true);
+    this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, .1, 2, false, false);
+    this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, .06, 2, false, true);
+    this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, .06, 2, false, false);
+    Entity.call(this, game, init_x, init_y);
 }
 
 Mario.prototype = new Entity();
@@ -294,58 +296,119 @@ Mario.prototype.update = function() {
    
      
     if (this.game.key) {
-        console.log('key');
+        console.log('key' + " " + this.game.key.keyCode);
         if (this.game.key.keyCode === 39) {
-            console.log('39');
-            if (this.isRunning && this.runAnimation.isDone()) {
-                this.runAnimation.elapsedTime = 0;
+            if(!this.isRight) {
+                this.walkLeftAnimation.elapsedTime = 0;
+                this.walkLeftAnimation.elapsedTime = 0;
+                this.steps = 0;
+                this.isRight = true;
+            }
+            
+            if (this.isRunning && this.runRightAnimation.isDone()) {
+                this.runRightAnimation.elapsedTime = 0;
                 this.x += 15;
             }
-            if (this.isWalking && this.walkAnimation.isDone()) {
-                this.walkAnimation.elapsedTime = 0;
+            if (this.isWalking && this.walkRightAnimation.isDone()) {
+                this.walkRightAnimation.elapsedTime = 0;
                 this.x +=5;
+                this.steps++;
             }
             if (!this.isWalking && !this.isRunning)
                 this.isWalking =true;
            
-            this.steps++;
-            if (this.steps > 90 && !this.isRunning) {
+            
+            if (this.steps > 5 && !this.isRunning) {
                 this.isRunning = true;
                 this.isWalking = false;
-                this.walkAnimation.elapsedTime = 0;
+                this.walkRightAnimation.elapsedTime = 0;
             }
-        } else {
+        } else if (this.game.key.keyCode === 37) {
+            if(this.isRight) {
+                this.walkRightAnimation.elapsedTime = 0;
+                this.walkRightAnimation.elapsedTime = 0;
+                this.steps = 0;
+                this.isRight = false;
+            }
+            
+            if (this.isRunning && this.runLeftAnimation.isDone()) {
+                this.runLeftAnimation.elapsedTime = 0;
+                this.x -= 15;
+            }
+            if (this.isWalking && this.walkLeftAnimation.isDone()) {
+                this.walkLeftAnimation.elapsedTime = 0;
+                this.x -=5;
+                this.steps++;
+            }
+            if (!this.isWalking && !this.isRunning)
+                this.isWalking =true;
+           
+            
+            if (this.steps > 5 && !this.isRunning) {
+                this.isRunning = true;
+                this.isWalking = false;
+                this.walkRightAnimation.elapsedTime = 0;
+            }
 
-             if (this.walkAnimation.isDone()) {
+        } else {
+             if (this.walkRightAnimation.isDone()) {
                 console.log('walking done');
                 this.isWalking = false;
-                this.walkAnimation.elapsedTime = 0;
+                this.walkRightAnimation.elapsedTime = 0;
                  this.x += 5;
             }
-            if (this.runAnimation.isDone()) {
+            if (this.runRightAnimation.isDone()) {
                 this.isRunning = false;
-                this.runAnimation.elapsedTime = 0;
+                this.runRightAnimation.elapsedTime = 0;
                  this.x += 5;
+
+            }
+            if (this.walkLeftAnimation.isDone()) {
+                this.isWalking = false;
+                this.walkLeftAnimation.elapsedTime = 0;
+                this.steps = 0;
+                this.x -= 5;
+            }
+            if (this.runLeftAnimation.isDone()) {
+                this.isRunning = false;
+                this.runLeftAnimation.elapsedTime = 0;
+                this.steps = 0;
+                this.x -= 15;
 
             }
             this.steps = 0;
         }
     } else  {
         //console.log("key up");
-            if (this.walkAnimation.isDone()) {
+        if (this.isRight) {
+            if (this.walkRightAnimation.isDone()) {
                 this.isWalking = false;
-                this.walkAnimation.elapsedTime = 0;
+                this.walkRightAnimation.elapsedTime = 0;
                 this.steps = 0;
                 this.x += 5;
             }
-            if (this.runAnimation.isDone()) {
+            if (this.runRightAnimation.isDone()) {
                 this.isRunning = false;
-                this.runAnimation.elapsedTime = 0;
+                this.runRightAnimation.elapsedTime = 0;
                 this.steps = 0;
                 this.x += 15;
 
             }
-            
+        } else {
+            if (this.walkLeftAnimation.isDone()) {
+                this.isWalking = false;
+                this.walkLeftAnimation.elapsedTime = 0;
+                this.steps = 0;
+                this.x -= 5;
+            }
+            if (this.runLeftAnimation.isDone()) {
+                this.isRunning = false;
+                this.runLeftAnimation.elapsedTime = 0;
+                this.steps = 0;
+                this.x -= 15;
+
+            }
+        }  
     }
 }
 
@@ -357,23 +420,38 @@ Mario.prototype.draw = function(ctx) {
     ctx.strokeStyle = style;
     //ctx.drawImage(this.sprite, this.x, this.y, 40, 40);
     if (this.isRunning) {
-        this.runAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.5);
+        if (this.isRight)
+            this.runRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.5);
+        else
+            this.runLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.5);
     
     } else if (this.isWalking) {
-        this.walkAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.5);
+        if (this.isRight)
+            this.walkRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.5);
+        else
+            this.walkLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.5);
     } else {
-        ctx.drawImage(this.sprite,
+        if (this.isRight)
+            ctx.drawImage(this.sprite,
                   200, 80,  // source from sheet
                   40, 40,
                   this.x, this.y,
                   40* 1.5,
                   40 * 1.5);
+        else
+             ctx.drawImage(this.sprite,
+                  160, 80,  // source from sheet
+                  40, 40,
+                  this.x, this.y,
+                  40* 1.5,
+                  40 * 1.5);
+
     }
-    // if (this.runAnimation.isDone()) {
+    // if (this.runRightAnimation.isDone()) {
     //     console.log('here');
-    //     this.runAnimation.elapsedTime = 0;
+    //     this.runRightAnimation.elapsedTime = 0;
     // }
-    // this.runAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+    // this.runRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
     
     //Entity.prototype.draw.call(this, ctx);
 }
