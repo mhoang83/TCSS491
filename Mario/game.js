@@ -456,6 +456,32 @@ Mario.prototype.draw = function(ctx) {
     //Entity.prototype.draw.call(this, ctx);
 }
 
+//Enemy Code -- TODO: Enemies will have to be in some type of collection.
+function Enemy(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/smb3_enemies_sheet.png');
+    //spriteSheet, startX, startY, frameWidth, frameHeight, frameDuration, frames, loop, reverse
+    this.moveRightAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.1, 2, false, true);
+    this.moveLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.1, 2, false, true);
+    Entity.call(this, game, init_x, init_y);
+}
+
+Enemy.prototype = new Entity();
+Enemy.prototype.constructor = Enemy;
+
+Enemy.prototype.update = function() {
+    
+}
+
+Enemy.prototype.draw = function(ctx) {
+    //context.drawImage(img,sx,sy,swidth,sheight,x,y,width,height);
+    console.log(this.sprite);
+    ctx.drawImage(this.sprite,
+                  179, 150,  
+                  75, 75,
+                  this.x, this.y,
+                  75,
+                  75);
+}
 // GameBoard code below
 
 function GameBoard() {
@@ -477,6 +503,7 @@ GameBoard.prototype.draw = function (ctx) {
 
 var ASSET_MANAGER = new AssetManager();
 ASSET_MANAGER.queueDownload('images/smb3_mario_sheet.png');
+ASSET_MANAGER.queueDownload('images/smb3_enemies_sheet.png');
 
 ASSET_MANAGER.downloadAll(function () {
     console.log("starting up da sheild");
@@ -485,9 +512,14 @@ ASSET_MANAGER.downloadAll(function () {
 
     var gameEngine = new GameEngine();
     var gameboard = new GameBoard();
+    
+    //Create Character objects
     var mario = new Mario( 40, 40, gameEngine);
+    var enemy = new Enemy( 100 , 40, gameEngine);
+    
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(mario);
+    gameEngine.addEntity(enemy);
  
     gameEngine.init(ctx);
     gameEngine.start();
