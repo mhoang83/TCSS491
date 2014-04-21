@@ -524,8 +524,8 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
     
     //Create Character objects
-    var mario = new Mario( 40, 40, gameEngine);    
     var mario = new Mario( 0, 400, gameEngine);
+    var enemy = new Enemy( 100 , 40, gameEngine);
     
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(mario);
