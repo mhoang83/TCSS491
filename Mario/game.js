@@ -107,7 +107,7 @@ Animation.prototype.isDone = function () {
 
 function Timer() {
     this.gameTime = 0;
-    this.maxStep = 0.05;
+    this.maxStep = 0.1;
     this.wallLastTimestamp = 0;
 }
 
@@ -282,10 +282,10 @@ function Mario(init_x, init_y, game) {
     this.isRight = true;
     this.steps = 0;
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
-    this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.1, 2, false, true);
-    this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, .1, 2, false, false);
-    this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, .06, 2, false, true);
-    this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, .06, 2, false, false);
+    this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.22, 2, false, true);
+    this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, .22, 2, false, false);
+    this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, .15, 2, false, true);
+    this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, .15, 2, false, false);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -296,7 +296,7 @@ Mario.prototype.update = function() {
    
      
     if (this.game.key) {
-        console.log('key' + " " + this.game.key.keyCode);
+       // console.log('key' + " " + this.game.key.keyCode);
         if (this.game.key.keyCode === 39) {
             if(!this.isRight) {
                 this.walkLeftAnimation.elapsedTime = 0;
@@ -305,14 +305,20 @@ Mario.prototype.update = function() {
                 this.isRight = true;
             }
             
-            if (this.isRunning && this.runRightAnimation.isDone()) {
-                this.runRightAnimation.elapsedTime = 0;
-                this.x += 15;
+            if (this.isRunning) {
+                if (this.runRightAnimation.isDone())
+                    this.runRightAnimation.elapsedTime = 0;
+                this.x += 2.5;
             }
-            if (this.isWalking && this.walkRightAnimation.isDone()) {
-                this.walkRightAnimation.elapsedTime = 0;
-                this.x +=5;
-                this.steps++;
+            if (this.isWalking) {
+                if (this.walkRightAnimation.isDone()) {
+                    this.walkRightAnimation.elapsedTime = 0;
+                    this.steps++;
+
+                }
+                this.x +=1;
+                
+                
             }
             if (!this.isWalking && !this.isRunning)
                 this.isWalking =true;
@@ -331,14 +337,18 @@ Mario.prototype.update = function() {
                 this.isRight = false;
             }
             
-            if (this.isRunning && this.runLeftAnimation.isDone()) {
-                this.runLeftAnimation.elapsedTime = 0;
-                this.x -= 15;
+            if (this.isRunning) {
+                if (this.runLeftAnimation.isDone())
+                    this.runLeftAnimation.elapsedTime = 0;
+                this.x -= 2.5;
             }
-            if (this.isWalking && this.walkLeftAnimation.isDone()) {
-                this.walkLeftAnimation.elapsedTime = 0;
-                this.x -=5;
-                this.steps++;
+            if (this.isWalking) {
+                if (this.walkLeftAnimation.isDone()) {
+                    this.walkLeftAnimation.elapsedTime = 0;
+                    this.steps++;
+                }
+                this.x -=1;
+                
             }
             if (!this.isWalking && !this.isRunning)
                 this.isWalking =true;
@@ -352,28 +362,28 @@ Mario.prototype.update = function() {
 
         } else {
              if (this.walkRightAnimation.isDone()) {
-                console.log('walking done');
+                //console.log('walking done');
                 this.isWalking = false;
                 this.walkRightAnimation.elapsedTime = 0;
-                 this.x += 5;
+                 this.x += 1;
             }
             if (this.runRightAnimation.isDone()) {
                 this.isRunning = false;
                 this.runRightAnimation.elapsedTime = 0;
-                 this.x += 5;
+                 this.x += 2.5;
 
             }
             if (this.walkLeftAnimation.isDone()) {
                 this.isWalking = false;
                 this.walkLeftAnimation.elapsedTime = 0;
                 this.steps = 0;
-                this.x -= 5;
+                this.x -= 1;
             }
             if (this.runLeftAnimation.isDone()) {
                 this.isRunning = false;
                 this.runLeftAnimation.elapsedTime = 0;
                 this.steps = 0;
-                this.x -= 15;
+                this.x -= 2.5;
 
             }
             this.steps = 0;
@@ -385,13 +395,13 @@ Mario.prototype.update = function() {
                 this.isWalking = false;
                 this.walkRightAnimation.elapsedTime = 0;
                 this.steps = 0;
-                this.x += 5;
+                this.x += 2.5;
             }
             if (this.runRightAnimation.isDone()) {
                 this.isRunning = false;
                 this.runRightAnimation.elapsedTime = 0;
                 this.steps = 0;
-                this.x += 15;
+                this.x += 5;
 
             }
         } else {
@@ -399,13 +409,13 @@ Mario.prototype.update = function() {
                 this.isWalking = false;
                 this.walkLeftAnimation.elapsedTime = 0;
                 this.steps = 0;
-                this.x -= 5;
+                this.x -= 2.5;
             }
             if (this.runLeftAnimation.isDone()) {
                 this.isRunning = false;
                 this.runLeftAnimation.elapsedTime = 0;
                 this.steps = 0;
-                this.x -= 15;
+                this.x -= 5;
 
             }
         }  
@@ -416,7 +426,7 @@ Mario.prototype.draw = function(ctx) {
      //console.log(this.game.clockTick);
      var style = ctx.strokeStyle;
      ctx.strokeStyle = 'red';
-    ctx.strokeRect(this.x + 13, this.y + 7, 20, 20);
+    ctx.strokeRect(this.x + 23, this.y + 13, 22, 25);
     ctx.strokeStyle = style;
     //ctx.drawImage(this.sprite, this.x, this.y, 40, 40);
     if (this.isRunning) {
@@ -514,8 +524,8 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
     
     //Create Character objects
-    var mario = new Mario( 40, 40, gameEngine);
-    var enemy = new Enemy( 100 , 40, gameEngine);
+    var mario = new Mario( 40, 40, gameEngine);    
+    var mario = new Mario( 0, 400, gameEngine);
     
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(mario);
