@@ -426,35 +426,35 @@ Mario.prototype.draw = function(ctx) {
      //console.log(this.game.clockTick);
      var style = ctx.strokeStyle;
      ctx.strokeStyle = 'red';
-    ctx.strokeRect(this.x + 23, this.y + 13, 22, 25);
+    ctx.strokeRect(this.x+17, this.y+8, 12, 16);
     ctx.strokeStyle = style;
     //ctx.drawImage(this.sprite, this.x, this.y, 40, 40);
     if (this.isRunning) {
         if (this.isRight)
-            this.runRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.5);
+            this.runRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
         else
-            this.runLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.5);
+            this.runLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
     
     } else if (this.isWalking) {
         if (this.isRight)
-            this.walkRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.5);
+            this.walkRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
         else
-            this.walkLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.5);
+            this.walkLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
     } else {
         if (this.isRight)
             ctx.drawImage(this.sprite,
                   200, 80,  // source from sheet
                   40, 40,
                   this.x, this.y,
-                  40* 1.5,
-                  40 * 1.5);
+                  40,
+                  40);
         else
              ctx.drawImage(this.sprite,
                   160, 80,  // source from sheet
                   40, 40,
                   this.x, this.y,
-                  40* 1.5,
-                  40 * 1.5);
+                  40,
+                  40 );
 
     }
     // if (this.runRightAnimation.isDone()) {
@@ -579,7 +579,7 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
     
     //Create Character objects
-    var mario = new Mario( 0, 195, gameEngine);
+    var mario = new Mario( 0, 208, gameEngine);
     var enemy = new Enemy( 100 , 210, gameEngine);
     var enemy1 = new Enemy( 180 , 210, gameEngine);
     var enemy2 = new Enemy( 250 , 210, gameEngine);
@@ -590,7 +590,7 @@ ASSET_MANAGER.downloadAll(function () {
     var qbox3 = new QuestionBox(151, 150, gameEngine);
     
     gameEngine.addEntity(gameboard);
-    gameEngine.addEntity(mario);
+    
     gameEngine.addEntity(enemy);
     gameEngine.addEntity(enemy1);
     gameEngine.addEntity(enemy2);
@@ -599,6 +599,7 @@ ASSET_MANAGER.downloadAll(function () {
     gameEngine.addEntity(qbox1);
     gameEngine.addEntity(qbox2);
     gameEngine.addEntity(qbox3);
+    gameEngine.addEntity(mario);
  
     gameEngine.init(ctx);
     gameEngine.start();
