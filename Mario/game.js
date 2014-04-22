@@ -544,7 +544,7 @@ QuestionBox.prototype.update = function () {
 
 QuestionBox.prototype.draw = function (ctx) {
     //console.log(this.sprite);
-    this.moveAnimation.drawFrame(this.game.clockTick, ctx, 0, 100);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
 
 }
 
@@ -579,14 +579,26 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
     
     //Create Character objects
-    var mario = new Mario( 0, 400, gameEngine);
-    var enemy = new Enemy( 100 , 40, gameEngine);
-    var qbox = new QuestionBox(0, 100, gameEngine);
+    var mario = new Mario( 0, 195, gameEngine);
+    var enemy = new Enemy( 100 , 210, gameEngine);
+    var enemy1 = new Enemy( 180 , 210, gameEngine);
+    var enemy2 = new Enemy( 250 , 210, gameEngine);
+    var enemy3 = new Enemy( 475 , 210, gameEngine);
+    var qbox = new QuestionBox(100, 150, gameEngine);
+    var qbox1 = new QuestionBox(117, 150, gameEngine);
+    var qbox2 = new QuestionBox(134, 150, gameEngine);
+    var qbox3 = new QuestionBox(151, 150, gameEngine);
     
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(mario);
     gameEngine.addEntity(enemy);
+    gameEngine.addEntity(enemy1);
+    gameEngine.addEntity(enemy2);
+    gameEngine.addEntity(enemy3);
     gameEngine.addEntity(qbox);
+    gameEngine.addEntity(qbox1);
+    gameEngine.addEntity(qbox2);
+    gameEngine.addEntity(qbox3);
  
     gameEngine.init(ctx);
     gameEngine.start();
