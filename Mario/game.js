@@ -552,7 +552,7 @@ QuestionBox.prototype.draw = function (ctx) {
 
 //Green pipe
 function GreenPipe(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/qBoxTransparant.png');
+    this.sprite = ASSET_MANAGER.getAsset('images/pipe.png');
     //this.moveAnimation = new Animation(this.sprite, 1, 1, 17, 16, 0.22, 4, true, false);
     Entity.call(this, game, init_x, init_y);
 }
@@ -570,7 +570,7 @@ GreenPipe.prototype.draw = function (ctx) {
 	            ctx.drawImage(this.sprite,
                   1, 1,  // source from sheet
                   34, 50,
-                  150, 350,
+                  this.x, this.y,
                   35,
                   51);
 
@@ -618,7 +618,7 @@ ASSET_MANAGER.downloadAll(function () {
     var qbox1 = new QuestionBox(117, 150, gameEngine);
     var qbox2 = new QuestionBox(134, 150, gameEngine);
     var qbox3 = new QuestionBox(151, 150, gameEngine);
-	var pipe = new GreenPipe(151, 350, gameEngine);
+	var pipe = new GreenPipe(450, 183, gameEngine);
     
     gameEngine.addEntity(gameboard);
     
