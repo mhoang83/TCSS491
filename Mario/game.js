@@ -527,8 +527,10 @@ Enemy.prototype.draw = function(ctx) {
                   this.x + 50, this.y,
                   2 * frameWidth, 2* frameHeight); */
 }
-// GameBoard code below
 
+
+
+//QuestionBox
 function QuestionBox(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/qBoxTransparant.png');
     this.moveAnimation = new Animation(this.sprite, 1, 1, 17, 16, 0.22, 4, true, false);
@@ -548,6 +550,33 @@ QuestionBox.prototype.draw = function (ctx) {
 
 }
 
+//Green pipe
+function GreenPipe(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/qBoxTransparant.png');
+    //this.moveAnimation = new Animation(this.sprite, 1, 1, 17, 16, 0.22, 4, true, false);
+    Entity.call(this, game, init_x, init_y);
+}
+
+GreenPipe.prototype = new Entity();
+GreenPipe.prototype.constructor = GreenPipe;
+
+GreenPipe.prototype.update = function () {
+    Entity.prototype.update.call(this);
+}
+
+GreenPipe.prototype.draw = function (ctx) {
+    //console.log(this.sprite);
+    //this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+	            ctx.drawImage(this.sprite,
+                  1, 1,  // source from sheet
+                  34, 50,
+                  150, 350,
+                  35,
+                  51);
+
+}
+
+// GameBoard code below
 function GameBoard() {
 
     Entity.call(this, null, 0, 0);
@@ -569,6 +598,7 @@ var ASSET_MANAGER = new AssetManager();
 ASSET_MANAGER.queueDownload('images/qBoxTransparant.png');
 ASSET_MANAGER.queueDownload('images/smb3_mario_sheet.png');
 ASSET_MANAGER.queueDownload('images/smb3_enemies_sheet.png');
+ASSET_MANAGER.queueDownload('images/pipe.png');
 
 ASSET_MANAGER.downloadAll(function () {
     console.log("starting up da sheild");
@@ -588,6 +618,7 @@ ASSET_MANAGER.downloadAll(function () {
     var qbox1 = new QuestionBox(117, 150, gameEngine);
     var qbox2 = new QuestionBox(134, 150, gameEngine);
     var qbox3 = new QuestionBox(151, 150, gameEngine);
+	var pipe = new GreenPipe(151, 350, gameEngine);
     
     gameEngine.addEntity(gameboard);
     
@@ -599,6 +630,7 @@ ASSET_MANAGER.downloadAll(function () {
     gameEngine.addEntity(qbox1);
     gameEngine.addEntity(qbox2);
     gameEngine.addEntity(qbox3);
+	gameEngine.addEntity(pipe);
     gameEngine.addEntity(mario);
  
     gameEngine.init(ctx);
