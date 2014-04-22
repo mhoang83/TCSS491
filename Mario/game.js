@@ -469,11 +469,11 @@ Mario.prototype.draw = function(ctx) {
 
 //Enemy Code -- TODO: Enemies will have to be in some type of collection.
 function Enemy(init_x, init_y, game) {
-    var frameWidth = 31;
+    var frameWidth = 50;
     var frameHeight = 25;
 
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_enemies_sheet.png');
-    this.bounceAnimation = new Animation(this.sprite, 0, 0, frameWidth, frameHeight, .4, 3, true, false);
+    this.bounceAnimation = new Animation(this.sprite, 0, 0, frameWidth, frameHeight, .4, 2, true, false);
     this.init_x = init_x;
     this.direction = 1;
     
