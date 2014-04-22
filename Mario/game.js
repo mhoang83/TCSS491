@@ -495,8 +495,8 @@ Enemy.prototype.draw = function(ctx) {
 // GameBoard code below
 
 function QuestionBox(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/animateQuestionBox.png');
-    this.moveAnimation = new Animation(this.sprite, 0, 0, 18, 17, 0.22, 4, true, false);
+    this.sprite = ASSET_MANAGER.getAsset('images/qBoxTransparant.png');
+    this.moveAnimation = new Animation(this.sprite, 1, 1, 17, 16, 0.22, 4, true, false);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -531,7 +531,7 @@ GameBoard.prototype.draw = function (ctx) {
 // the "main" code begins here
 
 var ASSET_MANAGER = new AssetManager();
-ASSET_MANAGER.queueDownload('images/animateQuestionBox.png');
+ASSET_MANAGER.queueDownload('images/qBoxTransparant.png');
 ASSET_MANAGER.queueDownload('images/smb3_mario_sheet.png');
 ASSET_MANAGER.queueDownload('images/smb3_enemies_sheet.png');
 
