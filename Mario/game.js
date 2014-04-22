@@ -466,12 +466,17 @@ Mario.prototype.draw = function(ctx) {
     //Entity.prototype.draw.call(this, ctx);
 }
 
+
 //Enemy Code -- TODO: Enemies will have to be in some type of collection.
 function Enemy(init_x, init_y, game) {
+    var frameWidth = 31;
+    var frameHeight = 25;
+
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_enemies_sheet.png');
-    //spriteSheet, startX, startY, frameWidth, frameHeight, frameDuration, frames, loop, reverse
-    this.moveRightAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.1, 2, false, true);
-    this.moveLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.1, 2, false, true);
+    this.bounceAnimation = new Animation(this.sprite, 0, 0, frameWidth, frameHeight, .4, 3, true, false);
+    this.init_x = init_x;
+    this.direction = 1;
+    
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -479,18 +484,48 @@ Enemy.prototype = new Entity();
 Enemy.prototype.constructor = Enemy;
 
 Enemy.prototype.update = function() {
+    var travelCount = 100
+    if(this.direction === 1) {
+        if(this.x === this.init_x + travelCount) {
+            this.direction = 0;
+        } else {
+            this.x += 1;        
+        }
+    } else {
+        if(this.x === this.init_x) {
+            this.direction = 1;
+        } else {
+            this.x -= 1;
+        }
+    }
     
 }
 
 Enemy.prototype.draw = function(ctx) {
     //context.drawImage(img,sx,sy,swidth,sheight,x,y,width,height);
     //console.log(this.sprite);
+   this.bounceAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.1);
+    
+    /*
+    for(var i = 1; i < 4; i++) {
+        ctx.drawImage(this.sprite,
+                  0, 0,  
+                  i * frameWidth, frameHeight,
+                  this.x + frameWidth, this.y,
+                  i * frameWidth, frameHeight);    
+    }
+    
     ctx.drawImage(this.sprite,
-                  179, 150,  
-                  75, 75,
+                  0, 0,  
+                  frameWidth, frameHeight,
                   this.x, this.y,
-                  75,
-                  75);
+                  frameWidth, frameHeight);
+
+    ctx.drawImage(this.sprite,
+                  0, 0,  
+                  2 * frameWidth, 2 * frameHeight,
+                  this.x + 50, this.y,
+                  2 * frameWidth, 2* frameHeight); */
 }
 // GameBoard code below
 
@@ -547,7 +582,6 @@ ASSET_MANAGER.downloadAll(function () {
     var mario = new Mario( 0, 400, gameEngine);
     var enemy = new Enemy( 100 , 40, gameEngine);
     var qbox = new QuestionBox(0, 100, gameEngine);
-
     
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(mario);
