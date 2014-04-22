@@ -484,7 +484,7 @@ Enemy.prototype.update = function() {
 
 Enemy.prototype.draw = function(ctx) {
     //context.drawImage(img,sx,sy,swidth,sheight,x,y,width,height);
-    console.log(this.sprite);
+    //console.log(this.sprite);
     ctx.drawImage(this.sprite,
                   179, 150,  
                   75, 75,
@@ -493,6 +493,25 @@ Enemy.prototype.draw = function(ctx) {
                   75);
 }
 // GameBoard code below
+
+function QuestionBox(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/animateQuestionBox.png');
+    this.moveAnimation = new Animation(this.sprite, 0, 0, 18, 17, 0.22, 4, true, false);
+    Entity.call(this, game, init_x, init_y);
+}
+
+QuestionBox.prototype = new Entity();
+QuestionBox.prototype.constructor = QuestionBox;
+
+QuestionBox.prototype.update = function () {
+    Entity.prototype.update.call(this);
+}
+
+QuestionBox.prototype.draw = function (ctx) {
+    //console.log(this.sprite);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx, 0, 100);
+
+}
 
 function GameBoard() {
 
@@ -512,6 +531,7 @@ GameBoard.prototype.draw = function (ctx) {
 // the "main" code begins here
 
 var ASSET_MANAGER = new AssetManager();
+ASSET_MANAGER.queueDownload('images/animateQuestionBox.png');
 ASSET_MANAGER.queueDownload('images/smb3_mario_sheet.png');
 ASSET_MANAGER.queueDownload('images/smb3_enemies_sheet.png');
 
@@ -526,10 +546,13 @@ ASSET_MANAGER.downloadAll(function () {
     //Create Character objects
     var mario = new Mario( 0, 400, gameEngine);
     var enemy = new Enemy( 100 , 40, gameEngine);
+    var qbox = new QuestionBox(0, 100, gameEngine);
+
     
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(mario);
     gameEngine.addEntity(enemy);
+    gameEngine.addEntity(qbox);
  
     gameEngine.init(ctx);
     gameEngine.start();
