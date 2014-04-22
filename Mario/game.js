@@ -618,11 +618,7 @@ ASSET_MANAGER.downloadAll(function () {
     var qbox1 = new QuestionBox(117, 150, gameEngine);
     var qbox2 = new QuestionBox(134, 150, gameEngine);
     var qbox3 = new QuestionBox(151, 150, gameEngine);
-<<<<<<< HEAD
-	var pipe = new GreenPipe(350, 183, gameEngine);
-=======
 	var pipe = new GreenPipe(450, 183, gameEngine);
->>>>>>> b1919d01a0f2cb7a31c812ca168886bdd7e84730
     
     gameEngine.addEntity(gameboard);
     
