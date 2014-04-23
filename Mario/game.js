@@ -107,7 +107,7 @@ Animation.prototype.isDone = function () {
 
 function Timer() {
     this.gameTime = 0;
-    this.maxStep = 0.1;
+    this.maxStep = 0.05;
     this.wallLastTimestamp = 0;
 }
 
@@ -235,7 +235,7 @@ GameEngine.prototype.loop = function () {
     this.draw();
     this.click = null;
     this.wheel = null;
-   // this.key = null;
+    //this.key = null;
 }
 
 function Entity(game, x, y) {
@@ -282,10 +282,10 @@ function Mario(init_x, init_y, game) {
     this.isRight = true;
     this.steps = 0;
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
-    this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.22, 2, false, true);
-    this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, .22, 2, false, false);
-    this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, .15, 2, false, true);
-    this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, .15, 2, false, false);
+    this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
+    this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
+    this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
+    this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -293,153 +293,90 @@ Mario.prototype = new Entity();
 Mario.prototype.constructor = Mario;
 
 Mario.prototype.update = function() {
-   
-     
     if (this.game.key) {
        // console.log('key' + " " + this.game.key.keyCode);
         if (this.game.key.keyCode === 39) {
             if(!this.isRight) {
-                this.walkLeftAnimation.elapsedTime = 0;
-                this.walkLeftAnimation.elapsedTime = 0;
                 this.steps = 0;
                 this.isRight = true;
             }
-            
             if (this.isRunning) {
-                if (this.runRightAnimation.isDone())
-                    this.runRightAnimation.elapsedTime = 0;
                 this.x += 2.5;
-            }
-            if (this.isWalking) {
-                if (this.walkRightAnimation.isDone()) {
-                    this.walkRightAnimation.elapsedTime = 0;
-                    this.steps++;
-
-                }
-                this.x +=1;
-                
-                
-            }
-            if (!this.isWalking && !this.isRunning)
-                this.isWalking =true;
-           
-            
-            if (this.steps > 5 && !this.isRunning) {
+            } else  if (this.steps > 5) {
                 this.isRunning = true;
                 this.isWalking = false;
-                this.walkRightAnimation.elapsedTime = 0;
+            } else if (this.isWalking) {
+                if (this.walkRightAnimation.elapsedTime + this.game.clockTick >= this.walkRightAnimation.totalTime) {
+                    this.steps++;
+                }
+                this.x +=1;   
+            } else {
+                this.isWalking =true;
             }
+           
         } else if (this.game.key.keyCode === 37) {
             if(this.isRight) {
-                this.walkRightAnimation.elapsedTime = 0;
-                this.walkRightAnimation.elapsedTime = 0;
                 this.steps = 0;
                 this.isRight = false;
             }
             
             if (this.isRunning) {
-                if (this.runLeftAnimation.isDone())
-                    this.runLeftAnimation.elapsedTime = 0;
                 this.x -= 2.5;
-            }
-            if (this.isWalking) {
-                if (this.walkLeftAnimation.isDone()) {
-                    this.walkLeftAnimation.elapsedTime = 0;
-                    this.steps++;
-                }
-                this.x -=1;
-                
-            }
-            if (!this.isWalking && !this.isRunning)
-                this.isWalking =true;
-           
-            
-            if (this.steps > 5 && !this.isRunning) {
+            } else if (this.steps > 5) {
                 this.isRunning = true;
                 this.isWalking = false;
-                this.walkRightAnimation.elapsedTime = 0;
+            } else if (this.isWalking) {
+                if (this.walkLeftAnimation.elapsedTime + this.game.clockTick >= this.walkLeftAnimation.totalTime) {
+                    this.steps++;
+                }
+                this.x -=1;   
+            } else {
+                 this.isWalking =true;
             }
-
         } else {
-             if (this.walkRightAnimation.isDone()) {
-                //console.log('walking done');
-                this.isWalking = false;
-                this.walkRightAnimation.elapsedTime = 0;
-                 this.x += 1;
-            }
-            if (this.runRightAnimation.isDone()) {
-                this.isRunning = false;
-                this.runRightAnimation.elapsedTime = 0;
-                 this.x += 2.5;
-
-            }
-            if (this.walkLeftAnimation.isDone()) {
-                this.isWalking = false;
-                this.walkLeftAnimation.elapsedTime = 0;
-                this.steps = 0;
-                this.x -= 1;
-            }
-            if (this.runLeftAnimation.isDone()) {
-                this.isRunning = false;
-                this.runLeftAnimation.elapsedTime = 0;
-                this.steps = 0;
-                this.x -= 2.5;
-
-            }
+            this.isWalking = false;
+            this.isRunning = false;
             this.steps = 0;
         }
     } else  {
         //console.log("key up");
-        if (this.isRight) {
-            if (this.walkRightAnimation.isDone()) {
-                this.isWalking = false;
-                this.walkRightAnimation.elapsedTime = 0;
-                this.steps = 0;
-                this.x += 2.5;
-            }
-            if (this.runRightAnimation.isDone()) {
-                this.isRunning = false;
-                this.runRightAnimation.elapsedTime = 0;
-                this.steps = 0;
-                this.x += 5;
-
-            }
-        } else {
-            if (this.walkLeftAnimation.isDone()) {
-                this.isWalking = false;
-                this.walkLeftAnimation.elapsedTime = 0;
-                this.steps = 0;
-                this.x -= 2.5;
-            }
-            if (this.runLeftAnimation.isDone()) {
-                this.isRunning = false;
-                this.runLeftAnimation.elapsedTime = 0;
-                this.steps = 0;
-                this.x -= 5;
-
-            }
-        }  
+       this.isWalking = false;
+       this.isRunning = false;
+       this.steps = 0;
     }
 }
 
 Mario.prototype.draw = function(ctx) {
      //console.log(this.game.clockTick);
-     var style = ctx.strokeStyle;
-     ctx.strokeStyle = 'red';
+	var style = ctx.strokeStyle;
+	ctx.strokeStyle = 'red';
     ctx.strokeRect(this.x+17, this.y+8, 12, 16);
     ctx.strokeStyle = style;
     //ctx.drawImage(this.sprite, this.x, this.y, 40, 40);
     if (this.isRunning) {
-        if (this.isRight)
+        if (this.isRight) {
             this.runRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
-        else
+            if (this.runRightAnimation.isDone())
+                    this.runRightAnimation.elapsedTime = 0;
+        } else {
+        	
             this.runLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            if (this.runLeftAnimation.isDone())
+                    this.runLeftAnimation.elapsedTime = 0;
+        }
     
     } else if (this.isWalking) {
-        if (this.isRight)
+        if (this.isRight) {
             this.walkRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
-        else
+            if (this.walkRightAnimation.isDone()) {
+                    this.walkRightAnimation.elapsedTime = 0;
+            }
+        } else {
             this.walkLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+            if (this.walkLeftAnimation.isDone()) {
+                    this.walkLeftAnimation.elapsedTime = 0;
+        	}
+        }
     } else {
         if (this.isRight)
             ctx.drawImage(this.sprite,
@@ -484,7 +421,7 @@ Enemy.prototype = new Entity();
 Enemy.prototype.constructor = Enemy;
 
 Enemy.prototype.update = function() {
-    var travelCount = 100
+    var travelCount = 100;
     if(this.direction === 1) {
         if(this.x === this.init_x + travelCount) {
             this.direction = 0;
@@ -541,7 +478,7 @@ QuestionBox.prototype = new Entity();
 QuestionBox.prototype.constructor = QuestionBox;
 
 QuestionBox.prototype.update = function () {
-    Entity.prototype.update.call(this);
+    //Entity.prototype.update.call(this);
 }
 
 QuestionBox.prototype.draw = function (ctx) {
@@ -561,7 +498,7 @@ GreenPipe.prototype = new Entity();
 GreenPipe.prototype.constructor = GreenPipe;
 
 GreenPipe.prototype.update = function () {
-    Entity.prototype.update.call(this);
+   // Entity.prototype.update.call(this);
 }
 
 GreenPipe.prototype.draw = function (ctx) {
