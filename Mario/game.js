@@ -469,8 +469,8 @@ Enemy.prototype.draw = function(ctx) {
 
 //QuestionBox
 function QuestionBox(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/qBoxTransparant.png');
-    this.moveAnimation = new Animation(this.sprite, 1, 1, 17, 16, 0.22, 4, true, false);
+    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.moveAnimation = new Animation(this.sprite, 205, 1, 17, 16, 0.14, 4, true, false);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -487,6 +487,137 @@ QuestionBox.prototype.draw = function (ctx) {
 
 }
 
+//ShineyGoldBox
+function ShineyGoldBox(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.moveAnimation = new Animation(this.sprite, 52, 35, 17, 16, 0.14, 8, true, false);
+    Entity.call(this, game, init_x, init_y);
+}
+
+ShineyGoldBox.prototype = new Entity();
+ShineyGoldBox.prototype.constructor = ShineyGoldBox;
+
+ShineyGoldBox.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+}
+
+ShineyGoldBox.prototype.draw = function (ctx) {
+    //console.log(this.sprite);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+
+}
+
+//ShineyBlueBox
+function ShineyBlueBox(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.moveAnimation = new Animation(this.sprite, 378, 60, 17, 16, 0.14, 8, true, false);
+    Entity.call(this, game, init_x, init_y);
+}
+
+ShineyBlueBox.prototype = new Entity();
+ShineyBlueBox.prototype.constructor = ShineyBlueBox;
+
+ShineyBlueBox.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+}
+
+ShineyBlueBox.prototype.draw = function (ctx) {
+    //console.log(this.sprite);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+
+}
+
+//ColorFullExclamation
+function ColorFullExclamation(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.moveAnimation = new Animation(this.sprite, 205, 18, 17, 16, 0.30, 4, true, false);
+    Entity.call(this, game, init_x, init_y);
+}
+
+ColorFullExclamation.prototype = new Entity();
+ColorFullExclamation.prototype.constructor = ColorFullExclamation;
+
+ColorFullExclamation.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+}
+
+ColorFullExclamation.prototype.draw = function (ctx) {
+    //console.log(this.sprite);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+
+}
+
+//PinkMusicNote
+function PinkMusicNote(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.moveAnimation = new Animation(this.sprite, 120, 69, 17, 16, 0.20, 4, true, false);
+    Entity.call(this, game, init_x, init_y);
+}
+
+PinkMusicNote.prototype = new Entity();
+PinkMusicNote.prototype.constructor = PinkMusicNote;
+
+PinkMusicNote.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+}
+
+PinkMusicNote.prototype.draw = function (ctx) {
+    //console.log(this.sprite);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+
+}
+
+
+//WhiteMusicNote
+function WhiteMusicNote(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.moveAnimation = new Animation(this.sprite, 120, 52, 17, 16, 0.20, 4, true, false);
+    Entity.call(this, game, init_x, init_y);
+}
+
+WhiteMusicNote.prototype = new Entity();
+WhiteMusicNote.prototype.constructor = WhiteMusicNote;
+
+WhiteMusicNote.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+}
+
+WhiteMusicNote.prototype.draw = function (ctx) {
+    //console.log(this.sprite);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+
+}
+
+
+//PowBox
+function PowBox(init_x, init_y, game) {
+
+    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.moveAnimation = new Animation(this.sprite, 35, 18, 17, 16, 0.14, 3, true, false);
+    Entity.call(this, game, init_x, init_y);
+}
+
+PowBox.prototype = new Entity();
+PowBox.prototype.constructor = PowBox;
+
+PowBox.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+}
+
+PowBox.prototype.draw = function (ctx) {
+    //console.log(this.sprite);
+    //this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+	
+		            ctx.drawImage(this.sprite,
+                  35, 18,  // source from sheet
+                  17, 16,
+                  this.x, this.y,
+                  17,
+                  16);
+
+}
+
+
 //Green pipe
 function GreenPipe(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/pipe.png');
@@ -502,14 +633,35 @@ GreenPipe.prototype.update = function () {
 }
 
 GreenPipe.prototype.draw = function (ctx) {
-    //console.log(this.sprite);
-    //this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
 	            ctx.drawImage(this.sprite,
                   1, 1,  // source from sheet
                   34, 50,
                   this.x, this.y,
                   35,
                   51);
+
+}
+
+//StaticGoldBlock
+function StaticGoldBlock(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    Entity.call(this, game, init_x, init_y);
+}
+
+StaticGoldBlock.prototype = new Entity();
+StaticGoldBlock.prototype.constructor = StaticGoldBlock;
+
+StaticGoldBlock.prototype.update = function () {
+
+}
+
+StaticGoldBlock.prototype.draw = function (ctx) {
+	            ctx.drawImage(this.sprite,
+                  1, 35,  
+                  16, 16,
+                  this.x, this.y,
+                  16,
+                  16);
 
 }
 
@@ -532,7 +684,7 @@ GameBoard.prototype.draw = function (ctx) {
 // the "main" code begins here
 
 var ASSET_MANAGER = new AssetManager();
-ASSET_MANAGER.queueDownload('images/qBoxTransparant.png');
+ASSET_MANAGER.queueDownload('images/levelRemovedBorder1.png');
 ASSET_MANAGER.queueDownload('images/smb3_mario_sheet.png');
 ASSET_MANAGER.queueDownload('images/smb3_enemies_sheet.png');
 ASSET_MANAGER.queueDownload('images/pipe.png');
@@ -551,12 +703,45 @@ ASSET_MANAGER.downloadAll(function () {
     var enemy1 = new Enemy( 180 , 210, gameEngine);
     var enemy2 = new Enemy( 580 , 210, gameEngine);
     var enemy3 = new Enemy( 475 , 210, gameEngine);
+
+		var staticGold2 = new StaticGoldBlock(83, 150, gameEngine);
+			var staticGold3 = new StaticGoldBlock(66, 150, gameEngine);
+				var staticGold4 = new StaticGoldBlock(168, 150, gameEngine);	
+				var staticGold5 = new StaticGoldBlock(185, 150, gameEngine);
     var qbox = new QuestionBox(100, 150, gameEngine);
     var qbox1 = new QuestionBox(117, 150, gameEngine);
     var qbox2 = new QuestionBox(134, 150, gameEngine);
     var qbox3 = new QuestionBox(151, 150, gameEngine);
 	var pipe = new GreenPipe(450, 183, gameEngine);
+	
+	var shineyGold1 = new ShineyGoldBox(287, 150, gameEngine);
+		var shineyGold2 = new ShineyGoldBox(304, 150, gameEngine);
+			var shineyGold3 = new ShineyGoldBox(321, 150, gameEngine);
+				var shineyGold4 = new ShineyGoldBox(338, 150, gameEngine);
+					var shineyGold5 = new ShineyGoldBox(355, 150, gameEngine);
+					
+	var whiteMusic1 = new WhiteMusicNote(526, 165, gameEngine);
+		var pinkMusic1 = new PinkMusicNote(543, 181, gameEngine);
+			var whiteMusic2 = new WhiteMusicNote(560, 165, gameEngine);
+				var pinkMusic2 = new PinkMusicNote(577, 181, gameEngine);
     
+	var powBox = new PowBox(375, 215, gameEngine);
+	
+	var shineyBlue1 = new ShineyBlueBox(725, 217, gameEngine);
+		var shineyBlue2 = new ShineyBlueBox(742, 201, gameEngine);
+			var shineyBlue3 = new ShineyBlueBox(759, 185, gameEngine);
+				var shineyBlue4 = new ShineyBlueBox(776, 169, gameEngine);
+					var shineyBlue5 = new ShineyBlueBox(793, 169, gameEngine);
+						var shineyBlue6 = new ShineyBlueBox(810, 169, gameEngine);
+							var shineyBlue7 = new ShineyBlueBox(827, 169, gameEngine);
+								var shineyBlue8 = new ShineyBlueBox(844, 169, gameEngine);
+									var shineyBlue9 = new ShineyBlueBox(861, 169, gameEngine);
+									
+	var cfEx1 = new ColorFullExclamation(875, 217, gameEngine);
+	var cfEx2 = new ColorFullExclamation(909, 217, gameEngine);
+	var staticGold1 = new StaticGoldBlock(892, 217, gameEngine);
+	
+	
     gameEngine.addEntity(gameboard);
     
     gameEngine.addEntity(enemy);
@@ -569,7 +754,36 @@ ASSET_MANAGER.downloadAll(function () {
     gameEngine.addEntity(qbox3);
 	gameEngine.addEntity(pipe);
     gameEngine.addEntity(mario);
- 
+	gameEngine.addEntity(shineyGold1);
+		gameEngine.addEntity(shineyGold2);
+			gameEngine.addEntity(shineyGold3);
+				gameEngine.addEntity(shineyGold4);
+					gameEngine.addEntity(shineyGold5);
+	gameEngine.addEntity(powBox);
+	gameEngine.addEntity(shineyBlue1);
+	gameEngine.addEntity(shineyBlue2);	
+	gameEngine.addEntity(shineyBlue3);	
+	gameEngine.addEntity(shineyBlue4);	
+	gameEngine.addEntity(shineyBlue5);	
+	gameEngine.addEntity(shineyBlue6);	
+	gameEngine.addEntity(shineyBlue7);
+	gameEngine.addEntity(shineyBlue8);	
+	gameEngine.addEntity(shineyBlue9);	
+
+	gameEngine.addEntity(cfEx1);	
+		gameEngine.addEntity(staticGold1);
+	gameEngine.addEntity(cfEx2);
+
+gameEngine.addEntity(staticGold2);
+gameEngine.addEntity(staticGold3);
+gameEngine.addEntity(staticGold4);
+gameEngine.addEntity(staticGold5);	
+
+gameEngine.addEntity(whiteMusic1);
+gameEngine.addEntity(whiteMusic2);
+gameEngine.addEntity(pinkMusic1);
+gameEngine.addEntity(pinkMusic2);	
+	
     gameEngine.init(ctx);
     gameEngine.start();
 });
