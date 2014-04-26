@@ -279,6 +279,7 @@ Entity.prototype.rotateAndCache = function (image, angle) {
 function Mario(init_x, init_y, game) {
     this.isRunning = false;
     this.isWalking = false;
+    this.isJumping = false;
     this.isRight = true;
     this.steps = 0;
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
@@ -333,7 +334,12 @@ Mario.prototype.update = function() {
             } else {
                  this.isWalking =true;
             }
-        } else {
+        } else if (this.game.key.keyCode === 38) {
+            this.isJumping = true;
+            this.y += 5;
+        }
+
+        else {
             this.isWalking = false;
             this.isRunning = false;
             this.steps = 0;
