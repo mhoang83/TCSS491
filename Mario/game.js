@@ -124,6 +124,7 @@ Timer.prototype.tick = function () {
 
 function GameEngine() {
     this.entities = [];
+    this.mario = null;
     this.ctx = null;
     this.click = null;
     this.mouse = null;
@@ -198,6 +199,7 @@ GameEngine.prototype.addEntity = function (entity) {
     this.entities.push(entity);
 }
 
+
 GameEngine.prototype.draw = function (drawCallback) {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.save();
@@ -229,6 +231,18 @@ GameEngine.prototype.update = function () {
     }
 }
 
+GameEngine.prototype.detectCollisions = function () {
+    var entities = this.entities;
+    var mario = this.mario;
+    for (var i = 0; i < entities.length; i++) {
+        var entity = entities[i];
+        if (mario.boundingbox.isCollision(entity.boundingbox) && mario.type !== entity.type) {
+            mario.collide(entity);
+            entity.collide(mario);
+        }
+    }
+}
+
 GameEngine.prototype.loop = function () {
     this.clockTick = this.timer.tick();
     this.update();
@@ -238,10 +252,33 @@ GameEngine.prototype.loop = function () {
     //this.key = null;
 }
 
+// bouding box used for determining collisions
+
+function BoundingBox(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+
+    this.left = x;
+    this.top = y;
+    this.right = this.left + width;
+    this.bottom = this.top + height;
+}
+
+BoundingBox.prototype.isCollision = function (oth) {
+    return this.right > oth.left && this.left < oth.right && this.top < oth.bottom && this.bottom > oth.top;
+    
+}
+
 function Entity(game, x, y) {
     this.game = game;
     this.x = x;
     this.y = y;
+    /*
+        use this. overwrite when extending entity ie for mario make type "Mario", for box "Box" etc.s
+    */
+    this.type = 'Entity' 
     this.removeFromWorld = false;
 }
 
@@ -274,20 +311,38 @@ Entity.prototype.rotateAndCache = function (image, angle) {
     //offscreenCtx.strokeRect(0,0,size,size);
     return offscreenCanvas;
 }
+
+Entity.prototype.collide = function(other) {
+    /*do what you need to do when you collide
+        for example
+        if(other.type == "Goomba") {
+            if (<collided on side>) {
+                this.isDead = true;
+                this.game.isOver = true;
+            }
+        }
+        but you get the idea handle collision logic here
+    */
+}
 //mario
 
 function Mario(init_x, init_y, game) {
+
+    this.type = "Mario";
+     Entity.call(this, game, init_x, init_y);
     this.isRunning = false;
     this.isWalking = false;
     this.isJumping = false;
     this.isRight = true;
     this.steps = 0;
+    // made this the same as the debug box mario already has drawn around him.
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
     this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
     this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
     this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
     this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
-    Entity.call(this, game, init_x, init_y);
+   
 }
 
 Mario.prototype = new Entity();
@@ -705,6 +760,7 @@ ASSET_MANAGER.downloadAll(function () {
     
     //Create Character objects
     var mario = new Mario( 0, 208, gameEngine);
+    gameEngine.mario = mario;
     var enemy = new Enemy( 100 , 210, gameEngine);
     var enemy1 = new Enemy( 180 , 210, gameEngine);
     var enemy2 = new Enemy( 580 , 210, gameEngine);
