@@ -124,7 +124,6 @@ Timer.prototype.tick = function () {
 
 function GameEngine() {
     this.entities = [];
-    this.mario = null;
     this.ctx = null;
     this.click = null;
     this.mouse = null;
@@ -199,7 +198,6 @@ GameEngine.prototype.addEntity = function (entity) {
     this.entities.push(entity);
 }
 
-
 GameEngine.prototype.draw = function (drawCallback) {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.save();
@@ -231,18 +229,6 @@ GameEngine.prototype.update = function () {
     }
 }
 
-GameEngine.prototype.detectCollisions = function () {
-    var entities = this.entities;
-    var mario = this.mario;
-    for (var i = 0; i < entities.length; i++) {
-        var entity = entities[i];
-        if (mario.boundingbox.isCollision(entity.boundingbox) && mario.type !== entity.type) {
-            mario.collide(entity);
-            entity.collide(mario);
-        }
-    }
-}
-
 GameEngine.prototype.loop = function () {
     this.clockTick = this.timer.tick();
     this.update();
@@ -252,33 +238,264 @@ GameEngine.prototype.loop = function () {
     //this.key = null;
 }
 
-// bouding box used for determining collisions
 
-function BoundingBox(x, y, width, height) {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
 
-    this.left = x;
-    this.top = y;
-    this.right = this.left + width;
-    this.bottom = this.top + height;
-}
-
-BoundingBox.prototype.isCollision = function (oth) {
-    return this.right > oth.left && this.left < oth.right && this.top < oth.bottom && this.bottom > oth.top;
     
+/*
+	JSON Document and formatting created by Daniel Henderson
+	Spring 2014 University of Washington
+	Project: TCSS 491 Mario Game (HTML5 and Javascript)
+
+	---------------------------------
+Each level background is 512x256
+
+0,0 - Level 1 (Blue Sky Colorful Block)
+514, 0 - Level 2 (Poka Dot mounds)
+
+0, 258 - Level 3 (Clouds and green Mounds): 
+514, 258 - Level 4 (Desert and Pyramids): 
+
+0, 516 - Level 5 (UnderGround and dirt):
+514, 516 - Level 6 (Desert Empty):
+
+0, 774 - Level 7 (UnderWater):
+514, 774 - Level 8 (Rockey with Water ditechs):
+
+0, 1032 - Level 9: (Forest)
+514, 1032 - Level 10: (Castle
+
+*/
+var jSonString =  
+    {"levels":
+		{ "id": "1",
+		    "description": "Blue Sky Colorful Blocks",
+		    "background":{
+		        "spritesheet": "/images/mariolevels.png",
+		        "start_x":0,
+		        "start_y":0,
+		        "size_x":512,
+		        "size_y":256,
+		        "length":4
+		    },
+		    "entities":{
+		        "players":{
+		            "mario":{
+		                "init_x":0,
+		                "init_y":208,
+		                "spritesheet":"images/smb3_mario_sheet.png"
+		            }
+		        },
+		        "enemies":{
+		            "goomba":[
+						{"id":1, "init_x":100,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
+						{"id":2, "init_x":180,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
+						{"id":3, "init_x":580,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
+						{"id":4, "init_x":475,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"}
+		            ]
+		        },
+
+
+		        "blocks":{
+
+		            /*
+                        ID = id of single block, or flat repeated platform if count > 1; 
+                        init_x and init_y = position on canvas; 
+                        count = number of blocks for this platform (only use this if flat platform, since stairs are considered a single platform, where count = 1 per incline of Y for each step)
+                    */
+		            "staticGoldblocks": [
+						//First Platform with question boxes in between these 2 groups
+						{"id":1, "init_x":66,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":2},
+						{"id":2, "init_x":168,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":2},
+
+						//Second instance with Exclamation boxes on either side
+						{"id":3, "init_x":892,"init_y":217,"spritesheet": "/images/levelRemovedBorder1.png", "count":1}
+
+		            ],
+		            "questionBlocks": [
+						//First platform from beginning in between staticGoldBlocks
+						{"id":1, "init_x":100,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":4}
+
+		            ],
+		            "shineyGoldBlocks": [
+						//Second platform from beginning consisting of 5 shiney gold blocks
+						{"id":1, "init_x":287,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":5}
+
+		            ],
+		            "shineyBlueBlocks": [
+						{"id":1, "init_x":725,"init_y":217,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+						{"id":2, "init_x":742,"init_y":201,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+						{"id":3, "init_x":759,"init_y":185,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+						{"id":4, "init_x":776,"init_y":169,"spritesheet": "/images/levelRemovedBorder1.png", "count":5}
+
+		            ],
+		            "whiteMusicBlocks": [
+						// First grouping of White and Pink music boxes from beginning	
+						{"id":1, "init_x":526,"init_y":165,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+						{"id":2, "init_x":560,"init_y":165,"spritesheet": "/images/levelRemovedBorder1.png", "count":1}
+
+		            ],
+		            "pinkMusicBlocks": [
+						// First grouping of White and Pink music boxes from beginning	
+						{"id":1, "init_x":543,"init_y":181,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+						{"id":2, "init_x":577,"init_y":181,"spritesheet": "/images/levelRemovedBorder1.png", "count":1}
+
+		            ],
+		            "powBlocks": [
+						// Single Pow box (not animated) near Green Pipe	
+						{"id":1, "init_x":375,"init_y":215,"spritesheet": "/images/levelRemovedBorder1.png", "count":1}
+
+		            ],
+		            "colorExclamationBlocks": [
+						// Color Exclamation blocks near end of map with single static gold in between them	
+						{"id":1, "init_x":875,"init_y":217,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+						{"id":2, "init_x":909,"init_y":217,"spritesheet": "/images/levelRemovedBorder1.png", "count":1}
+
+		            ],
+
+
+		            /*
+                        ID = id of single block, or flat repeated platform if count > 1; 
+                        init_x and init_y = position on canvas; 
+                        count = number of blocks for this pipe    Example, a small clip can be added to raise the bottom of the initial pipe to make it higher. 
+                        3 of these would mean the initial pipe has been added to it, so height would be 4. height equal to 1 means the current pipe is a basic pipe. 
+                    */
+		            "greenPipes": [
+						{"id":1, "init_x":450,"init_y":183,"spritesheet": "/images/pipe.png", "count": 1}
+
+		            ]
+
+		        }
+		    }
+		}
+}
+GameEngine.prototype.loadLevel = function (jSonString) {
+    //Change Json String to Javascript Object - parsing
+    this.mainObj = JSON.parse(jSonString);
+    this.levelObj = mainObj.levels;
+
+    //Descriptive String for level type
+    this.idStr = levelObj.id;
+    this.descriptionStr = levelObj.description;
+
+    //Background Object with background information
+    this.backgroundObj = levelObj.background;
+    this.spriteSheet = backgroundObj.spritesheet;
+    this.start_x = backgroundObj.start_x;
+    this.start_y = backgroundObj.start_y;
+    this.size_x = backgroundObj.size_x;
+    this.size_y = backgroundObj.size_y;
+    this.length = backgroundObj.length;
+
+    //Entities in the level (Player Characters, Enemies Characters, and Blocks
+    this.entitiesObj = levelObj.entities;
+
+    //Players inside Entities 
+    this.playersObj = entitiesObj.players;
+
+    //Mario inside Players
+    this.marioObj = playersObj.mario;
+    this.init_x = marioObj.init_x;
+    this.init_y = marioObj.init_y;
+    this.spriteSheetStr = marioObj.spritesheet;
+
+    //Enemies inside Entities
+    this.enemiesObj = entitiesObj.enemies;
+
+    //Enemies
+    for (var key in enemiesObj) {
+        var enemyGroupArray = enemiesObj[key];
+        var arrayLength = enemyGroupArray.length;
+        for (i = 0; i < arrayLength; i++) {
+            var enemyObject = enemyGroupArray[i];
+            gameEngine.addEntity(new Enemy(enemyObject.init_x, enemyObject.init_y, gameEngine));
+        }
+    }
+
+    //Blocks inside Entities
+    this.blocksObj = entitiesObj.blocks;
+
+    //Blocks
+    //Enemies
+    for (var key in blocksObj) {
+        var blockTypeInt = 0;
+
+        var blockGroupArray = blocksObj[key];
+        var arrayLength = blockGroupArray.length;
+        for (i = 0; i < arrayLength; i++) {
+            var blockObject = blockGroupArray[i];
+            var count = blockObject.count;
+            switch (blockTypeInt) {
+
+                /*Each For Loop and the (17 * j) + x coordinate allows the creationg of platforms
+                 based off count value inside the JSON document. Coordinates start from the first block on the
+                 left, and increment 17 pixels to the right ever loop
+                */
+                case 1:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new QuestionBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 2:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new ShineyGoldBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 3:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new ShineyBlueBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 4:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new WhiteMusicNote(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 5:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new PinkMusicNote(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 6:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new PowBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 7:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new ColorFullExclamation(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 7:
+
+                    //Enables the construction of a green pipe with a variable height using only to sprite sheets,
+                    //where the actual height of the pipe is = (count x 15) + initial size of the regular green pipe (50) 
+                    for (j = 0; j < count; j++) {
+                        if (count > 1 && j === 0) {
+                            gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y - (count * 15), gameEngine));
+                        } else if(count === 1){
+                            gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y, gameEngine));
+                        } else if (count > 1 && j > 0) {
+                            gameEngine.addEntity(new GreenPipeExtension(blockObject.init_x, ((blockObject.init_y + 50) + (j * 15) , gameEngine)));
+                            GreenPipeExtension
+                        }
+                    }
+                    break;
+                default:
+                    gameEngine.addEntity(new StaticGoldBlock(blockObject.init_x, blockObject.init_y, gameEngine));
+
+            }
+
+        }
+        blockTypeInt++;
+    }
+
+
 }
 
 function Entity(game, x, y) {
     this.game = game;
     this.x = x;
     this.y = y;
-    /*
-        use this. overwrite when extending entity ie for mario make type "Mario", for box "Box" etc.s
-    */
-    this.type = 'Entity' 
     this.removeFromWorld = false;
 }
 
@@ -311,38 +528,20 @@ Entity.prototype.rotateAndCache = function (image, angle) {
     //offscreenCtx.strokeRect(0,0,size,size);
     return offscreenCanvas;
 }
-
-Entity.prototype.collide = function(other) {
-    /*do what you need to do when you collide
-        for example
-        if(other.type == "Goomba") {
-            if (<collided on side>) {
-                this.isDead = true;
-                this.game.isOver = true;
-            }
-        }
-        but you get the idea handle collision logic here
-    */
-}
 //mario
 
 function Mario(init_x, init_y, game) {
-
-    this.type = "Mario";
-     Entity.call(this, game, init_x, init_y);
     this.isRunning = false;
     this.isWalking = false;
     this.isJumping = false;
     this.isRight = true;
     this.steps = 0;
-    // made this the same as the debug box mario already has drawn around him.
-    this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
     this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
     this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
     this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
     this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
-   
+    Entity.call(this, game, init_x, init_y);
 }
 
 Mario.prototype = new Entity();
@@ -703,6 +902,28 @@ GreenPipe.prototype.draw = function (ctx) {
 
 }
 
+function GreenPipeExtension(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/pipeextension.png');
+    Entity.call(this, game, init_x, init_y);
+}
+
+GreenPipeExtension.prototype = new Entity();
+GreenPipeExtension.prototype.constructor = GreenPipeExtension;
+
+GreenPipeExtension.prototype.update = function () {
+    // Entity.prototype.update.call(this);
+}
+
+GreenPipeExtension.prototype.draw = function (ctx) {
+    ctx.drawImage(this.sprite,
+      1, 1,  // source from sheet
+      30, 15,
+      this.x, this.y,
+      30,
+      15);
+
+}
+
 //StaticGoldBlock
 function StaticGoldBlock(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
@@ -760,7 +981,6 @@ ASSET_MANAGER.downloadAll(function () {
     
     //Create Character objects
     var mario = new Mario( 0, 208, gameEngine);
-    gameEngine.mario = mario;
     var enemy = new Enemy( 100 , 210, gameEngine);
     var enemy1 = new Enemy( 180 , 210, gameEngine);
     var enemy2 = new Enemy( 580 , 210, gameEngine);
