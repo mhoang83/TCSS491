@@ -999,12 +999,19 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
 
     gameEngine.addEntity(gameboard);
-  
-    $.get('services/levelService.php', {id:1}, function(data) {
-        console.log(data);
-         gameEngine.loadLevel(data, gameEngine);
+
+    try {
+        $.get('services/levelService.php', {id:1}, function(data) {
+            gameEngine.loadLevel(data, gameEngine);
+            gameEngine.init(ctx);
+            gameEngine.start();
+           
+        }).fail(function(error) { console.log('error');});
+    } catch (err) {
+        gameEngine.loadLevel(level1, gameEngine);
         gameEngine.init(ctx);
         gameEngine.start();
-    }).fail(function(error) { console.log('error');});
+    }
+    
    
 });
