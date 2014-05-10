@@ -253,43 +253,49 @@ GameEngine.prototype.loop = function () {
 
 
 
-GameEngine.prototype.loadLevel = function (jSonString) {
+GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
     //Change Json String to Javascript Object - parsing
-    this.mainObj = JSON.parse(jSonString);
+    if( typeof jSonString === 'string') {
+        this.mainObj = JSON.parse(jSonString);
+
+    } else {
+
+            this.mainObj = jSonString;
+    }
     this.levelObj = this.mainObj.levels;
 
     //Descriptive String for level type
-    this.idStr = levelObj.id;
-    this.descriptionStr = levelObj.description;
+    this.idStr = this.levelObj.id;
+    this.descriptionStr = this.levelObj.description;
 
     //Background Object with background information
-    this.backgroundObj = levelObj.background;
-    this.spriteSheet = backgroundObj.spritesheet;
-    this.start_x = backgroundObj.start_x;
-    this.start_y = backgroundObj.start_y;
-    this.size_x = backgroundObj.size_x;
-    this.size_y = backgroundObj.size_y;
-    this.length = backgroundObj.length;
+    this.backgroundObj = this.levelObj.background;
+    this.spriteSheet = this.backgroundObj.spritesheet;
+    this.start_x = this.backgroundObj.start_x;
+    this.start_y = this.backgroundObj.start_y;
+    this.size_x = this.backgroundObj.size_x;
+    this.size_y = this.backgroundObj.size_y;
+    this.length = this.backgroundObj.length;
 
     //Entities in the level (Player Characters, Enemies Characters, and Blocks
-    this.entitiesObj = levelObj.entities;
+    this.entitiesObj = this.levelObj.entities;
 
     //Players inside Entities 
-    this.playersObj = entitiesObj.players;
+    this.playersObj = this.entitiesObj.players;
 
     //Mario inside Players
-    this.marioObj = playersObj.mario;
-    this.init_x = marioObj.init_x;
-    this.init_y = marioObj.init_y;
-    this.spriteSheetStr = marioObj.spritesheet;
-     gameEngine.mario = mario;
+    this.marioObj = this.playersObj.mario;
+    this.spriteSheetStr = this.marioObj.spritesheet;
+    var mario = new Mario(this.marioObj.init_x, this.marioObj.init_y, gameEngine);
+    gameEngine.addEntity(mario);
+    gameEngine.mario = mario;
 
     //Enemies inside Entities
-    this.enemiesObj = entitiesObj.enemies;
+    this.enemiesObj = this.entitiesObj.enemies;
 
     //Enemies
-    for (var key in enemiesObj) {
-        var enemyGroupArray = enemiesObj[key];
+    for (var key in this.enemiesObj) {
+        var enemyGroupArray = this.enemiesObj[key];
         var arrayLength = enemyGroupArray.length;
         for (i = 0; i < arrayLength; i++) {
             var enemyObject = enemyGroupArray[i];
@@ -298,14 +304,15 @@ GameEngine.prototype.loadLevel = function (jSonString) {
     }
 
     //Blocks inside Entities
-    this.blocksObj = entitiesObj.blocks;
-
+    this.blocksObj = this.entitiesObj.blocks;
+    var blockCount = Object.keys(this.blocksObj).length;
+        console.log("Number of Block Types: " + blockCount);
     //Blocks
-    //Enemies
-    for (var key in blocksObj) {
-        var blockTypeInt = 0;
+    var blockTypeInt = 0;
+    for (var key in this.blocksObj) { //for every block type in this Blocks Object, do this
 
-        var blockGroupArray = blocksObj[key];
+
+        var blockGroupArray = this.blocksObj[key];
         var arrayLength = blockGroupArray.length;
         for (i = 0; i < arrayLength; i++) {
             var blockObject = blockGroupArray[i];
@@ -367,12 +374,14 @@ GameEngine.prototype.loadLevel = function (jSonString) {
                     }
                     break;
                 default:
-                    gameEngine.addEntity(new StaticGoldBlock(blockObject.init_x, blockObject.init_y, gameEngine));
-
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new StaticGoldBlock(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
             }
-
         }
-        blockTypeInt++;
+                    blockTypeInt+=1;
+                            console.log("Block type is currently block: " + blockTypeInt);
+
     }
 
 
@@ -1017,7 +1026,7 @@ var jSonString =
         }
 }
 
-    gameEngine.loadLevel(jSonString);
+    gameEngine.loadLevel(jSonString, gameEngine);
     
     //gameEngine.addEntity(enemy);
     //gameEngine.addEntity(enemy1);
