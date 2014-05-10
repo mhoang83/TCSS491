@@ -527,9 +527,13 @@ Mario.prototype.update = function() {
             } else {
                  this.isWalking =true;
             }
+
         } else if (this.game.key.keyCode === 38) {
             this.isJumping = true;
-            this.y += 5;
+            if (this.y < 100) {
+
+                this.y -= 2;
+            }
         }
 
         else {
