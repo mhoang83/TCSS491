@@ -1010,7 +1010,7 @@ Each level background is 512x256
 */
 var jSonString =  
     {"levels":
-        { "id": 2,
+        { "id": 1,
             "description": "Blue Sky Colorful Blocks",
             "background":{
                 "spritesheet": "/images/mariolevels.png",
