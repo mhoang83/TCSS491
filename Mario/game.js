@@ -278,6 +278,7 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
     this.length = this.backgroundObj.length;
     var background = new BackGround(this.start_x, this.start_y, gameEngine, this.length, this.id);
     gameEngine.addEntity(background);
+    this.background = background;
 
 
     //Entities in the level (Player Characters, Enemies Characters, and Blocks
@@ -487,6 +488,7 @@ Mario.prototype = new Entity();
 Mario.prototype.constructor = Mario;
 
 Mario.prototype.update = function() {
+    //console.log(this.game.ctx);
     if (this.game.key) {
        // console.log('key' + " " + this.game.key.keyCode);
         if (this.game.key.keyCode === 39) {
@@ -494,8 +496,14 @@ Mario.prototype.update = function() {
                 this.steps = 0;
                 this.isRight = true;
             }
+           // console.log(-(this.game.background.x ) + this.x + 50 +" " + (this.game.background.sizex * (this.game.length -1)))
             if (this.isRunning) {
-                this.x += 2.5;
+                if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
+                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40 )
+                        this.x += 2.5;
+                } else {
+                    this.game.background.x -= 2.5;
+                }
             } else  if (this.steps > 5) {
                 this.isRunning = true;
                 this.isWalking = false;
@@ -503,7 +511,12 @@ Mario.prototype.update = function() {
                 if (this.walkRightAnimation.elapsedTime + this.game.clockTick >= this.walkRightAnimation.totalTime) {
                     this.steps++;
                 }
-                this.x +=1;   
+                if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length -1) ) {
+                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
+                        this.x +=1; 
+                }  else {
+                    this.game.background.x -= 1;
+                }
             } else {
                 this.isWalking =true;
             }
@@ -515,7 +528,8 @@ Mario.prototype.update = function() {
             }
             
             if (this.isRunning) {
-                this.x -= 2.5;
+                if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25)
+                    this.x -= 2.5;
             } else if (this.steps > 5) {
                 this.isRunning = true;
                 this.isWalking = false;
@@ -523,7 +537,8 @@ Mario.prototype.update = function() {
                 if (this.walkLeftAnimation.elapsedTime + this.game.clockTick >= this.walkLeftAnimation.totalTime) {
                     this.steps++;
                 }
-                this.x -=1;   
+                if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25)
+                    this.x -=1;   
             } else {
                  this.isWalking =true;
             }
@@ -644,7 +659,7 @@ Enemy.prototype.update = function() {
 Enemy.prototype.draw = function(ctx) {
     //context.drawImage(img,sx,sy,swidth,sheight,x,y,width,height);
     //console.log(this.sprite);
-   this.bounceAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.1);
+   this.bounceAnimation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
     
     /*
     for(var i = 1; i < 4; i++) {
@@ -686,7 +701,7 @@ QuestionBox.prototype.update = function () {
 
 QuestionBox.prototype.draw = function (ctx) {
     //console.log(this.sprite);
-    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
 
 }
 
@@ -706,7 +721,7 @@ ShineyGoldBox.prototype.update = function () {
 
 ShineyGoldBox.prototype.draw = function (ctx) {
     //console.log(this.sprite);
-    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y);
 
 }
 
@@ -726,7 +741,7 @@ ShineyBlueBox.prototype.update = function () {
 
 ShineyBlueBox.prototype.draw = function (ctx) {
     //console.log(this.sprite);
-    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
 
 }
 
@@ -746,7 +761,7 @@ ColorFullExclamation.prototype.update = function () {
 
 ColorFullExclamation.prototype.draw = function (ctx) {
     //console.log(this.sprite);
-    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y);
 
 }
 
@@ -766,7 +781,7 @@ PinkMusicNote.prototype.update = function () {
 
 PinkMusicNote.prototype.draw = function (ctx) {
     //console.log(this.sprite);
-    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
 
 }
 
@@ -787,7 +802,7 @@ WhiteMusicNote.prototype.update = function () {
 
 WhiteMusicNote.prototype.draw = function (ctx) {
     //console.log(this.sprite);
-    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+    this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y);
 
 }
 
@@ -814,7 +829,7 @@ PowBox.prototype.draw = function (ctx) {
                     ctx.drawImage(this.sprite,
                   35, 18,  // source from sheet
                   17, 16,
-                  this.x, this.y,
+                   this.game.background.x + this.x, this.y,
                   17,
                   16);
 
@@ -921,7 +936,7 @@ GreenPipe.prototype.draw = function (ctx) {
                 ctx.drawImage(this.sprite,
                   1, 1,  // source from sheet
                   34, 50,
-                  this.x, this.y,
+                   this.game.background.x + this.x, this.y,
                   35,
                   51);
 
@@ -944,7 +959,7 @@ StaticGoldBlock.prototype.draw = function (ctx) {
                 ctx.drawImage(this.sprite,
                   1, 35,  
                   16, 16,
-                  this.x, this.y,
+                   this.game.background.x + this.x, this.y,
                   16,
                   16);
 
@@ -1022,7 +1037,7 @@ var jSonString =
                 "start_y":1,
                 "size_x":512,
                 "size_y":256,
-                "length":4
+                "length":7
             },
             "entities":{
                 "players":{
