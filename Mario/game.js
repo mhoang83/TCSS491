@@ -266,7 +266,7 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
     this.levelObj = this.mainObj.levels;
 
     //Descriptive String for level type
-    this.idStr = this.levelObj.id;
+    this.id = this.levelObj.id;
     this.descriptionStr = this.levelObj.description;
 
     //Background Object with background information
@@ -277,6 +277,9 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
     this.size_x = this.backgroundObj.size_x;
     this.size_y = this.backgroundObj.size_y;
     this.length = this.backgroundObj.length;
+    var background = new BackGround(this.start_x, this.start_y, gameEngine, this.length, this.id);
+    gameEngine.addEntity(background);
+
 
     //Entities in the level (Player Characters, Enemies Characters, and Blocks
     this.entitiesObj = this.levelObj.entities;
@@ -815,6 +818,88 @@ PowBox.prototype.draw = function (ctx) {
 }
 
 
+//Backgrounds
+function BackGround(init_x, init_y, game, length, id) {
+    this.length = length;
+    this.id = id;
+    this.sizex = 512;
+    this.sizey = 256;
+    this.sprite = ASSET_MANAGER.getAsset('images/mariolevels.png');
+    Entity.call(this, game, init_x, init_y);
+}
+
+BackGround.prototype = new Entity();
+BackGround.prototype.constructor = BackGround;
+
+BackGround.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+}
+
+BackGround.prototype.draw = function (ctx) {
+    //console.log(this.sprite);
+    //this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+    var sourcSheetX = 1;
+    var sourceSheetY = 1;
+    var verticleShiftSprite = 258;
+    var verticleShuffleSprite = 514;
+
+        switch (this.id) { // This is the LEVEL ID. The Switch will load the proper sprite from the sprite sheet for that level
+        case 2:
+            var sourcSheetX = 1;
+            var sourceSheetY = 1*verticleShiftSprite;
+            break;
+        case 3:
+            var sourcSheetX = 1;
+            var sourceSheetY = 2*verticleShiftSprite;
+            break;
+        case 4:
+            var sourcSheetX = 1;
+            var sourceSheetY = 3*verticleShiftSprite;
+            break;
+        case 5:
+            var sourcSheetX = 1;
+            var sourceSheetY = 4*verticleShiftSprite;
+            break;
+         case 6:
+            var sourcSheetX = verticleShuffleSprite;
+            var sourceSheetY = 1;
+            break;
+        case 7:
+            var sourcSheetX = verticleShuffleSprite;
+            var sourceSheetY = 1*verticleShiftSprite;
+            break;
+        case 8:
+            var sourcSheetX = verticleShuffleSprite;
+            var sourceSheetY = 2*verticleShiftSprite;
+            break;
+        case 9:
+            var sourcSheetX = verticleShuffleSprite;
+            var sourceSheetY = 3*verticleShiftSprite;
+            break;
+        case 10:
+            var sourcSheetX = 1;
+            var sourceSheetY = 4*verticleShiftSprite;
+            break;
+
+        default: //Default is level 1 which starts at top left of the sprite sheet at 1,1
+            var sourcSheetX = 1;
+            var sourceSheetY = 1;
+            break;
+
+            }
+            var j = 0;
+            while(j < this.length) {
+                                    ctx.drawImage(this.sprite,
+                  sourcSheetX, sourceSheetY,  // source from sheet
+                  512, 256,
+                  (this.x + (j * 511)), this.y,
+                  512,256);
+
+                j++;
+            }
+}
+
+
 //Green pipe
 function GreenPipe(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/pipe.png');
@@ -885,6 +970,7 @@ ASSET_MANAGER.queueDownload('images/levelRemovedBorder1.png');
 ASSET_MANAGER.queueDownload('images/smb3_mario_sheet.png');
 ASSET_MANAGER.queueDownload('images/smb3_enemies_sheet.png');
 ASSET_MANAGER.queueDownload('images/pipe.png');
+ASSET_MANAGER.queueDownload('images/mariolevels.png');
 
 ASSET_MANAGER.downloadAll(function () {
     console.log("starting up da sheild");
@@ -925,12 +1011,12 @@ Each level background is 512x256
 */
 var jSonString =  
     {"levels":
-        { "id": "1",
+        { "id": 2,
             "description": "Blue Sky Colorful Blocks",
             "background":{
                 "spritesheet": "/images/mariolevels.png",
-                "start_x":0,
-                "start_y":0,
+                "start_x":1,
+                "start_y":1,
                 "size_x":512,
                 "size_y":256,
                 "length":4
@@ -1028,13 +1114,6 @@ var jSonString =
 }
 
     gameEngine.loadLevel(jSonString, gameEngine);
-    
-    //gameEngine.addEntity(enemy);
-    //gameEngine.addEntity(enemy1);
-    //gameEngine.addEntity(enemy2);
-    //gameEngine.addEntity(enemy3);
-    //gameEngine.addEntity(mario);  
-
     gameEngine.init(ctx);
     gameEngine.start();
 });
