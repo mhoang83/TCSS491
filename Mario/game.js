@@ -256,7 +256,7 @@ GameEngine.prototype.loop = function () {
 GameEngine.prototype.loadLevel = function (jSonString) {
     //Change Json String to Javascript Object - parsing
     this.mainObj = JSON.parse(jSonString);
-    this.levelObj = mainObj.levels;
+    this.levelObj = this.mainObj.levels;
 
     //Descriptive String for level type
     this.idStr = levelObj.id;
