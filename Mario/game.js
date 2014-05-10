@@ -235,6 +235,7 @@ GameEngine.prototype.detectCollisions = function () {
     for (var i = 0; i < entities.length; i++) {
         var entity = entities[i];
         if (mario.boundingbox.isCollision(entity.boundingbox) && mario.type !== entity.type) {
+            console.log("Collision detected.");
             mario.collide(entity);
             entity.collide(mario);
         }
@@ -303,7 +304,7 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
         var arrayLength = enemyGroupArray.length;
         for (i = 0; i < arrayLength; i++) {
             var enemyObject = enemyGroupArray[i];
-            gameEngine.addEntity(new Enemy(enemyObject.init_x, enemyObject.init_y, gameEngine));
+            gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine));
         }
     }
 
@@ -468,7 +469,7 @@ Entity.prototype.collide = function(other) {
 function Mario(init_x, init_y, game) {
 
     this.type = "Mario";
-     Entity.call(this, game, init_x, init_y);
+    Entity.call(this, game, init_x, init_y);
     this.isRunning = false;
     this.isWalking = false;
     this.isJumping = false;
@@ -622,45 +623,76 @@ Mario.prototype.draw = function(ctx) {
 }
 
 
-//Enemy Code -- TODO: Enemies will have to be in some type of collection.
+//Enemy Base Class
 function Enemy(init_x, init_y, game) {
-    var frameWidth = 50;
-    var frameHeight = 25;
-
+    this.frameWidth = 50;
+    this.frameHeight = 25;
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_enemies_sheet.png');
-    this.bounceAnimation = new Animation(this.sprite, 0, 0, frameWidth, frameHeight, .4, 2, true, false);
     this.init_x = init_x;
-    this.direction = 1;
+    this.init_y = init_y;
     
+    //Call Entity constructor
     Entity.call(this, game, init_x, init_y);
 }
 
 Enemy.prototype = new Entity();
-Enemy.prototype.constructor = Enemy;
+//End Enemy Base Class
 
-Enemy.prototype.update = function() {
-    var travelCount = 100;
-    if(this.direction === 1) {
-        if(this.x === this.init_x + travelCount) {
-            this.direction = 0;
-        } else {
-            this.x += 1;        
-        }
+//Goomba code
+function Goomba(init_x, init_y, game) {
+    //Call Enemy super constructor
+    Enemy.call(this,init_x, init_y, game);
+    this.squished = false;
+    this.direction = 1;
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
+    this.back_forth_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
+}
+
+Goomba.prototype.draw = function(ctx) {
+    if(this.squished) {
+        ctx.drawImage(this.sprite,
+                  this.frameWidth * 6, 0, 
+                  this.frameWidth, this.frameHeight,
+                  this.x, this.y + 5,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);
     } else {
-        if(this.x === this.init_x) {
-            this.direction = 1;
+        this.back_forth_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+    }
+}
+
+Goomba.prototype.update = function() {
+    if(!this.squished) {
+        var travelCount = 100;
+        if(this.direction === 1) {
+            if(this.x === this.init_x + travelCount) {
+                this.direction = 0;
+            } else {
+                this.x += 1;        
+            }
         } else {
-            this.x -= 1;
+            if(this.x === this.init_x) {
+                this.direction = 1;
+            } else {
+                this.x -= 1;
+            }
         }
     }
-    
 }
 
-Enemy.prototype.draw = function(ctx) {
-   this.bounceAnimation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+Goomba.prototype.collide = function(other) {
+    console.log("Here");
+    //Temp
+    if(other.boundingbox.right >= this.boundingbox.left || other.boundingbox.left <= this.boundingbox.right) {
+        this.squished = true;
+    }
+
+    //Check for top collision
+    if(other.boundingbox.bottom < this.boundingbox.top) {
+        this.squished = true;
+    }
 }
-
-
+//End Goomba
 
 //QuestionBox
 function QuestionBox(init_x, init_y, game) {
