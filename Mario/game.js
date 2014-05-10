@@ -657,30 +657,7 @@ Enemy.prototype.update = function() {
 }
 
 Enemy.prototype.draw = function(ctx) {
-    //context.drawImage(img,sx,sy,swidth,sheight,x,y,width,height);
-    //console.log(this.sprite);
    this.bounceAnimation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
-    
-    /*
-    for(var i = 1; i < 4; i++) {
-        ctx.drawImage(this.sprite,
-                  0, 0,  
-                  i * frameWidth, frameHeight,
-                  this.x + frameWidth, this.y,
-                  i * frameWidth, frameHeight);    
-    }
-    
-    ctx.drawImage(this.sprite,
-                  0, 0,  
-                  frameWidth, frameHeight,
-                  this.x, this.y,
-                  frameWidth, frameHeight);
-
-    ctx.drawImage(this.sprite,
-                  0, 0,  
-                  2 * frameWidth, 2 * frameHeight,
-                  this.x + 50, this.y,
-                  2 * frameWidth, 2* frameHeight); */
 }
 
 
