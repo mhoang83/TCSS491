@@ -234,7 +234,7 @@ GameEngine.prototype.detectCollisions = function () {
     var mario = this.mario;
     for (var i = 0; i < entities.length; i++) {
         var entity = entities[i];
-        if (mario.boundingbox.isCollision(entity.boundingbox) && mario.type !== entity.type) {
+        if (entity.boundingbox && mario.boundingbox.isCollision(entity.boundingbox) && mario.type !== entity.type) {
             console.log("Collision detected.");
             mario.collide(entity);
             entity.collide(mario);
@@ -246,6 +246,7 @@ GameEngine.prototype.loop = function () {
     this.clockTick = this.timer.tick();
     this.update();
     this.draw();
+    this.detectCollisions();
     this.click = null;
     this.wheel = null;
     //this.key = null;
@@ -558,16 +559,6 @@ Mario.prototype.update = function() {
             this.lastBottom = this.boundingbox.bottom;
             this.y = this.base - height;
             this.boundingbox = new BoundingBox(this.x + 32, this.y - 32, this.jumpAnimation.frameWidth - 20, this.jumpAnimation.frameHeight - 5);
-
-            for (var i = 0; i < this.game.platforms.length; i++) {
-                var pf = this.game.platforms[i];
-                if (this.boundingbox.isCollision(pf.boundingbox) && this.lastBottom < pf.boundingbox.top) {
-                    this.jumping = false;
-                    this.y = pf.boundingbox.top - this.animation.frameHeight + 10;
-                    this.platform = pf;
-                    this.jumpAnimation.elapsedTime = 0;
-                }
-            }
         }
 
         else {
