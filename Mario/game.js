@@ -475,6 +475,7 @@ function Mario(init_x, init_y, game) {
     this.isJumping = false;
     this.isRight = true;
     this.steps = 0;
+    this.jumpHeight = 200;
     // made this the same as the debug box mario already has drawn around him.
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
@@ -482,6 +483,7 @@ function Mario(init_x, init_y, game) {
     this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
     this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
     this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
+    this.jumpAnimation = new Animation(this.sprite, 200, 1600, 40, 40, 0.02, 2, false, true);
    
 }
 
@@ -545,22 +547,40 @@ Mario.prototype.update = function() {
             }
 
         } else if (this.game.key.keyCode === 38) {
+            if(this.isRight && this.isRunning)
             this.isJumping = true;
-            if (this.y < 100) {
+            var height = 0;
+            var duration = this.jumpAnimation.elapsedTime + this.game.clockTick;
+            if (duration > this.jumpAnimation.totalTime / 2) duration = this.jumpAnimation.totalTime - duration;
+            duration = duration / this.jumpAnimation.totalTime;
+            
+            height = (4 * duration - 4 * duration * duration) * this.jumpHeight;
+            this.lastBottom = this.boundingbox.bottom;
+            this.y = this.base - height;
+            this.boundingbox = new BoundingBox(this.x + 32, this.y - 32, this.jumpAnimation.frameWidth - 20, this.jumpAnimation.frameHeight - 5);
 
-                this.y -= 2;
+            for (var i = 0; i < this.game.platforms.length; i++) {
+                var pf = this.game.platforms[i];
+                if (this.boundingbox.isCollision(pf.boundingbox) && this.lastBottom < pf.boundingbox.top) {
+                    this.jumping = false;
+                    this.y = pf.boundingbox.top - this.animation.frameHeight + 10;
+                    this.platform = pf;
+                    this.jumpAnimation.elapsedTime = 0;
+                }
             }
         }
 
         else {
             this.isWalking = false;
             this.isRunning = false;
+            this.isJumping = false;
             this.steps = 0;
         }
     } else  {
         //console.log("key up");
        this.isWalking = false;
        this.isRunning = false;
+       this.isJumping = false;
        this.steps = 0;
     }
 }
