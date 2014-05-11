@@ -103,6 +103,60 @@ Animation.prototype.isDone = function () {
     return (this.elapsedTime >= this.totalTime);
 }
 
+function Animation(spriteSheet, startX, startY, frameWidth, frameHeight, frameDuration, frames, loop, reverse) {
+    this.spriteSheet = spriteSheet;
+    this.startX = startX;
+    this.startY = startY;
+    this.frameWidth = frameWidth;
+    this.frameDuration = frameDuration;
+    this.frameHeight = frameHeight;
+    this.frames = frames;
+    this.totalTime = frameDuration*frames;
+    this.elapsedTime = 0;
+    this.loop = loop;
+    this.reverse = reverse;
+}
+
+Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy) {
+    var scaleBy = scaleBy || 1;
+    this.elapsedTime += tick;
+    if (this.loop) {
+        if (this.isDone()) {
+            this.elapsedTime = 0;
+        }
+    } else if (this.isDone()) {
+        return;
+    }
+    var index = this.reverse ? this.frames - this.currentFrame() - 1 : this.currentFrame();
+    var vindex = 0;
+    if ((index+1) * this.frameWidth + this.startX > this.spriteSheet.width) {
+        index -= Math.floor((this.spriteSheet.width - this.startX) / this.frameWidth);
+        vindex++;
+    }
+    while ((index + 1) * this.frameWidth > this.spriteSheet.width) {
+        index -= Math.floor(this.spriteSheet.width / this.frameWidth);
+        vindex++;
+    }
+
+    var locX = x;
+    var locY = y;
+    var offset = vindex === 0 ? this.startX : 0;
+    ctx.drawImage(this.spriteSheet,
+                  index * this.frameWidth + offset, vindex*this.frameHeight + this.startY,  // source from sheet
+                  this.frameWidth, this.frameHeight,
+                  locX, locY,
+                  this.frameWidth * scaleBy,
+                  this.frameHeight * scaleBy);
+}
+
+Animation.prototype.currentFrame = function () {
+    return Math.floor(this.elapsedTime / this.frameDuration);
+}
+
+Animation.prototype.isDone = function () {
+    return (this.elapsedTime >= this.totalTime);
+}
+
 function Timer() {
     this.gameTime = 0;
     this.maxStep = 0.05;
@@ -162,23 +216,25 @@ GameEngine.prototype.startInput = function () {
         var x = e.clientX - that.ctx.canvas.getBoundingClientRect().left;
         var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top;
 
-        if (x < 1024) {
-            x = Math.floor(x / 32);
-            y = Math.floor(y / 32);
-        }
-
         return { x: x, y: y };
     }
 
     var that = this;
 
     this.ctx.canvas.addEventListener("click", function (e) {
-        console.log(e);
         that.click = getXandY(e);
     }, false);
 
+    this.ctx.canvas.addEventListener("mousedown", function (e) {
+        that.mousedown = getXandY(e);
+    }, false);
+
+    this.ctx.canvas.addEventListener("mouseup", function (e) {
+        that.mousedown = null;
+    }, false);
+
     this.ctx.canvas.addEventListener("mousemove", function (e) {
-        that.mouse = getXandY(e);
+        that.hover = getXandY(e);
     }, false);
 
     this.ctx.canvas.addEventListener("mousewheel", function (e) {
@@ -208,6 +264,9 @@ GameEngine.prototype.draw = function (drawCallback) {
     this.ctx.save();
     if(this.background)
         this.background.draw(this.ctx);
+    if(this.mario) {
+        this.mario.draw(this.ctx);
+    }
     this.editor.draw(this.ctx);
     for (var i = 0; i < this.entities.length; i++) {
 
@@ -316,7 +375,7 @@ Entity.prototype.rotateAndCache = function (image, angle) {
 
 //mario
 
-function Mario(init_x, init_y, game) {
+function Mario(init_x, init_y, game, scale) {
 
     this.type = "Mario";
      Entity.call(this, game, init_x, init_y);
@@ -325,14 +384,10 @@ function Mario(init_x, init_y, game) {
     this.isJumping = false;
     this.isRight = true;
     this.steps = 0;
+    this.scale = scale || 1;
     // made this the same as the debug box mario already has drawn around him.
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
-    this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
-    this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
-    this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
-    this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
-    this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
-   
+    this.sprite = ASSET_MANAGER.getAsset('../images/smb3_mario_sheet.png');
 }
 
 Mario.prototype = new Entity();
@@ -349,90 +404,247 @@ Mario.prototype.draw = function(ctx) {
                   200, 80,  // source from sheet
                   40, 40,
                   this.x, this.y,
-                  40,
-                  40);
+                  40 * this.scale,
+                  40 * this.scale);
        
 }
 
-function BackgroundEditor(init_x, init_y, game) {
+function BackgroundEditor(init_x, init_y, game, selected,length) {
     Entity.call(this,game,init_x,init_y);
     this.label = "Backround";
     this.bgImages = [];
     this.init_x = init_x;
     this.init_y = init_y;
-    var x_inc = 10;
-    var x_sum = 10;
-    var smallbgwidth = 256;
-    var smallbgheight = 128;
+    this.prevMouse = {};
+    this.length = length;
+    this.selected = selected;
+    this.editor = 'background';
+    this.backgroundx = 0;
+    this.ghostMario = new Mario(5,460, this.game);
+    this.ghostEnemy = new Enemy(250, 430, game);
+    var x_inc = 5;
+    this.x_sum = 5;
+    var smallbgwidth = 250;
+    var smallbgheight = 120;
     for (var i = 1; i <=10; i++) {
-        var bg = new BackGround(x_sum, 384, game, 1, i);
-        bg.init_x = x_sum;
-        x_sum += x_inc + smallbgwidth;
+        var bg = new BackGround(this.x_sum, 283, game, 1, i);
+        bg.init_x = this.x_sum;
+        this.x_sum += x_inc + smallbgwidth;
         bg.sizex = smallbgwidth;
         bg.sizey = smallbgheight;
         this.bgImages.push(bg);
     }
+    this.mario = new Mario(-15, 445, game, 1.5);
+    this.enemy = new Enemy(240, 449, game, 1.5);
 }
 BackgroundEditor.prototype = new Entity();
 BackgroundEditor.prototype.constructor = BackgroundEditor;
 
 BackgroundEditor.prototype.update = function() {
+    if (this.game.key) {
+        var code = this.game.key.keyCode;
+        if (this.editor === 'background')
+            if (code === 39 && this.backgroundx < this.init_x)
+                this.backgroundx += 5;
+            else if (code == 37 && -this.backgroundx < 6 *(this.x_sum / 10) - 6)
+                this.backgroundx -= 5;
+    }
+   // console.log(this.game.click);
+    if (this.game.click) {
+        var click = this.game.click;
+        if ((click.y >= 283 && click.y <= 403)) {
+            if (this.editor === ' background')
+                this.editor = '';
+            else
+                this.editor = 'background';
+        } else if (click.y < 512 && click.y>=430 && click.x >0 && click.x < 50) {
+            if (this.editor === 'mario')
+                this.editor = '';
+            else
+                this.editor = 'mario';
+            this.ghostMario.x = click.x - 20;
+            this.ghostMario.y = click.y - 20;
+        } else if (click.y < 256 && click.y > 0 && click.x > 0 && click.x < 1024) {
+            var mario = this.game.mario;
+            console.log(mario);
+            if (mario &&  click.x>= mario.boundingbox.left && click.x <= mario.boundingbox.right && click.y>= mario.boundingbox.top && click.y <= mario.boundingbox.bottom) {
+                this.game.mario = null;
+            } else if (this.editor === 'mario') {
+
+                this.game.mario = new Mario(this.ghostMario.x, this.ghostMario.y, this.game);
+            }
+            if (this.editor === '' ) {
+                console.log('picking enemy up');
+                var entities = this.game.entities;
+                for (var i = 0; i < entities.length; i++) {
+                    var entity = entities[i];
+                    console.log(entity);
+                    console.log(click.x + " " + click.y);
+                    if (entity.type === 'Enemy' && click.x  >= entity.boundingbox.left && click.x <= entity.boundingbox.right && click.y >= entity.boundingbox.top && click.y <= entity.boundingbox.bottom) {
+                         this.editor = 'enemy';
+                         console.log('here');
+                        //this.game.entities = entities.splice(i,1);
+                        entity.removeFromWorld = true;
+                    }
+                }
+
+            } else if (this.editor === 'enemy' ) {
+                this.game.addEntity(new Enemy(this.ghostEnemy.x, this.ghostEnemy.y, this.game));
+            }
+
+        } else if (click.y < 512 && click.y>=430 && click.x > 50 && click.x < 450) {
+            console.log('enemy');
+            if (this.editor === 'enemy')
+                this.editor = '';
+            else
+                this.editor = 'enemy';
+            this.ghostEnemy.x = click.x - 24;
+            this.ghostEnemy.y = click.y - 20;
+        }
+    }
+    var hover = this.game.hover;
+
+    if (hover) {
+       // console.log(this.editor);
+        if (this.editor === 'mario') {
+             this.ghostMario.x = hover.x - 24;
+            this.ghostMario.y = hover.y - 20;
+        } else if (this.editor === 'enemy') {
+            this.ghostEnemy.x = hover.x - 24;
+            this.ghostEnemy.y = hover.y - 20;
+        }
+    }
+    for (var i = 0; i < this.bgImages.length; i++) {
+        var bg = this.bgImages[i];
+        bg.x = this.backgroundx + bg.init_x;
+        if( click && this.editor === 'background' && click.y <= 403 && click.y >= 283 && click.x >= bg.x && click.x <= bg.x + 250 && this.selected != i+1) {
+            this.selected = i + 1;
+            this.game.background = new BackGround(0,0,this.game, this.length, i+1);
+            console.log(this.game.background);
+        }
+    }
     
 }
 
 BackgroundEditor.prototype.draw = function(ctx) {
      //console.log(this.game.clockTick);
     var style = ctx.strokeStyle;
+    var fill = ctx.fillStyle;
+    ctx.font = "15px Arial";
     ctx.strokeStyle = 'red';
-    ctx.font = "25px Arial";
-    ctx.fillText("Background",50,280);
-    ctx.moveTo(50, 285);
-    ctx.lineTo(1024-50, 285);
-    ctx.stroke();
-    ctx.strokeStyle = style;
+    if (this.editor === 'background') {
+        ctx.fillStyle = 'rgba(255,0, 0, 100)';
+        ctx.fillRect(5,258, 87, 15);
+        ctx.fillStyle = 'white';
+        ctx.fillText("Backgrounds",5,270);
+        ctx.fillStyle = fill;
+        
+   } else
+         ctx.fillText("Backgrounds",5,270);
     
-       
+    if (this.editor === 'mario') {
+        ctx.fillStyle = 'rgba(255,0, 0, 100)';
+        ctx.fillRect(5,418, 37, 15);
+        ctx.fillStyle = 'white';
+        ctx.fillText("Mario",5,430);
+        ctx.fillStyle = fill;
+
+    } else
+         ctx.fillText("Mario",5,430);
+
+    if (this.editor === 'enemy') {
+        ctx.fillStyle = 'rgba(255,0, 0, 100)';
+        ctx.fillRect(250,418, 58, 15);
+        ctx.fillStyle = 'white';
+        ctx.fillText("Enemies",250,430);
+        ctx.fillStyle = fill;
+
+    } else
+         ctx.fillText("Enemies",250,430);
+  
+    ctx.moveTo(5, 275);
+    ctx.lineTo(1024-5, 275);
+    ctx.stroke();
+   
+    ctx.moveTo(5, 435);
+    ctx.lineTo(1024-5, 435);
+    ctx.stroke();
+
+   
+    for (var i = 0; i < this.bgImages.length; i++) {
+        var bg = this.bgImages[i];
+        if (this.selected === i + 1) {
+                ctx.strokeStyle = 'blue';
+                var width = ctx.lineWidth;
+                ctx.lineWidth=5;
+                ctx.strokeRect(bg.x - 2,bg.y -2,bg.sizex + 3,bg.sizey + 3);
+        }
+        bg.draw(ctx);
+        
+    }
+    if (this.editor === 'mario' && !this.game.mario) {
+        //console.log(this.game.hover);
+        ctx.globalAlpha = 0.5;
+        this.ghostMario.draw(ctx);
+        ctx.globalAlpha = 1;
+    }
+
+    if (this.editor === 'enemy') {
+        ctx.globalAlpha = 0.5;
+        this.ghostEnemy.draw(ctx);
+        ctx.globalAlpha = 1;
+    }
+    this.enemy.draw(ctx);
+    this.mario.draw(ctx);
+     ctx.strokeStyle = style;
+     ctx.lineWidth= width; 
+     ctx.fillStyle = fill;
 }
 
 
 //Enemy Code -- TODO: Enemies will have to be in some type of collection.
-function Enemy(init_x, init_y, game) {
+function Enemy(init_x, init_y, game, scale) {
+    Entity.call(this, game, init_x, init_y);
     var frameWidth = 50;
     var frameHeight = 25;
-
-    this.sprite = ASSET_MANAGER.getAsset('images/smb3_enemies_sheet.png');
-    this.bounceAnimation = new Animation(this.sprite, 0, 0, frameWidth, frameHeight, .4, 2, true, false);
+    this.type = 'Enemy';
+    this.scale = scale || 1.1;
+    this.sprite = ASSET_MANAGER.getAsset('../images/smb3_enemies_sheet.png');
+    this.bounceAnimation = new Animation(this.sprite, 0, 0, frameWidth, frameHeight, .4, 2, true, false );
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
     this.init_x = init_x;
     this.direction = 1;
     
-    Entity.call(this, game, init_x, init_y);
+    
 }
 
 Enemy.prototype = new Entity();
 Enemy.prototype.constructor = Enemy;
 
 Enemy.prototype.update = function() {
-    var travelCount = 100;
-    if(this.direction === 1) {
-        if(this.x === this.init_x + travelCount) {
-            this.direction = 0;
+    if (!this.ghost) {
+        var travelCount = 100;
+        if(this.direction === 1) {
+            if(this.x === this.init_x + travelCount) {
+                this.direction = 0;
+            } else {
+                this.x += 1;        
+            }
         } else {
-            this.x += 1;        
-        }
-    } else {
-        if(this.x === this.init_x) {
-            this.direction = 1;
-        } else {
-            this.x -= 1;
+            if(this.x === this.init_x) {
+                this.direction = 1;
+            } else {
+                this.x -= 1;
+            }
         }
     }
-    
+     this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
 }
 
 Enemy.prototype.draw = function(ctx) {
     //context.drawImage(img,sx,sy,swidth,sheight,x,y,width,height);
     //console.log(this.sprite);
-   this.bounceAnimation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+   this.bounceAnimation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, this.scale);
     
     /*
     for(var i = 1; i < 4; i++) {
@@ -682,7 +894,7 @@ BackGround.prototype.draw = function (ctx) {
             while(j < this.length) {
                                     ctx.drawImage(this.sprite,
                   sourcSheetX, sourceSheetY,  // source from sheet
-                  this.sizex, this.sizey,
+                  512, 256,
                   (this.x + (j * 511)), this.y,
                   this.sizex,this.sizey);
 
@@ -789,8 +1001,10 @@ ASSET_MANAGER.downloadAll(function () {
     $(entities).each(function(index, value) {
         select.append($('<option>').val(value.val).text(value.text));
     });
+     gameEngine.background = new BackGround(0,0,gameEngine,7,1);
+    gameEngine.editor = new BackgroundEditor(0, 256, gameEngine, 1, 4);
     select.change(function() {
-            var val = $(this).val();
+            var val = parseInt($(this).val());
             console.log(val === '1');
             if (val === "1") {
                 levelLabel.show();
@@ -799,13 +1013,19 @@ ASSET_MANAGER.downloadAll(function () {
                 levelLabel.hide();
                 levels.hide();
             }
-            gameEngine.changeEditor();
+            console.log($(this)[0][val - 1]);
+            gameEngine.editor.editor = $(this)[0][val - 1].text;
+            console.log(gameEngine.editor.editor);
     });
-    
+
     gameEngine.changeEditor(1);
 
-    gameEngine.background = new BackGround(0,0,gameEngine,7,1);
-    gameEngine.editor = new BackgroundEditor(0, 256, gameEngine);
+   
+    levels.change(function() {
+         var val = $(this).val();
+         gameEngine.editor.length = parseInt(val);
+         gameEngine.background.length = parseInt(val);
+    });
     
 
     gameEngine.init(ctx);

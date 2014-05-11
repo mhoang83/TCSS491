@@ -574,6 +574,7 @@ Mario.prototype.update = function() {
        this.isJumping = false;
        this.steps = 0;
     }
+     this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
 }
 
 Mario.prototype.draw = function(ctx) {
