@@ -413,12 +413,16 @@ function BackgroundEditor(init_x, init_y, game, selected,length) {
     Entity.call(this,game,init_x,init_y);
     this.label = "Backround";
     this.bgImages = [];
+    this.worldItems = [ new QuestionBox(555, 450, game), new ShineyGoldBox(580, 450, game), new ShineyBlueBox(605, 450, game), 
+                       new ColorFullExclamation(630, 450, game), new PinkMusicNote(655, 450, game),new WhiteMusicNote(680, 450, game), new PowBox(705, 450, game), 
+                       new GreenPipe(730, 450, game),  new StaticGoldBlock(775, 450, game)];
     this.init_x = init_x;
     this.init_y = init_y;
     this.prevMouse = {};
     this.length = length;
     this.selected = selected;
     this.editor = 'background';
+    this.isGameBoardSelected = false;
     this.backgroundx = 0;
     this.ghostMario = new Mario(5,460, this.game);
     this.ghostEnemy = new Enemy(250, 430, game);
@@ -446,12 +450,22 @@ BackgroundEditor.prototype.update = function() {
         if (this.editor === 'background')
             if (code === 39 && this.backgroundx < this.init_x)
                 this.backgroundx += 5;
-            else if (code == 37 && -this.backgroundx < 6 *(this.x_sum / 10) - 6)
+            else if (code === 37 && -this.backgroundx < 6 *(this.x_sum / 10) - 6)
                 this.backgroundx -= 5;
+       // console.log(this.isGameBoardSelected);
+        if (this.isGameBoardSelected)
+             if (code === 39 && this.game.background.x < 0)
+                this.game.background.x += 5;
+            else if (code === 37 && -(this.game.background.x )  <= this.game.background.sizex * (this.game.background.length - 1))
+                this.game.background.x  -= 5;
+        console.log(-(this.game.background.x )   + " " + (this.game.background.sizex * (this.game.background.length - 1)));        
     }
    // console.log(this.game.click);
     if (this.game.click) {
         var click = this.game.click;
+        if (click.y >256) {
+            this.isGameBoardSelected = false;
+        }
         if ((click.y >= 283 && click.y <= 403)) {
             if (this.editor === ' background')
                 this.editor = '';
@@ -465,6 +479,8 @@ BackgroundEditor.prototype.update = function() {
             this.ghostMario.x = click.x - 20;
             this.ghostMario.y = click.y - 20;
         } else if (click.y < 256 && click.y > 0 && click.x > 0 && click.x < 1024) {
+            this.isGameBoardSelected = true;
+
             var mario = this.game.mario;
             console.log(mario);
             if (mario &&  click.x>= mario.boundingbox.left && click.x <= mario.boundingbox.right && click.y>= mario.boundingbox.top && click.y <= mario.boundingbox.bottom) {
@@ -500,6 +516,14 @@ BackgroundEditor.prototype.update = function() {
                 this.editor = 'enemy';
             this.ghostEnemy.x = click.x - 24;
             this.ghostEnemy.y = click.y - 20;
+        } else if (click.y < 512 && click.y>=430 && click.x > 450 && click.x < 1024) {
+            console.log('enemy');
+            if (this.editor === 'worldobjects')
+                this.editor = '';
+            else
+                this.editor = 'worldobjects';
+            //this.ghostObject.x = click.x - 24;
+            //this.ghostEnemy.y = click.y - 20;
         }
     }
     var hover = this.game.hover;
@@ -561,6 +585,16 @@ BackgroundEditor.prototype.draw = function(ctx) {
 
     } else
          ctx.fillText("Enemies",250,430);
+
+     if (this.editor === 'worldobjects') {
+        ctx.fillStyle = 'rgba(255,0, 0, 100)';
+        ctx.fillRect(635,418, 95, 15);
+        ctx.fillStyle = 'white';
+        ctx.fillText("World Objects",635,430);
+        ctx.fillStyle = fill;
+
+    } else
+         ctx.fillText("World Objects",635,430);
   
     ctx.moveTo(5, 275);
     ctx.lineTo(1024-5, 275);
@@ -569,6 +603,9 @@ BackgroundEditor.prototype.draw = function(ctx) {
     ctx.moveTo(5, 435);
     ctx.lineTo(1024-5, 435);
     ctx.stroke();
+    for (var i =0; i < this.worldItems.length; i++) {
+        this.worldItems[i].draw(ctx);
+    }
 
    
     for (var i = 0; i < this.bgImages.length; i++) {
@@ -607,6 +644,8 @@ function Enemy(init_x, init_y, game, scale) {
     Entity.call(this, game, init_x, init_y);
     var frameWidth = 50;
     var frameHeight = 25;
+    this.init_x = init_x;
+    this.init_y= init_y;
     this.type = 'Enemy';
     this.scale = scale || 1.1;
     this.sprite = ASSET_MANAGER.getAsset('../images/smb3_enemies_sheet.png');
@@ -668,12 +707,14 @@ Enemy.prototype.draw = function(ctx) {
                   2 * frameWidth, 2* frameHeight); */
 }
 
-
+// QuestionBox, ShineyGoldBox, ShineyBlueBox, ColorFullExclamation, PinkMusicNote,WhiteMusicNote, PowBox, GreenPipe, StaticGoldBlock
 
 //QuestionBox
 function QuestionBox(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.sprite = ASSET_MANAGER.getAsset('../images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 205, 1, 17, 16, 0.14, 4, true, false);
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
+    this.type = 'question';
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -692,8 +733,10 @@ QuestionBox.prototype.draw = function (ctx) {
 
 //ShineyGoldBox
 function ShineyGoldBox(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.sprite = ASSET_MANAGER.getAsset('../images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 52, 35, 17, 16, 0.14, 8, true, false);
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
+    this.type = 'gold';
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -712,8 +755,10 @@ ShineyGoldBox.prototype.draw = function (ctx) {
 
 //ShineyBlueBox
 function ShineyBlueBox(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.sprite = ASSET_MANAGER.getAsset('../images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 378, 60, 17, 16, 0.14, 8, true, false);
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
+    this.type = 'blue';
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -732,8 +777,10 @@ ShineyBlueBox.prototype.draw = function (ctx) {
 
 //ColorFullExclamation
 function ColorFullExclamation(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.sprite = ASSET_MANAGER.getAsset('../images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 205, 18, 17, 16, 0.30, 4, true, false);
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
+    this.type = 'exclamation';
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -752,8 +799,10 @@ ColorFullExclamation.prototype.draw = function (ctx) {
 
 //PinkMusicNote
 function PinkMusicNote(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.sprite = ASSET_MANAGER.getAsset('../images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 120, 69, 17, 16, 0.20, 4, true, false);
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
+    this.type = 'pinknote';
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -769,12 +818,14 @@ PinkMusicNote.prototype.draw = function (ctx) {
     this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
 
 }
-
+// 
 
 //WhiteMusicNote
 function WhiteMusicNote(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.sprite = ASSET_MANAGER.getAsset('../images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 120, 52, 17, 16, 0.20, 4, true, false);
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
+    this.type = 'whitenote';
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -795,8 +846,10 @@ WhiteMusicNote.prototype.draw = function (ctx) {
 //PowBox
 function PowBox(init_x, init_y, game) {
 
-    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.sprite = ASSET_MANAGER.getAsset('../images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 35, 18, 17, 16, 0.14, 3, true, false);
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
+    this.type = 'pow';
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -905,8 +958,9 @@ BackGround.prototype.draw = function (ctx) {
 
 //Green pipe
 function GreenPipe(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/pipe.png');
+    this.sprite = ASSET_MANAGER.getAsset('../images/pipe.png');
     //this.moveAnimation = new Animation(this.sprite, 1, 1, 17, 16, 0.22, 4, true, false);
+    this.type = 'pipe';
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -929,7 +983,8 @@ GreenPipe.prototype.draw = function (ctx) {
 
 //StaticGoldBlock
 function StaticGoldBlock(init_x, init_y, game) {
-    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.sprite = ASSET_MANAGER.getAsset('../images/levelRemovedBorder1.png');
+    this.type = 'brick';
     Entity.call(this, game, init_x, init_y);
 }
 
