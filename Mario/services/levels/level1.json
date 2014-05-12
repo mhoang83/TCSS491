@@ -69,7 +69,12 @@
 
                     ],
                     "greenPipes": [
-                        {"id":1, "init_x":450,"init_y":183,"spritesheet": "/images/pipe.png", "count": 1}
+                        {"id":1, "init_x":450,"init_y":183,"spritesheet": "/images/pipe.png", "count":3}
+
+                    ],
+					"coin": [
+                        {"id":1, "init_x":220,"init_y":210,"spritesheet": "/images/levelRemovedBorder1.png", "count":3},
+                        {"id":2, "init_x":776,"init_y":120,"spritesheet": "/images/levelRemovedBorder1.png", "count":5}
 
                     ]
 

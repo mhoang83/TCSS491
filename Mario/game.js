@@ -364,19 +364,27 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
                         gameEngine.addEntity(new ColorFullExclamation(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
                     }
                     break;
-                case 7:
+                case 9:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new Coin(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 8:
 
                     //Enables the construction of a green pipe with a variable height using only to sprite sheets,
-                    //where the actual height of the pipe is = (count x 15) + initial size of the regular green pipe (50) 
+                    //where the actual height of the pipe is = ((count - the top peice) x 15) 
+                    var j;
                     for (j = 0; j < count; j++) {
-                        if (count > 1 && j === 0) {
-                            gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y - (count * 15), gameEngine));
-                        } else if(count === 1){
-                            gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y, gameEngine));
-                        } else if (count > 1 && j > 0) {
-                            gameEngine.addEntity(new GreenPipeExtension(blockObject.init_x, ((blockObject.init_y + 50) + (j * 15) , gameEngine)));
-                            GreenPipeExtension
+                        if(count === 1){
+                            gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y-1, gameEngine));
+                        } else if (count > 1 && j == 0) {
+                            gameEngine.addEntity(new GreenPipe(blockObject.init_x, (blockObject.init_y +2) - ((count -1) * 15), gameEngine));
+                        } else if (count > 1 && j >= 0) {
+                            //gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y + 15, gameEngine));
+                            var offset = (j*14)-8 + ((4-count) * 14);
+                            gameEngine.addEntity(new GreenPipeExtension(blockObject.init_x, (blockObject.init_y + offset), gameEngine));
                         }
+
                     }
                     break;
                 default:
@@ -484,7 +492,7 @@ function Mario(init_x, init_y, game) {
     this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
     this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
     this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
-    this.jumpAnimation = new Animation(this.sprite, 200, 1600, 40, 40, 0.02, 2, false, true);
+    this.jumpAnimation = new Animation(this.sprite, 320, 1600, 40, 40, 0.02, 2, false, true);
    
 }
 
@@ -709,8 +717,43 @@ Goomba.prototype.collide = function(other) {
 //QuestionBox
 function QuestionBox(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
-    this.moveAnimation = new Animation(this.sprite, 205, 1, 17, 16, 0.14, 4, true, false);
+    this.staticAnimation = new Animation(this.sprite, 205, 1, 17, 16, 0.14, 4, true, false);
+    this.usedAnimation = new Animation(this.sprite, 1, 86, 16, 16, 0.14, 1, true, false);
+    this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
+    this.hasCoin = true;
+    this.hasPowerUp = false;
+    this.hitAlready = false;
+    this.canHavePowerUps = false;
+    var maximum = 10;
+    var minimum = 1;
+
+    //Randomly make this QuestionBox produce a powerup instead of a coin
+    var randomnumber = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+    if(randomnumber > 5 && this.canHavePowerUps) { 
+        this.hasCoin = false;
+        this.hasPowerUp = true;
+
+    }
     Entity.call(this, game, init_x, init_y);
+
+}
+
+QuestionBox.prototype.collide = function(other) {
+    //Check for bottom collision
+    if(other.boundingbox.top > this.boundingbox.bottom && other.boundingbox.bottom < this.boundingbox.bottom) { //We have a collsion from below
+            if(!this.hitAlready) { //if not hit already
+                if(this.hasCoin) {
+                    this.hitAlready = true;
+                    this.popContents = false;
+                    gameEngine.addEntity(new Coin(this.x, this.y + 17, gameEngine)); //have a coin pop out above the box
+
+                } else if(hasPowerUp) { //Will not be handled/completed until Final Release. canHavePowerUps will be always set false until then
+
+                }
+
+
+            }
+    }
 }
 
 QuestionBox.prototype = new Entity();
@@ -722,8 +765,48 @@ QuestionBox.prototype.update = function () {
 
 QuestionBox.prototype.draw = function (ctx) {
     //console.log(this.sprite);
+    if(this.hitAlready) {
+        this.usedAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
+
+    } else {
+            this.staticAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
+    }
+
+
+}
+
+//Coin
+function Coin(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+    this.moveAnimation = new Animation(this.sprite, 422, 0, 16, 16, 0.14, 4, true, false);
+    this.boundingbox = new BoundingBox(this.x, this.y, 16, 16);
+    this.isVisible = true;
+    Entity.call(this, game, init_x, init_y);
+
+}
+
+Coin.prototype.collide = function(other) {
+    if(this.isVisible && other instanceof Mario) {
+        //gameEngine.points.increment(1);
+        this.isVisible = false;
+        console.log("Collision with a coin detected. Hide coin and implement the points");
+    }
+
+}
+
+Coin.prototype = new Entity();
+Coin.prototype.constructor = Coin;
+
+Coin.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+}
+
+Coin.prototype.draw = function (ctx) {
+    //console.log(this.sprite);
+    if(this.isVisible) {
     this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
 
+    }
 }
 
 //ShineyGoldBox
@@ -955,11 +1038,34 @@ GreenPipe.prototype.update = function () {
 
 GreenPipe.prototype.draw = function (ctx) {
                 ctx.drawImage(this.sprite,
-                  1, 1,  // source from sheet
-                  34, 50,
+                  0, 0,  // source from sheet
+                  35, 51,
                    this.game.background.x + this.x, this.y,
                   35,
                   51);
+
+}
+
+//Green pipe Extension   - Works up to height 5 ONLY. 
+function GreenPipeExtension(init_x, init_y, game) {
+    this.sprite = ASSET_MANAGER.getAsset('images/pipeextension.png');
+    Entity.call(this, game, init_x, init_y);
+}
+
+GreenPipeExtension.prototype = new Entity();
+GreenPipeExtension.prototype.constructor = GreenPipeExtension;
+
+GreenPipeExtension.prototype.update = function () {
+   // Entity.prototype.update.call(this);
+}
+
+GreenPipeExtension.prototype.draw = function (ctx) {
+                ctx.drawImage(this.sprite,
+                  0, 0,  // source from sheet
+                  35, 15,
+                   this.game.background.x + this.x, this.y,
+                  35,
+                  15);
 
 }
 
@@ -1009,6 +1115,7 @@ ASSET_MANAGER.queueDownload('images/levelRemovedBorder1.png');
 ASSET_MANAGER.queueDownload('images/smb3_mario_sheet.png');
 ASSET_MANAGER.queueDownload('images/smb3_enemies_sheet.png');
 ASSET_MANAGER.queueDownload('images/pipe.png');
+ASSET_MANAGER.queueDownload('images/pipeextension.png');
 ASSET_MANAGER.queueDownload('images/mariolevels.png');
 
 ASSET_MANAGER.downloadAll(function () {

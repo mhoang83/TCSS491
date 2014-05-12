@@ -83,7 +83,12 @@ var level1 = {"levels":
                         {"id":2, "init_x":909,"init_y":217,"spritesheet": "/images/levelRemovedBorder1.png", "count":1}
 
                     ],
+                    "coin": [
+                        // Color Exclamation blocks near end of map with single static gold in between them 
 
+                        {"id":1, "init_x":287,"init_y":170,"spritesheet": "/images/levelRemovedBorder1.png", "count":3}
+
+                    ],
 
                     /*
                         ID = id of single block, or flat repeated platform if count > 1; 
