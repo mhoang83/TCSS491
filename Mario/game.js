@@ -296,19 +296,6 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
     gameEngine.addEntity(mario);
     gameEngine.mario = mario;
 
-    //Enemies inside Entities
-    this.enemiesObj = this.entitiesObj.enemies;
-
-    //Enemies
-    for (var key in this.enemiesObj) {
-        var enemyGroupArray = this.enemiesObj[key];
-        var arrayLength = enemyGroupArray.length;
-        for (i = 0; i < arrayLength; i++) {
-            var enemyObject = enemyGroupArray[i];
-            gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine));
-        }
-    }
-
     //Blocks inside Entities
     this.blocksObj = this.entitiesObj.blocks;
     var blockCount = Object.keys(this.blocksObj).length;
@@ -397,6 +384,22 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
                             console.log("Block type is currently block: " + blockTypeInt);
 
     }
+
+    
+    //Enemies inside Entities
+    this.enemiesObj = this.entitiesObj.enemies;
+
+    //Enemies
+    for (var key in this.enemiesObj) {
+        var enemyGroupArray = this.enemiesObj[key];
+        var arrayLength = enemyGroupArray.length;
+        for (i = 0; i < arrayLength; i++) {
+            var enemyObject = enemyGroupArray[i];
+            gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine));
+        }
+    }
+
+
 
 
 }
