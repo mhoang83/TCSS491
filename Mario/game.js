@@ -816,6 +816,8 @@ Coin.prototype.collide = function(other) {
     if(this.isVisible && other.type === "Mario") {
         //gameEngine.points.increment(1);
         this.isVisible = false;
+        this.boundingbox = null;
+        this.removeFromWorld = true;
         console.log("Collision with a coin detected. Hide coin and implement the points");
     }
 }
