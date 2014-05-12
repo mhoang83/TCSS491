@@ -757,6 +757,13 @@ function QuestionBox(init_x, init_y, game) {
 
 }
 
+QuestionBox.prototype = new Entity();
+QuestionBox.prototype.constructor = QuestionBox;
+
+QuestionBox.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+}
+
 QuestionBox.prototype.collide = function(other) {
     //Check for bottom collision
     if(other.boundingbox.top > this.boundingbox.bottom && other.boundingbox.bottom < this.boundingbox.bottom) { //We have a collsion from below
@@ -773,13 +780,6 @@ QuestionBox.prototype.collide = function(other) {
 
             }
     }
-}
-
-QuestionBox.prototype = new Entity();
-QuestionBox.prototype.constructor = QuestionBox;
-
-QuestionBox.prototype.update = function () {
-    //Entity.prototype.update.call(this);
 }
 
 QuestionBox.prototype.draw = function (ctx) {
@@ -804,28 +804,26 @@ function Coin(init_x, init_y, game) {
 
 }
 
-Coin.prototype.collide = function(other) {
-    if(this.isVisible && other instanceof Mario) {
-        //gameEngine.points.increment(1);
-        this.isVisible = false;
-        console.log("Collision with a coin detected. Hide coin and implement the points");
-    }
-
-}
-
 Coin.prototype = new Entity();
 Coin.prototype.constructor = Coin;
 
 Coin.prototype.update = function () {
     //Entity.prototype.update.call(this);
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 16, 16);
+}
+
+Coin.prototype.collide = function(other) {
+    if(this.isVisible && other.type === "Mario") {
+        //gameEngine.points.increment(1);
+        this.isVisible = false;
+        console.log("Collision with a coin detected. Hide coin and implement the points");
+    }
 }
 
 Coin.prototype.draw = function (ctx) {
     //console.log(this.sprite);
     if(this.isVisible) {
-
         this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
-
     }
 }
 
