@@ -247,7 +247,7 @@ GameEngine.prototype.loop = function () {
      
     this.update();
     this.draw();
-   this.detectCollisions();
+    this.detectCollisions();
     this.click = null;
     this.wheel = null;
     //this.key = null;
@@ -567,7 +567,7 @@ Mario.prototype.update = function() {
         } else if (this.game.key.keyCode === 38) {
             if(this.isRight && this.isRunning)
             this.isJumping = true;
-<<<<<<< HEAD
+
             this.base = this.y;
 
             if (this.isJumping) {
@@ -585,19 +585,8 @@ Mario.prototype.update = function() {
             }
         }
 
-=======
-            var height = 0;
-            var duration = this.jumpAnimation.elapsedTime + this.game.clockTick;
-            if (duration > this.jumpAnimation.totalTime / 2) duration = this.jumpAnimation.totalTime - duration;
-            duration = duration / this.jumpAnimation.totalTime;
-            
-            height = (4 * duration - 4 * duration * duration) * this.jumpHeight;
-            this.lastBottom = this.boundingbox.bottom;
-            this.y = this.base - height;
-            //this.boundingbox = new BoundingBox(this.x + 32, this.y - 32, this.jumpAnimation.frameWidth - 20, this.jumpAnimation.frameHeight - 5);
-        }
 
->>>>>>> 02649be29abc01eda1f41cc48b0664c6a870b3ba
+
         else {
             this.isWalking = false;
             this.isRunning = false;
@@ -615,6 +604,7 @@ Mario.prototype.update = function() {
         this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
     }
 }
+
 
 Mario.prototype.draw = function(ctx) {
      //console.log(this.game.clockTick);
