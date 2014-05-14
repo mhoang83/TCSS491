@@ -491,6 +491,8 @@ function Mario(init_x, init_y, game) {
     this.isJumping = false;
     this.isFalling = false;
     this.isRight = true;
+    this.isJumpingRunning = false;
+    this.isJumpingWalking = false;
     this.steps = 0;
     this.maxJumpHeight = 0;
     // made this the same as the debug box mario already has drawn around him.
@@ -513,11 +515,23 @@ Mario.prototype.update = function () {
     var gravity = 6;
     var jumpHeight = 90;
     var jumpKeyPressed = false;
+    var map = {38: false, 37: false, 39: false};
     var floorLevel = this.initial_y_floor//this.game.ctx.canvas.getBoundingClientRect().bottom - 80
     //console.log(this.game.ctx);
-    if (this.game.key && !this.isJumping && !this.isFalling) {
+    if (this.game.key &&  !this.isJumping && !this.isFalling) {
+
+    	if (this.game.key.keyCode in map) {
+        		map[this.game.key.keyCode] = true;
+        		if (map[37] && map[38]) {
+            		// FIRE EVENT
+            		console.log("LEFT + JUMP PRESSED");
+        		} else if(map[39] && map[38]) {
+        			console.log("Right + JUMP PRESSED");
+
+        		}
+    	}
        // console.log('key' + " " + this.game.key.keyCode);
-        if (this.game.key.keyCode === 39) {
+        if (this.game.key.keyCode === 39) { //RIGHT
             if(!this.isRight) {
                 this.steps = 0;
                 this.isRight = true;
@@ -547,64 +561,7 @@ Mario.prototype.update = function () {
                 this.isWalking =true;
             }
            
-        } else if (this.game.key.keyCode === 37) {
-            if(this.isRight) {
-                this.steps = 0;
-                this.isRight = false;
-            }
-            
-            if (this.isRunning) {
-                if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25)
-                    this.x -= 2.5;
-            } else if (this.steps > 5) {
-                this.isRunning = true;
-                this.isWalking = false;
-            } else if (this.isWalking) {
-                if (this.walkLeftAnimation.elapsedTime + this.game.clockTick >= this.walkLeftAnimation.totalTime) {
-                    this.steps++;
-                }
-                if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25)
-                    this.x -=1;   
-            } else {
-                 this.isWalking =true;
-            }
-
-        }
-        else if (this.game.key.keyCode === 39 && this.game.key.keyCode === 38) {
-        	this.isJumping = true;
-        	        		this.maxJumpHeight = this.y - jumpHeight;
-            if(!this.isRight) {
-                this.steps = 0;
-                this.isRight = true;
-            }
-           // console.log(-(this.game.background.x ) + this.x + 50 +" " + (this.game.background.sizex * (this.game.length -1)))
-            if (this.isRunning) {
-                if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
-                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40 )
-                        this.x += 2.5;
-                } else {
-                    this.game.background.x -= 2.5;
-                }
-            } else  if (this.steps > 5) {
-                this.isRunning = true;
-                this.isWalking = false;
-            } else if (this.isWalking) {
-                if (this.walkRightAnimation.elapsedTime + this.game.clockTick >= this.walkRightAnimation.totalTime) {
-                    this.steps++;
-                }
-                if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length -1) ) {
-                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
-                        this.x +=1; 
-                }  else {
-                    this.game.background.x -= 1;
-                }
-            } else {
-                this.isWalking =true;
-            }
-           
-        } else if (this.game.key.keyCode === 37 && this.game.key.keyCode === 38) {
-        	this.isJumping = true;
-        	        		this.maxJumpHeight = this.y - jumpHeight;
+        } else if (this.game.key.keyCode === 37) { //LEFT
             if(this.isRight) {
                 this.steps = 0;
                 this.isRight = false;
@@ -628,15 +585,26 @@ Mario.prototype.update = function () {
 
         }
 
-
-
-
-         else if (this.game.key.keyCode === 38) {
+        else if (this.game.key.keyCode === 38) {
         	if(this.isJumping === false && this.isFalling === false) {
-        		console.log("Jumping is false and falling is false, accept jump key press");
+        		if(this.isRunning) { //Running + Jumping
+
+        				this.isJumpingRunning = true;
+        				this.isJumpingWalking = false;
+        		}
+        		else if(this.isWalking) { //Walking + Jumping
+        				this.isJumpingWalking = true;
+        				this.isJumpingRunning = false;
+
+        		} else if(!this.isRunning && !this.isWalking) { //Just Jumping
+
+        				this.isJumpingWalking = false;
+        				this.isJumpingRunning = false;
+        		}
+        		//console.log("Jumping is false and falling is false, accept jump key press");
         		this.maxJumpHeight = this.y - jumpHeight;
             	this.isJumping = true;
-        	}            
+        	}                        
         }
 
         
@@ -653,12 +621,49 @@ Mario.prototype.update = function () {
         }
     } else  {
         //console.log("key up");
+        map[37] = false;
+        map[38] = false;
+        map[39] = false;
        this.isWalking = false;
        this.isRunning = false;
        this.steps = 0;
         if (this.isJumping === true && this.y > this.maxJumpHeight) {
         	    //console.log("Mario still below max jump high of " + this.maxJumpHeight + ": Subtracting 15 from " + this.y);
                 this.y -= 15;
+                if(this.isJumpingRunning) {
+                		if(this.isRight) { //RIGHT
+                				if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
+                    						if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40 ) {
+
+                        						this.x += 2.5;
+                    						}
+                				} else {
+                    				this.game.background.x -= 2.5;
+                				}
+
+                		} else { //LEFT
+
+								if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25) {
+                    				this.x -= 2.5;
+								}
+                		}
+                } else if(this.isJumpingWalking) {
+                		if(this.isRight) { //Right
+                				if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length -1) ) {
+                    				if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
+                        				this.x +=1; 
+                					} else {
+                    						this.game.background.x -= 1;
+                					}
+
+                		} else { //Left
+                				if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25) {
+                					                   						 this.x -=1; 
+                				}
+
+                		}
+
+                }
 
         } else if(this.isJumping === true  && this.y <= this.maxJumpHeight)  {
         		//console.log("Mario hit the max jump point of " + this.maxJumpHeight + " Setting jumping to false,and falling to true ");
@@ -668,15 +673,53 @@ Mario.prototype.update = function () {
        if (this.y < floorLevel) {
        	   this.isFalling = true;
            this.y += gravity;
+                           if(this.isJumpingRunning) {
+                		if(this.isRight) { //RIGHT
+                				if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
+                    						if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40 ) {
+
+                        						this.x += 2.5;
+                    						}
+                				} else {
+                    				this.game.background.x -= 2.5;
+                				}
+
+                		} else { //LEFT
+
+								if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25) {
+                    				this.x -= 2.5;
+								}
+                		}
+                } else if(this.isJumpingWalking) {
+                		if(this.isRight) { //Right
+                				if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length -1) ) {
+                    				if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
+                        				this.x +=1; 
+                					} else {
+                    						this.game.background.x -= 1;
+                					}
+
+                		} else { //Left
+                				if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25) {
+                					                   						 this.x -=1; 
+                				}
+
+                		}
+
+                }
 
        } else if(this.y > floorLevel) {
 				this.isFalling = false;
+				this.isJumpingRunning = false;
+				this.isJumpingWalking = false;
 				this.y = floorLevel;
        }
        else {
        	if(this.falling = true) {
+       			this.isJumpingRunning = false;
+				this.isJumpingWalking = false;
        			this.isFalling = false;  //On collision of platform, need to set to false as well if landed on it
-       			console.log("Setting Mario to not falling anymore");
+       			//console.log("Setting Mario to not falling anymore");
        	}
 
        }
