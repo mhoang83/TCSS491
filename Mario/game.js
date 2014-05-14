@@ -421,8 +421,12 @@ function BoundingBox(x, y, width, height) {
 
 BoundingBox.prototype.isCollision = function (oth) {
     if (oth) // to ensure these are collisions and not just this.right > oth.left which would return true for everything when mario passes the entity.
-        return (this.right > oth.left && this.left < oth.left) ||  (this.left < oth.right &&  this.right > oth.right ) && 
-                (this.top > oth.bottom && this.bottom < oth.bottom) || (this.bottom < oth.top && this.top > oth.top);
+        return (((this.right >= oth.left && this.left < oth.left)  ||  (this.left < oth.right &&  this.right > oth.right ))
+                && ((this.top >= oth.bottom && this.top <= oth.top) ||  (this.bottom >= oth.bottom && this.bottom <= oth.top)) ||
+                ((oth.top >= this.bottom && oth.top <= this.top) ||  (oth.bottom >= this.bottom && oth.bottom <= this.top))) ||
+                (((this.top > oth.bottom && this.bottom < oth.bottom) || (this.bottom < oth.top && this.top > oth.top)) 
+                    && ((this.right >= oth.left && this.right <= oth.right) || (this.left >= oth.left && this.left <= oth.right)) ||
+                    ((oth.right >= this.left && oth.right <= this.right) || (oth.left >= this.left && oth.left <= this.right)));
     return false;
     
 }
@@ -683,6 +687,7 @@ function Goomba(init_x, init_y, game) {
 
 Goomba.prototype.draw = function(ctx) {
     if(this.squished) {
+        // so it doesnt keep colliding
         ctx.drawImage(this.sprite,
                   this.frameWidth * 6, 0, 
                   this.frameWidth, this.frameHeight,
@@ -700,6 +705,7 @@ Goomba.prototype.draw = function(ctx) {
 
 Goomba.prototype.update = function() {
     if(!this.squished) {
+       // console.log('not squished');
         var travelCount = 100;
         if(this.direction === 1) {
             if(this.x === this.init_x + travelCount) {
@@ -714,8 +720,12 @@ Goomba.prototype.update = function() {
                 this.x -= 1;
             }
         }
+          this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 17, 16);
+    } else if (this.squished && this.boudingbox !== false) {
+            this.boundingbox = false;
+            //console.log(this.boundingbox);
     }
-    this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 17, 16);
+  
 
 }
 
@@ -723,6 +733,7 @@ Goomba.prototype.collide = function(other) {
     console.log("Here");
     //Temp
     if(other.boundingbox.right >= this.boundingbox.left || other.boundingbox.left <= this.boundingbox.right) {
+        console.log('side collision');
         this.squished = true;
     }
 
@@ -816,6 +827,7 @@ Coin.prototype.collide = function(other) {
     if(this.isVisible && other.type === "Mario") {
         //gameEngine.points.increment(1);
         this.isVisible = false;
+        this.removeFromWorld = true;
         console.log("Collision with a coin detected. Hide coin and implement the points");
     }
 }
