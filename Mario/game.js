@@ -489,10 +489,6 @@ function Mario(init_x, init_y, game) {
     this.isRunning = false;
     this.isWalking = false;
     this.isJumping = false;
-    this.isFalling = false;
-    //this.jumpAvailable = false;
-    this.boxes = false;
-    this.lastY = this.y;
     this.isRight = true;
     this.steps = 0;
     this.jumpHeight = 200;
@@ -512,8 +508,7 @@ function Mario(init_x, init_y, game) {
 Mario.prototype = new Entity();
 Mario.prototype.constructor = Mario;
 
-Mario.prototype.update = function () {
-    
+Mario.prototype.update = function() {
     //console.log(this.game.ctx);
     if (this.game.key) {
        // console.log('key' + " " + this.game.key.keyCode);
@@ -569,31 +564,25 @@ Mario.prototype.update = function () {
                  this.isWalking =true;
             }
 
-        }
-
-        else if (this.game.key.keyCode === 38) {
+        } else if (this.game.key.keyCode === 38) {
+            if(this.isRight && this.isRunning)
             this.isJumping = true;
-            this.base = this.y; 
-        }
-        if (this.isJumping) {
             var height = 0;
             var duration = this.jumpAnimation.elapsedTime + this.game.clockTick;
             if (duration > this.jumpAnimation.totalTime / 2) duration = this.jumpAnimation.totalTime - duration;
             duration = duration / this.jumpAnimation.totalTime;
-
+            
             height = (4 * duration - 4 * duration * duration) * this.jumpHeight;
             this.lastBottom = this.boundingbox.bottom;
             this.y = this.base - height;
-            
+            //this.boundingbox = new BoundingBox(this.x + 32, this.y - 32, this.jumpAnimation.frameWidth - 20, this.jumpAnimation.frameHeight - 5);
         }
-
 
         else {
             this.isWalking = false;
             this.isRunning = false;
             this.isJumping = false;
             this.steps = 0;
-
         }
     } else  {
         //console.log("key up");
@@ -601,21 +590,9 @@ Mario.prototype.update = function () {
        this.isRunning = false;
        this.isJumping = false;
        this.steps = 0;
-       
     }
     if (this.isWalking || this.isRunning || this.isJumping) {
         this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
-    }
-
-    function StartJump() {
-        if (onGround) {
-            velocityY = -12.0;
-            onGround = false;
-        }
-    }
-    function EndJump() {
-        if (velocityY < -6.0)
-            velocityY = -6.0;
     }
 }
 
