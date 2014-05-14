@@ -716,6 +716,7 @@ function Goomba(init_x, init_y, game) {
     this.direction = 1;
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
     this.back_forth_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.cycleCount = 0;
     console.log('goomba bounding box');
     console.log(this.boundingbox);
 }
@@ -728,13 +729,13 @@ Goomba.prototype.draw = function(ctx) {
                   this.game.background.x + this.x, this.y + 5,
                   this.frameWidth * 1,
                   this.frameHeight * 1);
+            this.cycleCount += 1;
+        if(this.cycleCount === 10) {
+            this.removeFromWorld = true;
+        }
     } else {
         this.back_forth_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
     }
-     var style = ctx.strokeStyle;
-    ctx.strokeStyle = 'red';
-    ctx.strokeRect(this.game.background.x  + this.x + 17, this.y + 5, 17, 16);
-    ctx.strokeStyle = style;
 }
 
 Goomba.prototype.update = function() {
@@ -759,7 +760,6 @@ Goomba.prototype.update = function() {
 }
 
 Goomba.prototype.collide = function(other) {
-    console.log("Here");
     //Temp
     if(other.boundingbox.right >= this.boundingbox.left || other.boundingbox.left <= this.boundingbox.right) {
         this.squished = true;
