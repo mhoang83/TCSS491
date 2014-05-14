@@ -491,7 +491,7 @@ function Mario(init_x, init_y, game) {
     this.isJumping = false;
     this.isRight = true;
     this.steps = 0;
-    this.jumpHeight = 200;
+    //this.jumpHeight = 200;
     // made this the same as the debug box mario already has drawn around him.
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
     console.log('mario bounding box');
@@ -510,6 +510,7 @@ Mario.prototype.constructor = Mario;
 
 Mario.prototype.update = function () {
     var gravity = 6;
+    var jumpHeight = 200;
     //console.log(this.game.ctx);
     if (this.game.key) {
        // console.log('key' + " " + this.game.key.keyCode);
@@ -567,10 +568,11 @@ Mario.prototype.update = function () {
 
         } else if (this.game.key.keyCode === 38) {
             this.isJumping = true;
-            if (this.isJumping) {
+            if (this.isJumping = true) {
                 this.y -= 15;
-                this.isJumping = false;
-
+                if (this.y < this.game.ctx.canvas.getBoundingClientRect().bottom - jumpHeight) {
+                    this.isJumping = false;
+                }
             }
             
         }
@@ -582,6 +584,10 @@ Mario.prototype.update = function () {
             this.isRunning = false;
             this.isJumping = false;
             this.steps = 0;
+            if (this.y < this.game.ctx.canvas.getBoundingClientRect().bottom - 85) {
+                this.y += gravity;
+
+            }
         }
     } else  {
         //console.log("key up");
@@ -589,7 +595,7 @@ Mario.prototype.update = function () {
        this.isRunning = false;
        this.isJumping = false;
        this.steps = 0;
-       if (this.y < this.game.ctx.canvas.getBoundingClientRect().bottom - 80) {
+       if (this.y < this.game.ctx.canvas.getBoundingClientRect().bottom - 85) {
            this.y += gravity;
 
        }
