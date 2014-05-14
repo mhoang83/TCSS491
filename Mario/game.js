@@ -485,7 +485,7 @@ Entity.prototype.collide = function(other) {
 function Mario(init_x, init_y, game) {
      Entity.call(this, game, init_x, init_y);
     this.type = "Mario";
-   
+    
     this.isRunning = false;
     this.isWalking = false;
     this.isJumping = false;
@@ -508,7 +508,8 @@ function Mario(init_x, init_y, game) {
 Mario.prototype = new Entity();
 Mario.prototype.constructor = Mario;
 
-Mario.prototype.update = function() {
+Mario.prototype.update = function () {
+    var gravity = 6;
     //console.log(this.game.ctx);
     if (this.game.key) {
        // console.log('key' + " " + this.game.key.keyCode);
@@ -565,27 +566,16 @@ Mario.prototype.update = function() {
             }
 
         } else if (this.game.key.keyCode === 38) {
-            if(this.isRight && this.isRunning)
             this.isJumping = true;
-
-            this.base = this.y;
-
             if (this.isJumping) {
-                var height = 0;
-                var duration = this.jumpAnimation.elapsedTime + this.game.clockTick;
-                if (duration > this.jumpAnimation.totalTime / 2) duration = this.jumpAnimation.totalTime - duration;
-                duration = duration / this.jumpAnimation.totalTime;
+                this.y -= 15;
+                this.isJumping = false;
 
-                height = (4 * duration - 4 * duration * duration) * this.jumpHeight;
-                this.lastBottom = this.boundingbox.bottom;
-                this.y = this.base - height;
-                this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
-
-           
             }
+            
         }
 
-
+        
 
         else {
             this.isWalking = false;
@@ -599,6 +589,10 @@ Mario.prototype.update = function() {
        this.isRunning = false;
        this.isJumping = false;
        this.steps = 0;
+       if (this.y < this.game.ctx.canvas.getBoundingClientRect().bottom - 80) {
+           this.y += gravity;
+
+       }
     }
     if (this.isWalking || this.isRunning || this.isJumping) {
         this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
@@ -636,7 +630,7 @@ Mario.prototype.draw = function(ctx) {
             ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
         }
 
-        this.jumpAnimation.drawFrame(this.game.clockTick, ctx, this.x + 17, this.y + 8);
+        this.jumpAnimation.drawFrame(this.game.clockTick, ctx, this.x , this.y);
         if (this.jumpAnimation.isDone()) {
             this.jumpAnimation.elapsedTime = 0;
             this.isJumping = false;
