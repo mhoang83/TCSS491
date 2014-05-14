@@ -573,20 +573,22 @@ Mario.prototype.update = function () {
 
         else if (this.game.key.keyCode === 38) {
             this.isJumping = true;
-            this.base = this.y; 
-        }
-        if (this.isJumping) {
-            var height = 0;
-            var duration = this.jumpAnimation.elapsedTime + this.game.clockTick;
-            if (duration > this.jumpAnimation.totalTime / 2) duration = this.jumpAnimation.totalTime - duration;
-            duration = duration / this.jumpAnimation.totalTime;
+            this.base = this.y;
 
-            height = (4 * duration - 4 * duration * duration) * this.jumpHeight;
-            this.lastBottom = this.boundingbox.bottom;
-            this.y = this.base - height;
-            
-        }
+            if (this.isJumping) {
+                var height = 0;
+                var duration = this.jumpAnimation.elapsedTime + this.game.clockTick;
+                if (duration > this.jumpAnimation.totalTime / 2) duration = this.jumpAnimation.totalTime - duration;
+                duration = duration / this.jumpAnimation.totalTime;
 
+                height = (4 * duration - 4 * duration * duration) * this.jumpHeight;
+                this.lastBottom = this.boundingbox.bottom;
+                this.y = this.base - height;
+                this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
+
+           
+            }
+        }
 
         else {
             this.isWalking = false;
@@ -625,6 +627,8 @@ Mario.prototype.draw = function(ctx) {
     ctx.strokeStyle = 'red';
     ctx.strokeRect(this.x+17, this.y+8, 12, 16);
     ctx.strokeStyle = style;
+    ctx.strokeStyle = "green";
+    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
     //ctx.drawImage(this.sprite, this.x, this.y, 40, 40);
     if (this.isRunning) {
         if (this.isRight) {
@@ -638,19 +642,46 @@ Mario.prototype.draw = function(ctx) {
                     this.runLeftAnimation.elapsedTime = 0;
         }
     
-    } else if (this.isWalking) {
+    }
+    else if (this.isJumping) {
+        if (this.boxex) {
+            ctx.strokeStyle = 'red';
+            ctx.strokeRect(this.x + 17, this.y + 8, 12, 16);
+            ctx.strokeStyle = "green";
+            ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+        }
+
+        this.jumpAnimation.drawFrame(this.game.clockTick, ctx, this.x + 17, this.y + 8);
+        if (this.jumpAnimation.isDone()) {
+            this.jumpAnimation.elapsedTime = 0;
+            this.isJumping = false;
+            this.falling = true;
+        }
+    }
+    else if (this.isFalling) {
+        if (this.boxes) {
+            ctx.strokeStyle = "red";
+            ctx.strokeRect(this.x + 17, this.y + 8, this.fallAnimation.frameWidth, this.fallAnimation.frameHeight);
+            ctx.strokeStyle = "green";
+            ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+        }
+        
+    }
+    else if (this.isWalking) {
         if (this.isRight) {
             this.walkRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
             if (this.walkRightAnimation.isDone()) {
-                    this.walkRightAnimation.elapsedTime = 0;
+                this.walkRightAnimation.elapsedTime = 0;
             }
         } else {
             this.walkLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
             if (this.walkLeftAnimation.isDone()) {
-                    this.walkLeftAnimation.elapsedTime = 0;
+                this.walkLeftAnimation.elapsedTime = 0;
             }
         }
-    } else {
+    }
+
+    else {
         if (this.isRight)
             ctx.drawImage(this.sprite,
                   200, 80,  // source from sheet
@@ -659,12 +690,12 @@ Mario.prototype.draw = function(ctx) {
                   40,
                   40);
         else
-             ctx.drawImage(this.sprite,
-                  160, 80,  // source from sheet
-                  40, 40,
-                  this.x, this.y,
-                  40,
-                  40 );
+            ctx.drawImage(this.sprite,
+                 160, 80,  // source from sheet
+                 40, 40,
+                 this.x, this.y,
+                 40,
+                 40);
 
     }
     // if (this.runRightAnimation.isDone()) {
