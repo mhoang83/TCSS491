@@ -504,7 +504,8 @@ function Mario(init_x, init_y, game) {
     this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
     this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
     this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
-    this.jumpAnimation = new Animation(this.sprite, 320, 1600, 40, 40, 0.02, 2, false, true);
+    //this.jumpAnimation = new Animation(this.sprite, 40, 80, 40, 40, 0.02, 1, false, true);
+    //this.jumpAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
    
 }
 
@@ -752,24 +753,30 @@ Mario.prototype.draw = function(ctx) {
         }
     
     }
-    else if (this.isJumping) {
-        if (this.boxex) {
-            ctx.strokeStyle = 'red';
-            ctx.strokeRect(this.x + 17, this.y + 8, 12, 16);
-            ctx.strokeStyle = "green";
-            ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
-        }
 
-        this.jumpAnimation.drawFrame(this.game.clockTick, ctx, this.x , this.y);
-    }
-    else if (this.isFalling) {
+    else if (this.isFalling || this.isJumping) {
         if (this.boxes) {
             ctx.strokeStyle = "red";
             ctx.strokeRect(this.x + 17, this.y + 8, this.fallAnimation.frameWidth, this.fallAnimation.frameHeight);
-            ctx.strokeStyle = "green";
+           	ctx.strokeStyle = "green";
             ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
         }
-        this.jumpAnimation.drawFrame(this.game.clockTick, ctx, this.x , this.y);
+        if(!this.isRight) {
+        		  ctx.drawImage(this.sprite,
+                  40, 80,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
+        } else {
+        		  ctx.drawImage(this.sprite,
+                  320, 80,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
+
+        }
         
     }
     else if (this.isWalking) {
