@@ -234,8 +234,9 @@ GameEngine.prototype.detectCollisions = function () {
     var mario = this.mario;
     for (var i = 0; i < entities.length; i++) {
         var entity = entities[i];
+        //console.log("Types Detected " + mario.type + " and " + entity.type);
         if (mario.boundingbox.isCollision(entity.boundingbox) && mario.type !== entity.type) {
-            console.log("Collision detected.");
+            console.log("Collision detected between " + mario.type + " and " + entity.type);
             mario.collide(entity);
             entity.collide(mario);
         }
@@ -419,13 +420,86 @@ function BoundingBox(x, y, width, height) {
     this.bottom = this.top + height;
 }
 
-BoundingBox.prototype.isCollision = function (oth) {
-    if (oth) // to ensure these are collisions and not just this.right > oth.left which would return true for everything when mario passes the entity.
-        return (this.right > oth.left && this.left < oth.left) ||  (this.left < oth.right &&  this.right > oth.right ) && 
-                (this.top > oth.bottom && this.bottom < oth.bottom) || (this.bottom < oth.top && this.top > oth.top);
-    return false;
-    
+BoundingBox.prototype.isCollision = function (otherEntityBoundingBox) {
+
+    if(otherEntityBoundingBox) {
+       //TRUE = Collision on that side, false otherwise
+        var leftCheck = false;
+        var rightCheck = false;
+        var topCheck = false;
+        var bottomCheck = false;
+        var oth = otherEntityBoundingBox;
+        //Check collision with the right side of Mario
+        if(this.right > oth.left && this.left < oth.left){
+            rightCheck = true;
+        }
+
+         //Check collision with the left side of Mario
+        if(this.left < oth.right &&  this.right > oth.right) {
+            leftCheck = true;
+        }
+
+        //Check collision with the top of mario (his head)
+        if(this.top < oth.bottom && this.bottom > oth.bottom) {
+            topCheck = true;
+        }
+
+        //Check collision with bottom of Mario (his feet, aka landing on stuff)
+        if(this.bottom > oth.top && this.top < oth.top) {
+            bottomCheck = true;
+        }
+
+        //Check mario collision with an entity on his top right side
+        if(rightCheck && topCheck) {
+            return true;
+
+        }
+
+        //Check mario collision with an entity on his top left side
+        else if(leftCheck && topCheck) {
+            return true;
+
+        }
+
+        //Check mario collision with an entity on his bottom right
+        else if(rightCheck && bottomCheck) {
+            return true;
+        }
+
+
+        //Check Mario Collision with an enitity  on his bottom left
+
+        else if(leftCheck && bottomCheck) {
+            return true;
+
+        }
+
+        //Check for a collision on the right, but Mario is at equal level of the entity
+        else if(rightCheck && (this.bottom === oth.bottom)) {
+            return true;
+
+        }
+
+        //Check for collision on the left, but Mario is at equal level of the entity
+        else if(leftCheck && (this.bottom === oth.bottom)) {
+            return true;
+
+        }
+
+        //If not of the above apply, then the collision is not legit
+        else {
+
+            return false;
+        }
+
+    }
+ 
+
 }
+
+
+
+    
 
 function Entity(game, x, y) {
     this.game = game;
@@ -503,10 +577,7 @@ function Mario(init_x, init_y, game) {
     this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
     this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
     this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
-    this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
-    //this.jumpAnimation = new Animation(this.sprite, 40, 80, 40, 40, 0.02, 1, false, true);
-    //this.jumpAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
-   
+    this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);   
 }
 
 Mario.prototype = new Entity();
@@ -514,7 +585,7 @@ Mario.prototype.constructor = Mario;
 
 Mario.prototype.update = function () {
     var gravity = 6;
-    var jumpHeight = 90;
+    var jumpHeight = 100;
     var jumpKeyPressed = false;
     var map = {38: false, 37: false, 39: false};
     var floorLevel = this.initial_y_floor//this.game.ctx.canvas.getBoundingClientRect().bottom - 80
@@ -674,7 +745,7 @@ Mario.prototype.update = function () {
        if (this.y < floorLevel) {
        	   this.isFalling = true;
            this.y += gravity;
-                           if(this.isJumpingRunning) {
+                    if(this.isJumpingRunning) {
                 		if(this.isRight) { //RIGHT
                 				if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
                     						if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40 ) {
@@ -819,6 +890,15 @@ Mario.prototype.draw = function(ctx) {
     //Entity.prototype.draw.call(this, ctx);
 }
 
+Mario.prototype.collide = function(other) {
+        if(other.type === "Box") {
+            if (this.boundingbox.top < other.boundingbox.bottom && this.boundingbox.bottom > other.boundingbox.bottom) { //Collision from below
+                this.maxJumpHeight = other.boundingbox.bottom;
+            }
+        }
+        
+}
+
 
 //Enemy Base Class
 function Enemy(init_x, init_y, game) {
@@ -841,6 +921,7 @@ function Goomba(init_x, init_y, game) {
     Enemy.call(this,init_x, init_y, game);
     this.squished = false;
     this.direction = 1;
+    this.type = "Goomba"; 
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
     this.back_forth_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
     this.cycleCount = 0;
@@ -906,7 +987,9 @@ function QuestionBox(init_x, init_y, game) {
     this.usedAnimation = new Animation(this.sprite, 1, 86, 16, 16, 0.14, 1, true, false);
     this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
     this.hasCoin = true;
+    this.type = "Box"; 
     this.hasPowerUp = false;
+    this.gameEngine = game;
     this.hitAlready = false;
     this.canHavePowerUps = false;
     var maximum = 10;
@@ -928,16 +1011,17 @@ QuestionBox.prototype.constructor = QuestionBox;
 
 QuestionBox.prototype.update = function () {
     //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 17, 16);
 }
 
 QuestionBox.prototype.collide = function(other) {
     //Check for bottom collision
-    if(other.boundingbox.top > this.boundingbox.bottom && other.boundingbox.bottom < this.boundingbox.bottom) { //We have a collsion from below
+    if(other.boundingbox.top < this.boundingbox.bottom && other.boundingbox.bottom > this.boundingbox.bottom) { //We have a collsion from below
             if(!this.hitAlready) { //if not hit already
                 if(this.hasCoin) {
                     this.hitAlready = true;
                     this.popContents = false;
-                    gameEngine.addEntity(new Coin(this.x, this.y + 17, gameEngine)); //have a coin pop out above the box
+                    this.gameEngine.addEntity(new Coin(this.x, this.y - 17, this.gameEngine)); //have a coin pop out above the box
 
                 } else if(hasPowerUp) { //Will not be handled/completed until Final Release. canHavePowerUps will be always set false until then
 
@@ -965,6 +1049,7 @@ function Coin(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 422, 0, 16, 16, 0.14, 4, true, false);
     this.boundingbox = new BoundingBox(this.x, this.y, 16, 16);
+    this.type = "Coin";
     this.isVisible = true;
     Entity.call(this, game, init_x, init_y);
 
@@ -999,6 +1084,8 @@ Coin.prototype.draw = function (ctx) {
 function ShineyGoldBox(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 52, 35, 17, 16, 0.14, 8, true, false);
+        this.type = "Box";
+        this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -1006,7 +1093,7 @@ ShineyGoldBox.prototype = new Entity();
 ShineyGoldBox.prototype.constructor = ShineyGoldBox;
 
 ShineyGoldBox.prototype.update = function () {
-    //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 17, 16);
 }
 
 ShineyGoldBox.prototype.draw = function (ctx) {
@@ -1019,6 +1106,8 @@ ShineyGoldBox.prototype.draw = function (ctx) {
 function ShineyBlueBox(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 378, 60, 17, 16, 0.14, 8, true, false);
+        this.type = "Box";
+        this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -1026,7 +1115,7 @@ ShineyBlueBox.prototype = new Entity();
 ShineyBlueBox.prototype.constructor = ShineyBlueBox;
 
 ShineyBlueBox.prototype.update = function () {
-    //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 17, 16);
 }
 
 ShineyBlueBox.prototype.draw = function (ctx) {
@@ -1039,6 +1128,8 @@ ShineyBlueBox.prototype.draw = function (ctx) {
 function ColorFullExclamation(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 205, 18, 17, 16, 0.30, 4, true, false);
+        this.type = "Box";
+        this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -1046,7 +1137,7 @@ ColorFullExclamation.prototype = new Entity();
 ColorFullExclamation.prototype.constructor = ColorFullExclamation;
 
 ColorFullExclamation.prototype.update = function () {
-    //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 17, 16);
 }
 
 ColorFullExclamation.prototype.draw = function (ctx) {
@@ -1059,6 +1150,8 @@ ColorFullExclamation.prototype.draw = function (ctx) {
 function PinkMusicNote(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 120, 69, 17, 16, 0.20, 4, true, false);
+        this.type = "Box";
+        this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -1066,7 +1159,7 @@ PinkMusicNote.prototype = new Entity();
 PinkMusicNote.prototype.constructor = PinkMusicNote;
 
 PinkMusicNote.prototype.update = function () {
-    //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 17, 16);
 }
 
 PinkMusicNote.prototype.draw = function (ctx) {
@@ -1080,6 +1173,8 @@ PinkMusicNote.prototype.draw = function (ctx) {
 function WhiteMusicNote(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 120, 52, 17, 16, 0.20, 4, true, false);
+        this.type = "Box";
+        this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -1087,7 +1182,7 @@ WhiteMusicNote.prototype = new Entity();
 WhiteMusicNote.prototype.constructor = WhiteMusicNote;
 
 WhiteMusicNote.prototype.update = function () {
-    //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 17, 16);
 }
 
 WhiteMusicNote.prototype.draw = function (ctx) {
@@ -1102,6 +1197,8 @@ function PowBox(init_x, init_y, game) {
 
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 35, 18, 17, 16, 0.14, 3, true, false);
+        this.type = "Box";
+        this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -1109,7 +1206,7 @@ PowBox.prototype = new Entity();
 PowBox.prototype.constructor = PowBox;
 
 PowBox.prototype.update = function () {
-    //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 17, 16);
 }
 
 PowBox.prototype.draw = function (ctx) {
@@ -1211,7 +1308,8 @@ BackGround.prototype.draw = function (ctx) {
 //Green pipe
 function GreenPipe(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/pipe.png');
-    //this.moveAnimation = new Animation(this.sprite, 1, 1, 17, 16, 0.22, 4, true, false);
+    this.type = "Pipe";
+    this.boundingbox = new BoundingBox(this.x, this.y, 35, 51);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -1219,7 +1317,7 @@ GreenPipe.prototype = new Entity();
 GreenPipe.prototype.constructor = GreenPipe;
 
 GreenPipe.prototype.update = function () {
-   // Entity.prototype.update.call(this);
+   this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 35, 51);
 }
 
 GreenPipe.prototype.draw = function (ctx) {
@@ -1235,6 +1333,8 @@ GreenPipe.prototype.draw = function (ctx) {
 //Green pipe Extension   - Works up to height 5 ONLY. 
 function GreenPipeExtension(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/pipeextension.png');
+    this.type = "PipeExt";
+    this.boundingbox = new BoundingBox(this.x, this.y, 35, 15);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -1242,7 +1342,7 @@ GreenPipeExtension.prototype = new Entity();
 GreenPipeExtension.prototype.constructor = GreenPipeExtension;
 
 GreenPipeExtension.prototype.update = function () {
-   // Entity.prototype.update.call(this);
+   this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 35, 15);
 }
 
 GreenPipeExtension.prototype.draw = function (ctx) {
@@ -1258,6 +1358,8 @@ GreenPipeExtension.prototype.draw = function (ctx) {
 //StaticGoldBlock
 function StaticGoldBlock(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
+     this.type = "Box";
+     this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
     Entity.call(this, game, init_x, init_y);
 }
 
@@ -1265,7 +1367,7 @@ StaticGoldBlock.prototype = new Entity();
 StaticGoldBlock.prototype.constructor = StaticGoldBlock;
 
 StaticGoldBlock.prototype.update = function () {
-
+    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 17, 16);
 }
 
 StaticGoldBlock.prototype.draw = function (ctx) {
