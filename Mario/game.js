@@ -236,7 +236,7 @@ GameEngine.prototype.detectCollisions = function () {
         var entity = entities[i];
         //console.log("Types Detected " + mario.type + " and " + entity.type);
         if (mario.boundingbox.isCollision(entity.boundingbox) && mario.type !== entity.type) {
-            console.log("Collision detected between " + mario.type + " and " + entity.type);
+            //console.log("Collision detected between " + mario.type + " and " + entity.type);
             mario.collide(entity);
             entity.collide(mario);
         }
@@ -247,8 +247,9 @@ GameEngine.prototype.loop = function () {
     this.clockTick = this.timer.tick();
      
     this.update();
-    this.draw();
+
     this.detectCollisions();
+    this.draw();
     this.click = null;
     this.wheel = null;
     //this.key = null;
@@ -569,8 +570,9 @@ function Mario(init_x, init_y, game) {
     this.isJumpingWalking = false;
     this.steps = 0;
     this.maxJumpHeight = 0;
+    this.onSomething = false;
     // made this the same as the debug box mario already has drawn around him.
-    this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
+    this.boundingbox = new BoundingBox(this.x + 15, this.y + 5, 18, 17);
     console.log('mario bounding box');
     console.log(this.boundingbox);
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
@@ -585,23 +587,12 @@ Mario.prototype.constructor = Mario;
 
 Mario.prototype.update = function () {
     var gravity = 6;
-    var jumpHeight = 100;
+    var jumpHeight = 110;
     var jumpKeyPressed = false;
-    var map = {38: false, 37: false, 39: false};
+    this.onSomething = false;
     var floorLevel = this.initial_y_floor//this.game.ctx.canvas.getBoundingClientRect().bottom - 80
     //console.log(this.game.ctx);
     if (this.game.key &&  !this.isJumping && !this.isFalling) {
-
-    	if (this.game.key.keyCode in map) {
-        		map[this.game.key.keyCode] = true;
-        		if (map[37] && map[38]) {
-            		// FIRE EVENT
-            		console.log("LEFT + JUMP PRESSED");
-        		} else if(map[39] && map[38]) {
-        			console.log("Right + JUMP PRESSED");
-
-        		}
-    	}
        // console.log('key' + " " + this.game.key.keyCode);
         if (this.game.key.keyCode === 39) { //RIGHT
             if(!this.isRight) {
@@ -611,10 +602,20 @@ Mario.prototype.update = function () {
            // console.log(-(this.game.background.x ) + this.x + 50 +" " + (this.game.background.sizex * (this.game.length -1)))
             if (this.isRunning) {
                 if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
-                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40 )
+                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40 ) {
+
                         this.x += 2.5;
+                        if(this.y < floorLevel && !this.onSomething) {
+                    	this.isFalling = true;
+           				this.y += gravity;
+                    	}
+                    }
                 } else {
                     this.game.background.x -= 2.5;
+                    if(this.y < floorLevel && !this.onSomething) {
+                    	this.isFalling = true;
+           				this.y += gravity;
+                    }
                 }
             } else  if (this.steps > 5) {
                 this.isRunning = true;
@@ -624,10 +625,19 @@ Mario.prototype.update = function () {
                     this.steps++;
                 }
                 if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length -1) ) {
-                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
+                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40) {
                         this.x +=1; 
+                        if(this.y < floorLevel && !this.onSomething) {
+                    	this.isFalling = true;
+           				this.y += gravity;
+                    	}
+                    }
                 }  else {
                     this.game.background.x -= 1;
+                    if(this.y < floorLevel && !this.onSomething) {
+                    	this.isFalling = true;
+           				this.y += gravity;
+                    }
                 }
             } else {
                 this.isWalking =true;
@@ -640,8 +650,13 @@ Mario.prototype.update = function () {
             }
             
             if (this.isRunning) {
-                if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25)
+                if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25) {
                     this.x -= 2.5;
+                    if(this.y < floorLevel && !this.onSomething) {
+                    	this.isFalling = true;
+           				this.y += gravity;
+                    }
+                }
             } else if (this.steps > 5) {
                 this.isRunning = true;
                 this.isWalking = false;
@@ -649,8 +664,13 @@ Mario.prototype.update = function () {
                 if (this.walkLeftAnimation.elapsedTime + this.game.clockTick >= this.walkLeftAnimation.totalTime) {
                     this.steps++;
                 }
-                if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25)
+                if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25) {
                     this.x -=1;   
+                    if(this.y < floorLevel && !this.onSomething) {
+                    	this.isFalling = true;
+           				this.y += gravity;
+                    }
+                }
             } else {
                  this.isWalking =true;
             }
@@ -685,7 +705,7 @@ Mario.prototype.update = function () {
             this.isWalking = false;
             this.isRunning = false;
             this.steps = 0;
-           if (this.y < floorLevel) {
+           if (this.y < floorLevel && !this.onSomething) {
        	   		this.isFalling = true;
            		this.y += gravity;
 
@@ -693,15 +713,12 @@ Mario.prototype.update = function () {
         }
     } else  {
         //console.log("key up");
-        map[37] = false;
-        map[38] = false;
-        map[39] = false;
        this.isWalking = false;
        this.isRunning = false;
        this.steps = 0;
         if (this.isJumping === true && this.y > this.maxJumpHeight) {
         	    //console.log("Mario still below max jump high of " + this.maxJumpHeight + ": Subtracting 10 from " + this.y);
-                this.y -= 8;
+                this.y -=10;
                 if(this.isJumpingRunning) {
                 		if(this.isRight) { //RIGHT
                 				if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
@@ -742,7 +759,7 @@ Mario.prototype.update = function () {
             	this.maxJumpHeight = 0;
             	this.isJumping = false;
         }
-       if (this.y < floorLevel) {
+       if (this.y < floorLevel && !this.onSomething) {
        	   this.isFalling = true;
            //this.isRunning = true;
            this.y += gravity;
@@ -803,9 +820,9 @@ Mario.prototype.update = function () {
 
        }
     }
-    if (this.isWalking || this.isRunning || this.isJumping) {
-        this.boundingbox = new BoundingBox(this.x + 17, this.y + 8, 12, 16);
-    }
+
+      this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 18, 17);
+
 }
 
 
@@ -813,7 +830,7 @@ Mario.prototype.draw = function(ctx) {
      //console.log(this.game.clockTick);
     var style = ctx.strokeStyle;
     ctx.strokeStyle = 'red';
-    ctx.strokeRect(this.x+17, this.y+8, 12, 16);
+    //ctx.strokeRect(this.x+17, this.y+8, 12, 16);
     ctx.strokeStyle = style;
     ctx.strokeStyle = "green";
     ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
@@ -898,11 +915,19 @@ Mario.prototype.draw = function(ctx) {
 }
 
 Mario.prototype.collide = function(other) {
-        if(other.type === "Box") {
-            if (this.boundingbox.top < other.boundingbox.bottom && this.boundingbox.bottom > other.boundingbox.bottom) { //Collision from below
+            if (this.boundingbox.top < other.boundingbox.bottom && this.boundingbox.bottom > other.boundingbox.bottom && other.type !== "Coin") { //Collision from below
                 this.maxJumpHeight = other.boundingbox.bottom;
+                this.isFalling = false;
+            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin") {
+            	this.y = other.boundingbox.top - 25;
+            	this.isFalling = false;
+            	this.isJumping = false;
+            	this.onSomething = true;
+            	this.isJumpingWalking = false;
+            	this.isJumpingWalking = false;
+            	this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 18, 17);
+
             }
-        }
         
 }
 
@@ -1053,12 +1078,14 @@ QuestionBox.prototype.draw = function (ctx) {
 
 //Coin
 function Coin(init_x, init_y, game) {
+
+    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 422, 0, 16, 16, 0.14, 4, true, false);
     this.boundingbox = new BoundingBox(this.x, this.y, 16, 16);
     this.type = "Coin";
     this.isVisible = true;
-    Entity.call(this, game, init_x, init_y);
+
 
 }
 
