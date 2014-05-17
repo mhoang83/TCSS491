@@ -746,12 +746,16 @@ Mario.prototype.update = function () {
            this.isFalling = true;
            //this.isRunning = true;
            this.y += gravity;
+<<<<<<< HEAD
 
            //this.x += 2.5;
                            if(this.isJumpingRunning) {
 
                     
 
+=======
+                    if(this.isJumpingRunning) {
+>>>>>>> d3e9f418139da140f22f1413b65f055a82129b33
                 		if(this.isRight) { //RIGHT
                 				if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
                     						if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40 ) {
