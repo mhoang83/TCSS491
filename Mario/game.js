@@ -489,11 +489,11 @@ BoundingBox.prototype.isCollision = function (otherEntityBoundingBox) {
         //If not of the above apply, then the collision is not legit
         else {
 
-            return false;
+    return false;
         }
+    
+}
 
-    }
- 
 
 }
 
@@ -577,7 +577,7 @@ function Mario(init_x, init_y, game) {
     this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
     this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
     this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
-    this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);   
+    this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
 }
 
 Mario.prototype = new Entity();
@@ -743,24 +743,20 @@ Mario.prototype.update = function () {
             	this.isJumping = false;
         }
        if (this.y < floorLevel) {
-           this.isFalling = true;
+       	   this.isFalling = true;
            //this.isRunning = true;
            this.y += gravity;
-<<<<<<< HEAD
 
            //this.x += 2.5;
                            if(this.isJumpingRunning) {
 
                     
 
-=======
-                    if(this.isJumpingRunning) {
->>>>>>> d3e9f418139da140f22f1413b65f055a82129b33
                 		if(this.isRight) { //RIGHT
                 				if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
                     						if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40 ) {
 
-                    						    this.x += 2.5;
+                        						this.x += 2.5;
                     						    this.y += gravity;
                     						}
                 				} else {
@@ -840,7 +836,7 @@ Mario.prototype.draw = function(ctx) {
         if (this.boxes) {
             ctx.strokeStyle = "red";
             ctx.strokeRect(this.x + 17, this.y + 8, this.fallAnimation.frameWidth, this.fallAnimation.frameHeight);
-           	ctx.strokeStyle = "green";
+            ctx.strokeStyle = "green";
             ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
         }
         if(!this.isRight) {
