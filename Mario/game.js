@@ -774,7 +774,7 @@ Mario.prototype.update = function () {
                     						if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40 ) {
 
                         						this.x += 2.5;
-                    						    this.y += gravity;
+                    						    
                     						}
                 				} else {
                     				this.game.background.x -= 2.5;
