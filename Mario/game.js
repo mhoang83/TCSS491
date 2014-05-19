@@ -914,7 +914,7 @@ Mario.prototype.update = function ()
                    {
                        if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
                        {
-                           this.x += 2.5;
+                           this.x += 3.5;
                        }
 
                    }
@@ -927,10 +927,10 @@ Mario.prototype.update = function ()
                }
                else
                { //LEFT
-                   this.x -= 2.5;
+                   //this.x -= 2.5;
                    if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25)
                    {
-                       this.x -= 2.5;
+                       this.x -= 3.5;
                    }
                }
            }
