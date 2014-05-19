@@ -596,7 +596,7 @@ Mario.prototype.update = function ()
 {
     var velocityX = 4.0;
     var velocityY = 0.0;
-    var gravity = 0.6;
+    var gravity = 4;
     var jumpVelocity = 10;
     var jumpHeight = 110;
     var jumpKeyPressed = false;
@@ -783,17 +783,19 @@ Mario.prototype.update = function ()
             {
                 if (this.isRight)
                 { //RIGHT
-                                if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
-                                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
-                                    {
+                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 ||
+                        -(this.game.background.x) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1))
+                    {
 
-                                        this.x += 2.5;
-                                    }
-                                }
-                                else
-                                {
-                                    this.game.background.x -= 2.5;
-                                }
+                        if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
+                        {
+                            this.x += 2.5;
+                        }
+                    }
+                    else
+                    {
+                        this.game.background.x -= 2.5;
+                    }
 
                 }
                 else
@@ -812,13 +814,20 @@ Mario.prototype.update = function ()
                     if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 ||
                         -(this.game.background.x) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1))
                     {
-                                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
-                                        this.x +=1; 
-                                }
-                                else
-                                {
-                                    this.game.background.x -= 1;
-                                }
+
+                        if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
+
+                            this.x += 1;
+
+                    }
+
+                    else
+
+                    {
+
+                        this.game.background.x -= 1;
+
+                    }
 
                 }
                 else
@@ -845,9 +854,10 @@ Mario.prototype.update = function ()
            this.isFalling = true;
            this.y += gravity;
            if (this.isJumpingRunning)
-           {
+           { 
                if (this.isRight)
                { //RIGHT
+                   this.x += 2.5;
                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 ||
                        -(this.game.background.x) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1))
                    {
@@ -866,6 +876,7 @@ Mario.prototype.update = function ()
                }
                else
                { //LEFT
+                   this.x -= 2.5;
                    if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25)
                    {
                        this.x -= 2.5;
