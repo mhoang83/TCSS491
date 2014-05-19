@@ -31,7 +31,9 @@
                     "staticGoldblocks": [
                         {"id":1, "init_x":66,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":2},
                         {"id":2, "init_x":168,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":2},
-                        {"id":3, "init_x":892,"init_y":217,"spritesheet": "/images/levelRemovedBorder1.png", "count":1}
+                        {"id":3, "init_x":3200,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":8},
+                        {"id":4, "init_x":892,"init_y":217,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+						{"id":5, "init_x":3356,"init_y":217,"spritesheet": "/images/levelRemovedBorder1.png", "count":1}
 
                     ],
                     "questionBlocks": [
