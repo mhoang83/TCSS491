@@ -907,8 +907,8 @@ Mario.prototype.update = function ()
            { 
                if (this.isRight)
                { //RIGHT
-                   this.x += 2.5;
-                   this.game.background.x -= 2.5;
+                   //this.x += 2.5;
+                   //this.game.background.x -= 2.5;
                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 ||
                        -(this.game.background.x) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1))
                    {
