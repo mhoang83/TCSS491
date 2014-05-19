@@ -19,10 +19,7 @@
                 },
                 "enemies":{
                     "goomba":[
-                        {"id":1, "init_x":100,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":2, "init_x":180,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":3, "init_x":580,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":4, "init_x":475,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"}
+
                     ]
                 },
 
@@ -99,6 +96,7 @@
                         {"id":3, "init_x":443,"init_y":181,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
                         {"id":4, "init_x":477,"init_y":181,"spritesheet": "/images/levelRemovedBorder1.png", "count":1}
 
+
                     ],
                     "powBlocks": [
                         
@@ -110,13 +108,69 @@
 
                     ],
                     "greenPipes": [
-                        
+                        {"id":1, "init_x":650,"init_y":183,"spritesheet": "/images/pipe.png", "count":3},
+                        {"id":2, "init_x":1879,"init_y":183,"spritesheet": "/images/pipe.png", "count":2},
+                        {"id":3, "init_x":2182,"init_y":183,"spritesheet": "/images/pipe.png", "count":3}
 
                     ],
 					"coin": [
                         {"id":1, "init_x":220,"init_y":210,"spritesheet": "/images/levelRemovedBorder1.png", "count":3},
                         {"id":2, "init_x":776,"init_y":120,"spritesheet": "/images/levelRemovedBorder1.png", "count":5},
-                        {"id":2, "init_x":940,"init_y":120,"spritesheet": "/images/levelRemovedBorder1.png", "count":5}
+                        {"id":3, "init_x":940,"init_y":120,"spritesheet": "/images/levelRemovedBorder1.png", "count":5},
+                            {"id":4, "init_x":1401,"init_y":125,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":5, "init_x":1418,"init_y":120,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":6, "init_x":1435,"init_y":115,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":7, "init_x":1452,"init_y":120,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":8, "init_x":1469,"init_y":125,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                            {"id":9, "init_x":1850,"init_y":75,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":10, "init_x":1867,"init_y":70,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":11, "init_x":1884,"init_y":65,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":12, "init_x":1901,"init_y":70,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":13, "init_x":1918,"init_y":75,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                            {"id":14, "init_x":2156,"init_y":75,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":15, "init_x":2173,"init_y":70,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":16, "init_x":2190,"init_y":65,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":17, "init_x":2207,"init_y":70,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":18, "init_x":2224,"init_y":75,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                            {"id":19, "init_x":1624,"init_y":163,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":20, "init_x":1624,"init_y":146,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":21, "init_x":1624,"init_y":129,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":22, "init_x":1624,"init_y":112,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":23, "init_x":1624,"init_y":95,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                             {"id":24, "init_x":2480,"init_y":75,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":25, "init_x":2497,"init_y":80,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":26, "init_x":2514,"init_y":85,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":27, "init_x":2531,"init_y":80,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":28, "init_x":2548,"init_y":75,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":29, "init_x":2565,"init_y":80,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":30, "init_x":2582,"init_y":85,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":31, "init_x":2599,"init_y":80,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":32, "init_x":2616,"init_y":75,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":33, "init_x":2633,"init_y":80,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                         {"id":34, "init_x":2650,"init_y":85,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":35, "init_x":2667,"init_y":80,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":36, "init_x":2684,"init_y":75,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                             {"id":37, "init_x":2899,"init_y":163,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":38, "init_x":2899,"init_y":146,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":39, "init_x":2899,"init_y":129,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":40, "init_x":2899,"init_y":112,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":41, "init_x":2899,"init_y":95,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                            {"id":42, "init_x":3151,"init_y":163,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":43, "init_x":3151,"init_y":146,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":44, "init_x":3151,"init_y":129,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":45, "init_x":3151,"init_y":112,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":46, "init_x":3151,"init_y":95,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                             {"id":47, "init_x":543,"init_y":113,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":48, "init_x":577,"init_y":113,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":49, "init_x":443,"init_y":113,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":50, "init_x":477,"init_y":113,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                              {"id":51, "init_x":526,"init_y":97,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":52, "init_x":560,"init_y":97,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":53, "init_x":426,"init_y":97,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":54, "init_x":460,"init_y":97,"spritesheet": "/images/levelRemovedBorder1.png", "count":1}
+
+
+
 
                     ]
 
