@@ -1048,10 +1048,10 @@ Mario.prototype.draw = function(ctx) {
 }
 
 Mario.prototype.collide = function(other) {
-            if (this.boundingbox.top < other.boundingbox.bottom && this.boundingbox.bottom > other.boundingbox.bottom && other.type !== "Coin") { //Collision from below
+            if (this.boundingbox.top < other.boundingbox.bottom && this.boundingbox.bottom > other.boundingbox.bottom && other.type !== "Coin" && other.type !== "Pole") { //Collision from below
                 this.maxJumpHeight = other.boundingbox.bottom;
                 this.isFalling = false;
-            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin") {
+            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole") {
             	this.y = other.boundingbox.top - 25;
             	this.isFalling = false;
             	this.isJumping = false;
@@ -1147,6 +1147,7 @@ Goomba.prototype.collide = function(other) {
 
 //QuestionBox
 function QuestionBox(init_x, init_y, game) {
+	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.staticAnimation = new Animation(this.sprite, 205, 1, 17, 16, 0.14, 4, true, false);
     this.usedAnimation = new Animation(this.sprite, 1, 86, 16, 16, 0.14, 1, true, false);
@@ -1167,7 +1168,7 @@ function QuestionBox(init_x, init_y, game) {
         this.hasPowerUp = true;
 
     }
-    Entity.call(this, game, init_x, init_y);
+
 
 }
 
@@ -1249,11 +1250,12 @@ Coin.prototype.draw = function (ctx) {
 
 //ShineyGoldBox
 function ShineyGoldBox(init_x, init_y, game) {
+	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 52, 35, 17, 16, 0.14, 8, true, false);
         this.type = "Box";
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
-    Entity.call(this, game, init_x, init_y);
+
 }
 
 ShineyGoldBox.prototype = new Entity();
@@ -1271,11 +1273,12 @@ ShineyGoldBox.prototype.draw = function (ctx) {
 
 //ShineyBlueBox
 function ShineyBlueBox(init_x, init_y, game) {
+	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 378, 60, 17, 16, 0.14, 8, true, false);
         this.type = "Box";
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
-    Entity.call(this, game, init_x, init_y);
+
 }
 
 ShineyBlueBox.prototype = new Entity();
@@ -1293,11 +1296,12 @@ ShineyBlueBox.prototype.draw = function (ctx) {
 
 //ColorFullExclamation
 function ColorFullExclamation(init_x, init_y, game) {
+	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 205, 18, 17, 16, 0.30, 4, true, false);
         this.type = "Box";
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
-    Entity.call(this, game, init_x, init_y);
+
 }
 
 ColorFullExclamation.prototype = new Entity();
@@ -1315,11 +1319,12 @@ ColorFullExclamation.prototype.draw = function (ctx) {
 
 //PinkMusicNote
 function PinkMusicNote(init_x, init_y, game) {
+	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 120, 69, 17, 16, 0.20, 4, true, false);
         this.type = "Box";
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
-    Entity.call(this, game, init_x, init_y);
+
 }
 
 PinkMusicNote.prototype = new Entity();
@@ -1338,11 +1343,12 @@ PinkMusicNote.prototype.draw = function (ctx) {
 
 //WhiteMusicNote
 function WhiteMusicNote(init_x, init_y, game) {
+	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 120, 52, 17, 16, 0.20, 4, true, false);
         this.type = "Box";
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
-    Entity.call(this, game, init_x, init_y);
+
 }
 
 WhiteMusicNote.prototype = new Entity();
@@ -1361,12 +1367,12 @@ WhiteMusicNote.prototype.draw = function (ctx) {
 
 //PowBox
 function PowBox(init_x, init_y, game) {
-
+    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 35, 18, 17, 16, 0.14, 3, true, false);
         this.type = "Box";
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
-    Entity.call(this, game, init_x, init_y);
+
 }
 
 PowBox.prototype = new Entity();
@@ -1474,10 +1480,11 @@ BackGround.prototype.draw = function (ctx) {
 
 //Green pipe
 function GreenPipe(init_x, init_y, game) {
+	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/pipe.png');
     this.type = "Pipe";
     this.boundingbox = new BoundingBox(this.x, this.y, 35, 51);
-    Entity.call(this, game, init_x, init_y);
+
 }
 
 GreenPipe.prototype = new Entity();
@@ -1499,10 +1506,11 @@ GreenPipe.prototype.draw = function (ctx) {
 
 //Green pipe Extension   - Works up to height 5 ONLY. 
 function GreenPipeExtension(init_x, init_y, game) {
+	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/pipeextension.png');
     this.type = "PipeExt";
     this.boundingbox = new BoundingBox(this.x, this.y, 35, 15);
-    Entity.call(this, game, init_x, init_y);
+
 }
 
 GreenPipeExtension.prototype = new Entity();
@@ -1524,9 +1532,10 @@ GreenPipeExtension.prototype.draw = function (ctx) {
 
 function Castle(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/castlepole.gif');
+     Entity.call(this, game, init_x, init_y);
      this.type = "Castle";
      this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
-    Entity.call(this, game, init_x, init_y);
+
 }
 
 Castle.prototype = new Entity();
@@ -1543,37 +1552,63 @@ Castle.prototype.draw = function (ctx) {
 }
 
 function Pole(init_x, init_y, game) {
+	 Entity.call(this, game, init_x, init_y);
+	var games = game;
     this.sprite = ASSET_MANAGER.getAsset('images/castlepole.gif');
      this.type = "Pole";
      this.moveAnimation = new Animation(this.sprite, 115, 520, 20, 20, 0.14, 4, true, true);
-     Entity.call(this, game, init_x, init_y);
+
+     this.boundingbox = new BoundingBox(this.x + 20, this.y + 14, 20, 20);
+     this.topVariable = this.y + 135;
+     this.flagY = this.y;
+     this.isLowering = false;
 }
 
 Pole.prototype = new Entity();
 Pole.prototype.constructor = Pole;
 
 Pole.prototype.update = function () {
-    //this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 17, 16);
+	            if(this.isLowering && this.boundingbox.bottom < this.topVariable) {
+                	this.flagY += 2;
+
+                } else if(this.isLowering && this.boundingbox.bottom > this.topVariable) {
+                	this.isLowering = false;
+                	this.flagY = (this.topVariable - 14);
+                }
+                //console.log("Lowering : " + this.isLowering + "flag height is " + this.y + " Bounding Box bottom " + this.boundingbox.bottom + " Floor level" + this.games.mario.floorLevel);
+              this.boundingbox = new BoundingBox(this.game.background.x + this.x + 20, this.flagY + 14, 20, 20);
 }
 
 Pole.prototype.draw = function (ctx) {
+
+    //ctx.strokeStyle = 'red';
+    //ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
                 ctx.drawImage(this.sprite,
                   400, 458,  
                   52, 180,
                    this.game.background.x + this.x, this.y,
                   52,
                   180);
-                 this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x + 23, this.y + 15);
+                  this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x + 23, this.flagY + 15);
 
+
+}
+
+Pole.prototype.collide = function(other) {
+    if(other.type === "Mario" && !this.isLowering) {
+		this.isLowering = true;
+        console.log("Collision with flag - Now lowering");
+    }
 }
 
 
 //StaticGoldBlock
 function StaticGoldBlock(init_x, init_y, game) {
+	Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
      this.type = "Box";
      this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
-    Entity.call(this, game, init_x, init_y);
+
 }
 
 
