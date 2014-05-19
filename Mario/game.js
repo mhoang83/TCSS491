@@ -157,10 +157,7 @@ GameEngine.prototype.startInput = function () {
         var x = e.clientX - that.ctx.canvas.getBoundingClientRect().left;
         var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top;
 
-        if (x < 1024) {
-            x = Math.floor(x / 32);
-            y = Math.floor(y / 32);
-        }
+       
 
         return { x: x, y: y };
     }
@@ -193,7 +190,7 @@ GameEngine.prototype.startInput = function () {
 }
 
 GameEngine.prototype.addEntity = function (entity) {
-    console.log('added entity');
+    console.log('added entity' + entity.type);
     this.entities.push(entity);
 }
 
@@ -217,7 +214,7 @@ GameEngine.prototype.update = function () {
     for (var i = 0; i < entitiesCount; i++) {
         var entity = this.entities[i];
 
-        if (!entity.removeFromWorld) {
+        if (entity && !entity.removeFromWorld) {
             entity.update();
         }
     }
@@ -234,9 +231,9 @@ GameEngine.prototype.detectCollisions = function () {
     var mario = this.mario;
     for (var i = 0; i < entities.length; i++) {
         var entity = entities[i];
-        //console.log("Types Detected " + mario.type + " and " + entity.type);
+       // console.log("Types Detected " + mario.type + " and " + entity.type);
         if (mario.boundingbox.isCollision(entity.boundingbox) && mario.type !== entity.type) {
-            //console.log("Collision detected between " + mario.type + " and " + entity.type);
+            console.log("Collision detected between " + mario.type + " and " + entity.type);
             mario.collide(entity);
             entity.collide(mario);
         }
@@ -247,15 +244,58 @@ GameEngine.prototype.loop = function () {
     this.clockTick = this.timer.tick();
      
     this.update();
-
-    this.detectCollisions();
+    if(!this.finishedLevel && !this.isDead)
+        this.detectCollisions();
     this.draw();
     this.click = null;
     this.wheel = null;
     //this.key = null;
 }
 
+GameEngine.prototype.addToScore = function(points) {
+    this.score += points;
+    $('#score').html('Score: ' + this.score);
+}
 
+
+
+GameEngine.prototype.reset = function () {
+    for (var i = 0; i < this.entities.length; i++) {
+        this.entities[i].reset();
+    }
+}
+
+GameEngine.prototype.startOver = function() {
+    console.log('starting over');
+    if (this.isDead) {
+        var lives = this.lives - 1;
+        var coins = this.coins;
+    }
+    this.entities = [];
+    this.loadLevel(this.mainObj, this);
+    this.finishedLevel = false;
+    this.addToScore(0); // to refresh
+    if (lives > 0) {
+        this.lives = lives;
+         this.coins = coins;
+    }
+    this.isDead = false;
+    $('#score').html("Score: " + this.score);
+    $('#lives').html('Lives: ' + this.lives);
+    $('#coins').html('Coins: ' + this.coins);
+
+}
+
+GameEngine.prototype.addCoin = function() {
+    this.coins++;
+    if (this.coins === 100) {
+        this.coins = 0;
+        this.lives++;
+        $('#lives').html('Lives: ' + this.lives);
+    }
+    $('#coins').html('Coins: ' + this.coins);
+
+}
 
 
 GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
@@ -268,7 +308,9 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
             this.mainObj = jSonString;
     }
     this.levelObj = this.mainObj.levels;
-
+    this.score = 0;
+    this.lives = 3;
+    this.coins = 0;
     //Descriptive String for level type
     this.id = this.levelObj.id;
     this.descriptionStr = this.levelObj.description;
@@ -394,7 +436,7 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
                             console.log("Block type is currently block: " + blockTypeInt);
 
     }
-
+    this.addEntity(new LevelOver(this));
     
     //Enemies inside Entities
     this.enemiesObj = this.entitiesObj.enemies;
@@ -513,12 +555,20 @@ function Entity(game, x, y) {
     this.game = game;
     this.x = x;
     this.y = y;
+    this.init_x = x;
+    this.init_y = y;
     /*
         use this. overwrite when extending entity ie for mario make type "Mario", for box "Box" etc.s
     */
     this.type = 'Entity' 
     this.removeFromWorld = false;
 }
+
+Entity.prototype.reset = function () {
+    this.x = this.init_x;
+    this.y = this.init_y;
+}
+
 
 Entity.prototype.update = function () {
 }
@@ -599,6 +649,7 @@ Mario.prototype.update = function () {
     this.onSomething = false;
     var floorLevel = this.initial_y_floor//this.game.ctx.canvas.getBoundingClientRect().bottom - 80
     //console.log(this.game.ctx);
+    if (!this.game.finishedLevel && !this.game.isDead)
     if (this.game.key &&  !this.isJumping && !this.isFalling) {
        // console.log('key' + " " + this.game.key.keyCode);
         if (this.game.key.keyCode === 39) { //RIGHT
@@ -856,9 +907,17 @@ Mario.prototype.draw = function(ctx) {
     ctx.strokeStyle = 'red';
     //ctx.strokeRect(this.x+17, this.y+8, 12, 16);
     ctx.strokeStyle = style;
-    ctx.strokeStyle = "green";
     ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
     //ctx.drawImage(this.sprite, this.x, this.y, 40, 40);
+    if (this.game.isDead) {
+        ctx.drawImage(this.sprite,
+                  360, 200,  // source from sheet
+                  40, 40,
+                  this.x, this.y - 5,
+                  40,
+                  40);
+
+    } else if (!this.game.finishedLevel)
     if (this.isRunning) {
         if (this.isRight) {
             this.runRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
@@ -1026,11 +1085,13 @@ Goomba.prototype.update = function() {
 Goomba.prototype.collide = function(other) {
     //Temp
     if(other.boundingbox.right >= this.boundingbox.left || other.boundingbox.left <= this.boundingbox.right) {
-        this.squished = true;
+        //this.squished = true;
+        this.game.isDead = true;
     }
 
     //Check for top collision
     if(other.boundingbox.bottom < this.boundingbox.top) {
+        this.game.addToScore(100);
         this.squished = true;
     }
 }
@@ -1124,6 +1185,8 @@ Coin.prototype.update = function () {
 Coin.prototype.collide = function(other) {
     if(this.isVisible && other.type === "Mario") {
         //gameEngine.points.increment(1);
+        this.game.addToScore(10);
+        this.game.addCoin();
         this.isVisible = false;
         this.boundingbox = null;
         this.removeFromWorld = true;
@@ -1415,23 +1478,94 @@ GreenPipeExtension.prototype.draw = function (ctx) {
 
 function Castle(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/castlepole.gif');
-     this.type = "Castle";
-     this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
-    Entity.call(this, game, init_x, init_y);
+     
+      Entity.call(this, game, init_x, init_y);
+      this.type = "Castle";
+     this.boundingbox = new BoundingBox(this.x +50, this.y + 55, 17, 25);
+   
 }
 
 Castle.prototype = new Entity();
 Castle.prototype.constructor = Castle;
 
+Castle.prototype.update = function () {
+        this.boundingbox = new BoundingBox(this.game.background.x + this.x +50, this.y + 55, 17, 25);
+        //console.log(this.boundingbox);
+}
+
 Castle.prototype.draw = function (ctx) {
+     
+    
+    ctx.strokeStyle = style;
                 ctx.drawImage(this.sprite,
                   0, 482,  
                   103, 81,
                    this.game.background.x + this.x, this.y,
                   103,
                   81);
+                 var style = ctx.strokeStyle;
+    ctx.strokeStyle = 'red';
+    //ctx.strokeRect(this.x+17, this.y+8, 12, 16);
+    
+    //ctx.strokeRect(this.boundingbox.x , this.boundingbox.y , this.boundingbox.width, this.boundingbox.height );
 
 }
+
+Castle.prototype.collide = function(entity) {
+    
+    if (entity.type === 'Mario') {
+        this.game.finishedLevel = true;
+    }
+}
+
+function LevelOver(game) {
+    Entity.call(this, game, game.background.sizex - 30, game.background.sizey / 2 - 50);
+}
+
+LevelOver.prototype = new Entity();
+LevelOver.prototype.constructor = LevelOver;
+
+LevelOver.prototype.reset = function () {
+    this.game.finishedLevel = false;
+}
+LevelOver.prototype.update = function () {
+     if ((this.game.finishedLevel || this.game.isDead )&& this.game.click) {
+        //console.log(this.game.click);
+        var mousex = this.game.click.x, mousey = this.game.click.y,  x = this.x, y = this.y;
+         if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 70 && mousey <= y + 110)
+            this.game.startOver();
+;
+
+
+    }
+  
+}
+
+LevelOver.prototype.draw = function (ctx) {
+    var x = this.x;
+    var y = this.y;
+
+    if (this.game.finishedLevel || this.game.isDead) {
+        ctx.font = "18pt Impact";
+        ctx.fillStyle = "red";   
+         
+        if (this.game.isDead) {
+            ctx.fillText("You're Dead", x - 40, y);
+        } else 
+            ctx.fillText("Level Complete!", x - 40, y);
+        ctx.fillText("Score : "+this.game.score, x- 40, y + 40);
+        if (this.game.mouse) {
+            //console.log(this.game.mouse);
+            var mousex = this.game.mouse.x, mousey = this.game.mouse.y;
+            if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 70 && mousey <= y + 110) { ctx.fillStyle = "blue"; }
+        }
+        ctx.fillText("Play Again?", x- 40, y + 80);
+    }
+
+       
+
+}
+
 
 function Pole(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/castlepole.gif');
