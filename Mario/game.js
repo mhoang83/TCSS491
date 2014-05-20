@@ -192,7 +192,7 @@ GameEngine.prototype.startInput = function () {
         e.preventDefault();
 
         if (e.keyCode === 38) {
-
+            that.mario.jumpVelocity = 20;
              that.mario.canJump = true;
             that.jump = false;
         } else {
@@ -653,6 +653,7 @@ function Mario(init_x, init_y, game) {
     this.maxJumpHeight = 0;
     this.onSomething = false;
     this.canJump = true;
+    this.jumpVelocity = 20;
     // made this the same as the debug box mario already has drawn around him.
     this.boundingbox = new BoundingBox(this.x + 15, this.y + 5, 18, 17);
     console.log('mario bounding box');
@@ -672,7 +673,6 @@ Mario.prototype.update = function ()
     var velocityX = 4.0;
     var velocityY = 0.0;
     var gravity = 4;
-    var jumpVelocity = 10;
     var jumpHeight = 110;
     var jumpKeyPressed = false;
     this.onSomething = false;
@@ -800,12 +800,11 @@ Mario.prototype.update = function ()
                 this.maxJumpHeight = this.y - jumpHeight;
                 this.isJumping = true;
             }
-            console.log(this.y+ " " +  this.maxJumpHeight);
 
            
             if(this.y > this.maxJumpHeight) {
-                this.y -= jumpVelocity;
-                this.jumpVelocity -= 0.5;
+                this.y -= this.jumpVelocity;
+                this.jumpVelocity *= 0.82;
 
             } 
             else if (this.y <= this.maxJumpHeight) {
@@ -814,6 +813,7 @@ Mario.prototype.update = function ()
                // this.maxJumpHeight = 0;
                // this.isJumping = false;
                 this.isFalling = true;
+                this.jumpVelocity = 20;
                // if(this.y < floorLevel && !this.onSomething) {
                //       this.isFalling = true;
                //       this.isJumping = false;
@@ -853,9 +853,7 @@ Mario.prototype.update = function ()
                  this.jumpComplete = true;
                  this.canJump = false;
         }
-        if (this.platformMaxX) {
-            console.log(this.platformMaxX + " " + this.boundingbox.left + " " + this.platformMinX + " " + this.boundingbox.right);
-        }
+        
 
         if (!this.isFalling && !this.isJumping &&  this.y < floorLevel && (this.platformMaxX < this.boundingbox.left || this.platformMinX > this.boundingbox.right))
         {
@@ -880,21 +878,21 @@ Mario.prototype.update = function ()
                 console.log('here');
                 this.isJumping = false;
                 this.isFalling = true;
+                this.jumpVelocity = 20;
             }
             if (this.y > floorLevel)
         {
+            this.jumpVelocity = 20;
              this.jumpComplete = false; 
             this.isFalling = false;
             this.y = floorLevel;
-            console.log('y > floor');
+            
         }
             this.isJumping = false;  //On collision of platform, need to set to false as well if landed on it
             //console.log("Setting Mario to not falling anymore");
 
     }
     if (this.isFalling) {
-        console.log("falling");
-        console.log(this.y + " " + floorLevel);
        if (this.y < floorLevel)
        {
            this.isFalling = true;
@@ -902,10 +900,11 @@ Mario.prototype.update = function ()
           
         }else if (this.y >= floorLevel)
         {
+             this.jumpVelocity = 20;
             this.jumpComplete = false;
             this.isFalling = false;
             this.y = floorLevel;
-            console.log('y > floor');
+          
             this.isJumping = false; 
         }
     } 
@@ -1024,7 +1023,7 @@ Mario.prototype.collide = function(other) {
 
             else if(this.boundingbox.top < other.boundingbox.bottom && this.boundingbox.bottom > other.boundingbox.bottom && other.type !== "Coin" && other.type !== "Pole") { //Collision from below
                 this.maxJumpHeight = other.boundingbox.bottom;
-                this.isFalling = false;
+                this.isFalling = true;
 
             } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top+3 < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole") {    
             	this.y = other.boundingbox.top - 25;
