@@ -1094,25 +1094,36 @@ QuestionBox.prototype.constructor = QuestionBox;
 
 QuestionBox.prototype.update = function () {
     //Entity.prototype.update.call(this);
+    if (this.hitAlready) {
+
+        if (this.y != this.init_y) {
+            this.hitAlready = true;
+            this.y += 2;
+        }
+    }
     this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 17, 16);
 }
 
 QuestionBox.prototype.collide = function(other) {
     //Check for bottom collision
+    
     if(other.boundingbox.top < this.boundingbox.bottom && other.boundingbox.bottom > this.boundingbox.bottom) { //We have a collsion from below
             if(!this.hitAlready) { //if not hit already
-                if(this.hasCoin) {
+                if(this.hasCoin) {                   
                     this.hitAlready = true;
                     this.popContents = false;
                     this.gameEngine.addEntity(new Coin(this.x, this.y - 17, this.gameEngine)); //have a coin pop out above the box
+                    this.y -= 10;
+                   
 
-                } else if(hasPowerUp) { //Will not be handled/completed until Final Release. canHavePowerUps will be always set false until then
+                } else if (hasPowerUp) { //Will not be handled/completed until Final Release. canHavePowerUps will be always set false until then
 
                 }
 
 
             }
     }
+    
 }
 
 QuestionBox.prototype.draw = function (ctx) {
