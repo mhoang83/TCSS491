@@ -1114,13 +1114,9 @@ QuestionBox.prototype.collide = function(other) {
                     this.popContents = false;
                     this.gameEngine.addEntity(new Coin(this.x, this.y - 17, this.gameEngine)); //have a coin pop out above the box
                     this.y -= 10;
-                   
-
                 } else if (hasPowerUp) { //Will not be handled/completed until Final Release. canHavePowerUps will be always set false until then
 
                 }
-
-
             }
     }
     
