@@ -410,7 +410,7 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
                     break;
                 case 8:
 
-                    //Enables the construction of a green pipe with a variable height using only to sprite sheets,
+                    //Enables the construction of a green pipe with a variable height using only two sprite sheets,
                     //where the actual height of the pipe is = ((count - the top peice) x 15) 
                     var j;
                     for (j = 0; j < count; j++) {
@@ -534,7 +534,17 @@ BoundingBox.prototype.isCollision = function (otherEntityBoundingBox) {
         else if(leftCheck && (this.bottom === oth.bottom)) {
             return true;
 
-        }
+        } else if(bottomCheck && this.right > oth.left && this.left > oth.left && this.right < oth.right && this.left < oth.right) { //Ontop of a larger box then marios boundboox
+        	return true;
+
+        } else if(bottomCheck && this.right > oth.left && this.left < oth.left) { //Ontop of a larger box then marios boundboox
+        	return true;
+
+        } else if(bottomCheck && this.left < oth.right && this.right > oth.right) { //Ontop of a larger box then marios boundboox
+        	return true;
+
+        } 
+
 
         //If not of the above apply, then the collision is not legit
         else {
@@ -1107,10 +1117,20 @@ Mario.prototype.draw = function(ctx) {
 }
 
 Mario.prototype.collide = function(other) {
-            if (this.boundingbox.top < other.boundingbox.bottom && this.boundingbox.bottom > other.boundingbox.bottom && other.type !== "Coin" && other.type !== "Pole") { //Collision from below
+	//console.log("Bottom " + this.boundingbox.bottom + "   /   " + other.boundingbox.bottom);
+	if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && (this.boundingbox.bottom === other.boundingbox.bottom+1 || this.boundingbox.bottom === other.boundingbox.bottom) && (other.type === "Box" || other.type === "Pipe" || other.type === "PipeExt")) { //Collsion from the right
+                    this.x = other.boundingbox.left - 33;
+                    //console.log("LEft Collide: Bottom " + this.boundingbox.bottom + "   /   " + other.boundingbox.bottom);
+
+                } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && (this.boundingbox.bottom === other.boundingbox.bottom+1 || this.boundingbox.bottom === other.boundingbox.bottom) && (other.type === "Box" || other.type === "Pipe" || other.type === "PipeExt")) { //Collsion from the left
+                    this.x = other.boundingbox.right - 15;
+                    //console.log("RiGht Collide: Bottom " + this.boundingbox.bottom + "   /   " + other.boundingbox.bottom);
+                }
+
+            else if(this.boundingbox.top < other.boundingbox.bottom && this.boundingbox.bottom > other.boundingbox.bottom && other.type !== "Coin" && other.type !== "Pole") { //Collision from below
                 this.maxJumpHeight = other.boundingbox.bottom;
                 this.isFalling = false;
-            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole") {
+            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top+3 < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole") {
             	this.y = other.boundingbox.top - 25;
             	this.isFalling = false;
             	this.isJumping = false;
@@ -1120,6 +1140,7 @@ Mario.prototype.collide = function(other) {
             	this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 18, 17);
 
             }
+                        
         
 }
 
@@ -1352,7 +1373,6 @@ ShineyBlueBox.prototype.update = function () {
 }
 
 ShineyBlueBox.prototype.draw = function (ctx) {
-    //console.log(this.sprite);
     this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
 
 }
@@ -1546,7 +1566,7 @@ function GreenPipe(init_x, init_y, game) {
 	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/pipe.png');
     this.type = "Pipe";
-    this.boundingbox = new BoundingBox(this.x, this.y, 35, 51);
+    this.boundingbox = new BoundingBox(this.x+1, this.y-5, 32, 45);
 
 }
 
@@ -1554,7 +1574,7 @@ GreenPipe.prototype = new Entity();
 GreenPipe.prototype.constructor = GreenPipe;
 
 GreenPipe.prototype.update = function () {
-   this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 35, 51);
+   this.boundingbox = new BoundingBox( this.game.background.x + this.x+1, this.y+4, 32, 45);
 }
 
 GreenPipe.prototype.draw = function (ctx) {
@@ -1572,7 +1592,7 @@ function GreenPipeExtension(init_x, init_y, game) {
 	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/pipeextension.png');
     this.type = "PipeExt";
-    this.boundingbox = new BoundingBox(this.x, this.y, 35, 15);
+    this.boundingbox = new BoundingBox(this.x+1, this.y, 32, 15);
 
 }
 
@@ -1580,7 +1600,7 @@ GreenPipeExtension.prototype = new Entity();
 GreenPipeExtension.prototype.constructor = GreenPipeExtension;
 
 GreenPipeExtension.prototype.update = function () {
-   this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 35, 15);
+   this.boundingbox = new BoundingBox( this.game.background.x + this.x+1, this.y, 32, 15);
 }
 
 GreenPipeExtension.prototype.draw = function (ctx) {
