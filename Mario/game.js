@@ -860,7 +860,8 @@ Mario.prototype.update = function ()
            this.isFalling = true;
            this.y += gravity;
           
-        }else if (this.y >= floorLevel)
+       }
+       else if (this.y >= floorLevel)
         {
              this.jumpVelocity = 20;
             this.jumpComplete = false;
@@ -980,7 +981,11 @@ Mario.prototype.collide = function(other) {
                 this.platformMinX = other.boundingbox.left;
                  this.jumpComplete = false; 
             	this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 18, 17);
-            }     
+            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top + 3 < other.boundingbox.top && other.type == "Goomba" ) {
+                this.y = other.boundingbox.top - 45;
+                this.isFalling = true;
+                this.isJumping = false;
+            }
 }
 
 
@@ -1055,6 +1060,7 @@ Goomba.prototype.collide = function(other) {
     if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top) {
         this.game.addToScore(100);
         this.squished = true;
+        this.removeFromWorld = true;
     } else if(other.boundingbox.right >= this.boundingbox.left || other.boundingbox.left <= this.boundingbox.right) {
         this.game.isDead = true;
     }
