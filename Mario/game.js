@@ -1120,6 +1120,7 @@ function QuestionBox(init_x, init_y, game) {
 QuestionBox.prototype = new Entity();
 QuestionBox.prototype.constructor = QuestionBox;
 
+
 QuestionBox.prototype.update = function () {
     //Entity.prototype.update.call(this);
     if (this.hitAlready) {
