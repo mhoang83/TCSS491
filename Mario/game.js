@@ -1071,12 +1071,12 @@ Goomba.prototype.collide = function(other) {
     if(this.boundingbox.right > other.boundingbox.left && 
             this.boundingbox.left < other.boundingbox.left && 
             //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
-            (other.type === "Box" || other.type === "Pipe" || other.type === "PipeExt" || other.type === "Coin")) { //Collsion from the right
+            (other.type === "Box" || other.type === "Pipe" || other.type === "PipeExt")) { //Collsion from the right
                     this.direction = (this.direction === 0) ? 1 : 0;
 
     } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
             //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
-            (other.type === "Box" || other.type === "Pipe" || other.type === "PipeExt" || other.type === "Coin")) { //Collsion from the left
+            (other.type === "Box" || other.type === "Pipe" || other.type === "PipeExt")) { //Collsion from the left
                     this.direction = (this.direction === 0) ? 1 : 0;
     } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
         this.game.addToScore(100);
