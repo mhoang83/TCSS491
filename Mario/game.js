@@ -121,6 +121,7 @@ Timer.prototype.tick = function () {
 
 function GameEngine() {
     this.entities = [];
+    this.worldEntities = [];
     this.mario = null;
     this.ctx = null;
     this.click = null;
@@ -205,6 +206,12 @@ GameEngine.prototype.startInput = function () {
 GameEngine.prototype.addEntity = function (entity) {
     //console.log('added entity' + entity.type);
     this.entities.push(entity);
+    
+    //Copy world entities into another collection for collision detection
+    if(entity.type !== 'Mario' || entity.type !== 'Goomba') { //Temp
+        this.worldEntities.push(entity); //Push world entities
+
+    } 
 }
 
 
@@ -240,6 +247,7 @@ GameEngine.prototype.update = function () {
 }
 
 GameEngine.prototype.detectCollisions = function () {
+
     var entities = this.entities;
     var mario = this.mario;
     for (var i = 0; i < entities.length; i++) {
@@ -247,6 +255,14 @@ GameEngine.prototype.detectCollisions = function () {
         if (mario.boundingbox.isCollision(entity.boundingbox) && mario.type !== entity.type) {
             mario.collide(entity);
             entity.collide(mario);
+        }
+
+        if(entity.type === 'Goomba') {
+           for(var j = 0; j < this.worldEntities.length; j++) {
+                if(entity.boundingbox.isCollision(this.worldEntities[j].boundingbox)){
+                    entity.collide(this.worldEntities[j]);
+                }
+            }
         }
     }
 }
@@ -559,7 +575,6 @@ BoundingBox.prototype.isCollision = function (otherEntityBoundingBox) {
 
         //If not of the above apply, then the collision is not legit
         else {
-
     return false;
         }
     
@@ -1035,19 +1050,10 @@ Goomba.prototype.draw = function(ctx) {
 
 Goomba.prototype.update = function() {
     if(!this.squished) {
-        var travelCount = 100;
         if(this.direction === 1) {
-            if(this.x === this.init_x + travelCount) {
-                this.direction = 0;
-            } else {
-                this.x += 1;        
-            }
+            this.x += 1;        
         } else {
-            if(this.x === this.init_x) {
-                this.direction = 1;
-            } else {
-                this.x -= 1;
-            }
+            this.x -= 1;
         }
     }
     this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 17, 16);
@@ -1055,22 +1061,38 @@ Goomba.prototype.update = function() {
 }
 
 Goomba.prototype.collide = function(other) {
-    //Check for top collision
-    if (!this.squished)
-    if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top) {
+    /*
+    if(other.type === 'Pipe' || other.type === 'PipeExt') {
+        console.log(this.boundingbox.right);
+        console.log(other.boundingbox.left);
+        console.log(this.boundingbox.left);
+        console.log(other.boundingbox.right);
+    }*/
+    if(this.boundingbox.right > other.boundingbox.left && 
+            this.boundingbox.left < other.boundingbox.left && 
+            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+            (other.type === "Box" || other.type === "Pipe" || other.type === "PipeExt" || other.type === "Coin")) { //Collsion from the right
+                    this.direction = (this.direction === 0) ? 1 : 0;
+
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
+            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+            (other.type === "Box" || other.type === "Pipe" || other.type === "PipeExt" || other.type === "Coin")) { //Collsion from the left
+                    this.direction = (this.direction === 0) ? 1 : 0;
+    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
         this.game.addToScore(100);
         this.squished = true;
         this.removeFromWorld = true;
-    } else if(other.boundingbox.right >= this.boundingbox.left || other.boundingbox.left <= this.boundingbox.right) {
+    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left <= this.boundingbox.right)
+        && other.type === 'Mario') {
         this.game.isDead = true;
-    }
-
+    } 
 }
 //End Goomba
 
 //QuestionBox
 function QuestionBox(init_x, init_y, game) {
-	    Entity.call(this, game, init_x, init_y);
+	Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.staticAnimation = new Animation(this.sprite, 205, 1, 17, 16, 0.14, 4, true, false);
     this.usedAnimation = new Animation(this.sprite, 1, 86, 16, 16, 0.14, 1, true, false);
