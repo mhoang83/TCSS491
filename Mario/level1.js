@@ -34,6 +34,9 @@ var level1 = {"levels":
                         {"id":1, "init_x":1180,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":1, "init_x":1980,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":1, "init_x":3150,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png"}
+                    ],
+                    "chomper":[
+                        {"id":1, "init_x":642,"init_y":127,"spritesheet":"images/smb3_enemies_sheet.png"}
                     ]
                 },
 

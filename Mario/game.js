@@ -257,7 +257,7 @@ GameEngine.prototype.detectCollisions = function () {
             entity.collide(mario);
         }
 
-        if(entity.type === 'Goomba' || entity.type === 'RedKoopa') { //TODO
+        if(entity.type === 'Goomba' || entity.type === 'RedKoopa' || entity.type === 'Chomper') { //TODO
            for(var j = 0; j < this.worldEntities.length; j++) {
                 if(entity.boundingbox.isCollision(this.worldEntities[j].boundingbox)){
                     entity.collide(this.worldEntities[j]);
@@ -479,6 +479,9 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
                     break;
                 case "redkoopa":
                     gameEngine.addEntity(new RedKoopa(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+                case "chomper":
+                    gameEngine.addEntity(new Chomper(enemyObject.init_x, enemyObject.init_y, gameEngine));
                     break;
             }
             
@@ -1155,6 +1158,46 @@ RedKoopa.prototype.collide = function(other) {
     } 
 }
 //End RedKoopa
+
+//Chomper code
+function Chomper(init_x, init_y, game) {
+    //Call Enemy super constructor
+    Enemy.call(this,init_x, init_y, game);
+    this.frameWidth = 50;
+    this.frameHeight = 30;
+    this.type = "Chomper"; 
+    this.boundingbox = new BoundingBox(this.game.background.x + this.x + 15, this.y + 5, 20, 25);
+    this.chomp_animation = new Animation(this.sprite, 0, 345, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.current_animation = this.chomp_animation;
+}
+
+Chomper.prototype.draw = function(ctx) {
+    /*
+    ctx.strokeStyle = "red";
+    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+    
+    ctx.drawImage(this.sprite,
+                  0, 345, 
+                  this.frameWidth, this.frameHeight,
+                  645, 130,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);*/
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+}
+
+Chomper.prototype.update = function() {    
+    this.boundingbox = new BoundingBox(this.game.background.x + this.x + 15, this.y + 5, 20, 25);
+}
+
+Chomper.prototype.collide = function(other) {
+    if((other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top) || 
+        (other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left <= this.boundingbox.right)
+        && other.type === 'Mario') { //Check for top collision
+        this.game.isDead = true;
+    } 
+}
+//End Chomper
 
 //QuestionBox
 function QuestionBox(init_x, init_y, game) {
