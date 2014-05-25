@@ -271,8 +271,7 @@ GameEngine.prototype.loop = function () {
     this.clockTick = this.timer.tick();
      
     this.update();
-    if(!this.finishedLevel && !this.isDead)
-        this.detectCollisions();
+    this.detectCollisions();
     this.draw();
     this.click = null;
     this.wheel = null;
@@ -474,7 +473,15 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
         var arrayLength = enemyGroupArray.length;
         for (i = 0; i < arrayLength; i++) {
             var enemyObject = enemyGroupArray[i];
-            gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine));
+            switch(key) {
+                case "goomba":
+                    gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+                case "redkoopa":
+                    gameEngine.addEntity(new RedKoopa(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+            }
+            
         }
     }
 
@@ -1083,6 +1090,86 @@ Goomba.prototype.collide = function(other) {
     } 
 }
 //End Goomba
+
+//Red Koopa code
+function RedKoopa(init_x, init_y, game) {
+    //Call Enemy super constructor
+    Enemy.call(this,init_x, init_y, game);
+    this.frameWidth = 40;
+    this.frameHeight = 30;
+    this.direction = 1;
+    this.type = "RedKoopa"; 
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 20, 25);
+    this.right_animation = new Animation(this.sprite, 200, 248, this.frameWidth, this.frameHeight, .4, 4, true, false);
+    this.left_animation = new Animation(this.sprite, 200, 248, this.frameWidth, this.frameHeight, .4, 4, true, false);
+}
+
+RedKoopa.prototype.draw = function(ctx) {
+    /*
+    ctx.strokeStyle = "red";
+    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+    
+    ctx.drawImage(this.sprite,
+                  200, 248, 
+                  this.frameWidth, this.frameHeight,
+                  this.game.background.x + this.x, this.y,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);*/
+    this.right_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+ 
+    /*
+    if(this.squished) {
+        ctx.drawImage(this.sprite,
+                  this.frameWidth * 6, 0, 
+                  this.frameWidth, this.frameHeight,
+                  this.game.background.x + this.x, this.y + 5,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);
+            this.cycleCount += 1;
+        if(this.cycleCount === 10) {
+            this.removeFromWorld = true;
+        }
+    } else {
+        this.back_forth_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+    }*/
+}
+
+RedKoopa.prototype.update = function() {
+    this.x += 1;
+    /*
+    if(!this.squished) {
+        if(this.direction === 1) {
+            this.x += 1;        
+        } else {
+            this.x -= 1;
+        }
+    }*/
+    this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 20, 25);
+
+}
+
+RedKoopa.prototype.collide = function(other) {
+    
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && 
+            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the right
+                    this.direction = 0;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
+            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
+                    this.direction = 1;
+
+    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+        this.game.addToScore(100);
+        this.squished = true;
+        this.removeFromWorld = true;
+    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left <= this.boundingbox.right)
+        && other.type === 'Mario') {
+        this.game.isDead = true;
+    } 
+}
+//End RedKoopa
 
 //QuestionBox
 function QuestionBox(init_x, init_y, game) {

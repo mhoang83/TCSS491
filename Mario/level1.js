@@ -29,7 +29,8 @@ var level1 = {"levels":
                         {"id":8, "init_x":2550,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":9, "init_x":2850,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":10, "init_x":3150,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"}
-                    ]
+                    ],
+                    "redkoopa":[{"id":1, "init_x":50,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png"}]
                 },
 
 
