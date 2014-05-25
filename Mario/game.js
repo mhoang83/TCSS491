@@ -367,6 +367,9 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
     // pole
     gameEngine.addEntity(new Pole(this.entitiesObj.pole.init_x, this.entitiesObj.pole.init_y, gameEngine));
 
+    // Boss
+    gameEngine.addEntity(new Bowser(this.entitiesObj.boss.init_x, this.entitiesObj.boss.init_y, gameEngine));
+
     //Mario inside Players
     this.marioObj = this.playersObj.mario;
     this.spriteSheetStr = this.marioObj.spritesheet;
@@ -1742,6 +1745,148 @@ StaticGoldBlock.prototype.draw = function (ctx) {
 
 }
 
+//Bowser the Boss
+function Bowser(init_x, init_y, game) {
+
+    Entity.call(this, game, init_x, init_y);
+    this.isRight = false;
+    this.isJumping = false;
+    this.isWalking = false;
+    this.isStunned = false;
+    this.timeToShoot = false;
+    this.ticker = 0;
+    this.sprite = ASSET_MANAGER.getAsset('images/boss_sprite.png');
+    this.rightBowserShootAnimation = new Animation(this.sprite, 88, 220, 40, 40, 0.22, 5, true, true);
+    this.leftBowserShootAnimation = new Animation(this.sprite, 91, 43, 40, 40, 0.22, 5, true, false);
+
+
+
+    this.jumpRightAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.jumpLeftAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.walkRightAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.walkLeftAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.boundingbox = new BoundingBox(this.x, this.y, 40, 40);
+    this.type = "Bowser";
+}
+
+Bowser.prototype = new Entity();
+Bowser.prototype.constructor = Bowser;
+
+Bowser.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+        if(this.isRight) {
+        	if(this.timeToShoot && this.rightBowserShootAnimation.isDone) {
+				//this.timeToShoot = false;
+        	}
+        } else {
+        	if(this.timeToShoot && this.leftBowserShootAnimation.isDone) {
+        		//this.timeToShoot = false;
+        	}
+        }
+
+}
+
+Bowser.prototype.collide = function(other) {
+    console.log("Bowser collided with Mario");
+}
+
+Bowser.prototype.draw = function (ctx) {
+	//ctx.strokeStyle = "red";
+    //ctx.strokeRect(this.x, this.y, this.rightBowserShootAnimation.frameWidth, this.rightBowserShootAnimation.frameHeight);
+	if(this.timeToShoot) {
+		//console.log("TIME TO SHOOT: " + this.timeToShoot);
+		var direction = "left";
+			if(this.isRight) {
+				direction = "right";
+			}
+			//console.log("IS FACING: " + direction);
+		if(this.isRight) {
+
+			this.rightBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+		} else {
+        	this.leftBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+		}
+
+	} else if(this.moveRight) {
+
+	} else if(this.moveLeft) {
+
+	} else if(this.isJumping) {
+
+	} else {
+		if(this.isRight) {
+			        	//this.rightBowserIdleAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+
+			                ctx.drawImage(this.sprite,
+                  246, 220,  
+                  40, 40,
+                   this.game.background.x + this.x, this.y,
+                  40,
+                  40);
+
+		} else {
+			        	//this.leftBowserIdleAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+			        
+			                ctx.drawImage(this.sprite,
+                  91, 43,  
+                  40, 40,
+                   this.game.background.x + this.x, this.y,
+                  40,
+                  40);
+
+		}
+
+	}
+}
+
+//Fire Boss
+function FireBall(init_x, init_y, game, isRight) {
+
+    Entity.call(this, game, init_x, init_y);
+    this.isRight = isRight;
+    this.sprite = ASSET_MANAGER.getAsset('images/boss_sprite.png');
+    this.leftFireAnimation = new Animation(this.sprite, 92, 10, 40, 40, 0.14, 5, false, false);
+    this.rightFireAnimation = new Animation(this.sprite, 96, 188, 40, 40, 0.14, 5, false, true);
+    this.boundingbox = new BoundingBox(this.x, this.y, 40, 40);
+    this.type = "FireBall";
+}
+
+FireBall.prototype = new Entity();
+FireBall.prototype.constructor = FireBall;
+
+FireBall.prototype.update = function () {
+    if(isRight) {
+    	if(this.rightFireAnimation.isDone) {
+    		this.boundingbox = null;
+        	this.removeFromWorld = true;
+    	} else {
+    		    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+    	}
+    } else {
+    	if(this.leftFireAnimation.isDone) {
+    		this.boundingbox = null;
+        	this.removeFromWorld = true;
+    	} else {
+    		    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+    	}
+    }
+
+}
+
+FireBall.prototype.collide = function(other) {
+    console.log("FireBall collided with Mario");
+}
+
+FireBall.prototype.draw = function (ctx) {
+	if(this.isRight) {
+
+        this.rightFireAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
+	} else {
+		this.leftFireAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
+	}
+}
+
 // GameBoard code below
 function GameBoard() {
 
@@ -1768,6 +1913,7 @@ ASSET_MANAGER.queueDownload('images/pipe.png');
 ASSET_MANAGER.queueDownload('images/pipeextension.png');
 ASSET_MANAGER.queueDownload('images/mariolevels.png');
 ASSET_MANAGER.queueDownload('images/castlepole.gif');
+ASSET_MANAGER.queueDownload('images/boss_sprite.png');
 
 ASSET_MANAGER.downloadAll(function () {
     console.log("starting up da sheild");

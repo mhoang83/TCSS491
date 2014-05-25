@@ -193,6 +193,7 @@ var level1 = {"levels":
 
                 },
                 "castle" : {"id": 1,"init_x":3464,"init_y":153,"spritesheet": "images/castlepole.gif"},
+                "boss" : {"id": 1,"init_x":217,"init_y":300,"spritesheet": "images/boss_sprite.png"},
                 "pole": {"id": 1,"init_x":3340,"init_y":60,"spritesheet": "images/castlepole.gif"}
             }
         }
