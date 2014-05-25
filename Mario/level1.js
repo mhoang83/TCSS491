@@ -22,15 +22,19 @@ var level1 = {"levels":
                         {"id":1, "init_x":100,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":2, "init_x":910,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":3, "init_x":475,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":4, "init_x":1180,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
+                        //{"id":4, "init_x":1180,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":5, "init_x":1680,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":6, "init_x":1980,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
+                        //{"id":6, "init_x":1980,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":7, "init_x":2250,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":8, "init_x":2550,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":9, "init_x":2850,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":10, "init_x":3150,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"}
+                        //{"id":10, "init_x":3150,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"}
                     ],
-                    "redkoopa":[{"id":1, "init_x":50,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png"}]
+                    "redkoopa":[
+                        {"id":1, "init_x":1180,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png"},
+                        {"id":1, "init_x":1980,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png"},
+                        {"id":1, "init_x":3150,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png"}
+                    ]
                 },
 
 
