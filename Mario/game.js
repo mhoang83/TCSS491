@@ -1627,9 +1627,10 @@ ASSET_MANAGER.queueDownload('images/levelRemovedBorder1.png');
 ASSET_MANAGER.queueDownload('images/smb3_mario_sheet.png');
 ASSET_MANAGER.queueDownload('images/smb3_enemies_sheet.png');
 ASSET_MANAGER.queueDownload('images/pipe.png');
-ASSET_MANAGER.queueDownload('images/pipeextension.png');
+
 ASSET_MANAGER.queueDownload('images/mariolevels.png');
 ASSET_MANAGER.queueDownload('images/castlepole.gif');
+ASSET_MANAGER.queueDownload('images/pipeextension.png');
 
 ASSET_MANAGER.downloadAll(function () {
     console.log("starting up da sheild");
