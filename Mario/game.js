@@ -121,6 +121,7 @@ Timer.prototype.tick = function () {
 
 function GameEngine() {
     this.entities = [];
+    this.worldEntities = [];
     this.mario = null;
     this.ctx = null;
     this.click = null;
@@ -205,6 +206,12 @@ GameEngine.prototype.startInput = function () {
 GameEngine.prototype.addEntity = function (entity) {
     //console.log('added entity' + entity.type);
     this.entities.push(entity);
+    
+    //Copy world entities into another collection for collision detection
+    if(entity.type !== 'Mario' || entity.type !== 'Goomba') { //Temp
+        this.worldEntities.push(entity); //Push world entities
+
+    } 
 }
 
 
@@ -240,6 +247,7 @@ GameEngine.prototype.update = function () {
 }
 
 GameEngine.prototype.detectCollisions = function () {
+
     var entities = this.entities;
     var mario = this.mario;
     for (var i = 0; i < entities.length; i++) {
@@ -248,6 +256,14 @@ GameEngine.prototype.detectCollisions = function () {
             mario.collide(entity);
             entity.collide(mario);
         }
+
+        if(entity.type === 'Goomba' || entity.type === 'RedKoopa' || entity.type === 'Chomper') { //TODO
+           for(var j = 0; j < this.worldEntities.length; j++) {
+                if(entity.boundingbox.isCollision(this.worldEntities[j].boundingbox)){
+                    entity.collide(this.worldEntities[j]);
+                }
+            }
+        }
     }
 }
 
@@ -255,8 +271,7 @@ GameEngine.prototype.loop = function () {
     this.clockTick = this.timer.tick();
      
     this.update();
-    if(!this.finishedLevel && !this.isDead)
-        this.detectCollisions();
+    this.detectCollisions();
     this.draw();
     this.click = null;
     this.wheel = null;
@@ -351,6 +366,9 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
 
     // pole
     gameEngine.addEntity(new Pole(this.entitiesObj.pole.init_x, this.entitiesObj.pole.init_y, gameEngine));
+
+    // Boss
+    gameEngine.addEntity(new Bowser(this.entitiesObj.boss.init_x, this.entitiesObj.boss.init_y, gameEngine));
 
     //Mario inside Players
     this.marioObj = this.playersObj.mario;
@@ -458,7 +476,18 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
         var arrayLength = enemyGroupArray.length;
         for (i = 0; i < arrayLength; i++) {
             var enemyObject = enemyGroupArray[i];
-            gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine));
+            switch(key) {
+                case "goomba":
+                    gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+                case "redkoopa":
+                    gameEngine.addEntity(new RedKoopa(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+                case "chomper":
+                    gameEngine.addEntity(new Chomper(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+            }
+            
         }
     }
 
@@ -559,7 +588,6 @@ BoundingBox.prototype.isCollision = function (otherEntityBoundingBox) {
 
         //If not of the above apply, then the collision is not legit
         else {
-
     return false;
         }
     
@@ -860,7 +888,8 @@ Mario.prototype.update = function ()
            this.isFalling = true;
            this.y += gravity;
           
-        }else if (this.y >= floorLevel)
+       }
+       else if (this.y >= floorLevel)
         {
              this.jumpVelocity = 20;
             this.jumpComplete = false;
@@ -980,7 +1009,11 @@ Mario.prototype.collide = function(other) {
                 this.platformMinX = other.boundingbox.left;
                  this.jumpComplete = false; 
             	this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 18, 17);
-            }     
+            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top + 3 < other.boundingbox.top && other.type == "Goomba" ) {
+                this.y = other.boundingbox.top - 45;
+                this.isFalling = true;
+                this.isJumping = false;
+            }
 }
 
 
@@ -1030,19 +1063,10 @@ Goomba.prototype.draw = function(ctx) {
 
 Goomba.prototype.update = function() {
     if(!this.squished) {
-        var travelCount = 100;
         if(this.direction === 1) {
-            if(this.x === this.init_x + travelCount) {
-                this.direction = 0;
-            } else {
-                this.x += 1;        
-            }
+            this.x += 1;        
         } else {
-            if(this.x === this.init_x) {
-                this.direction = 1;
-            } else {
-                this.x -= 1;
-            }
+            this.x -= 1;
         }
     }
     this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 17, 16);
@@ -1050,21 +1074,137 @@ Goomba.prototype.update = function() {
 }
 
 Goomba.prototype.collide = function(other) {
-    //Check for top collision
-    if (!this.squished)
-    if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top) {
+    
+
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && 
+            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the right
+                    this.direction = 0;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
+            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
+                    this.direction = 1;
+
+    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
         this.game.addToScore(100);
         this.squished = true;
-    } else if(other.boundingbox.right >= this.boundingbox.left || other.boundingbox.left <= this.boundingbox.right) {
+        this.removeFromWorld = true;
+    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left <= this.boundingbox.right)
+        && other.type === 'Mario') {
         this.game.isDead = true;
-    }
-
+    } 
 }
 //End Goomba
 
+//Red Koopa code
+function RedKoopa(init_x, init_y, game) {
+    //Call Enemy super constructor
+    Enemy.call(this,init_x, init_y, game);
+    this.frameWidth = 40;
+    this.frameHeight = 30;
+    this.direction = 1;
+    this.type = "RedKoopa"; 
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 20, 25);
+    this.right_animation = new Animation(this.sprite, 200, 248, this.frameWidth, this.frameHeight, .4, 4, true, false);
+    this.left_animation = new Animation(this.sprite, 40, 248, this.frameWidth, this.frameHeight, .4, 4, true, true);
+    this.current_animation = this.right_animation;
+}
+
+RedKoopa.prototype.draw = function(ctx) {
+    /*
+    ctx.strokeStyle = "red";
+    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+    
+    ctx.drawImage(this.sprite,
+                  40, 248, 
+                  this.frameWidth, this.frameHeight,
+                  this.game.background.x + this.x, this.y,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);*/
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+}
+
+RedKoopa.prototype.update = function() {    
+    if(this.direction === 1) {
+        this.x += 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 20, 25);        
+    } else {
+        this.x -= 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y + 5, 20, 25);
+    }
+
+    
+
+}
+
+RedKoopa.prototype.collide = function(other) {
+       
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && 
+            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the right
+                this.direction = 0;
+            this.current_animation = this.left_animation;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
+            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
+                    this.direction = 1;
+                    this.current_animation = this.right_animation;
+    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+        this.game.addToScore(100);
+        this.squished = true;
+        this.removeFromWorld = true;
+    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left <= this.boundingbox.right)
+        && other.type === 'Mario') {
+        this.game.isDead = true;
+    } 
+}
+//End RedKoopa
+
+//Chomper code
+function Chomper(init_x, init_y, game) {
+    //Call Enemy super constructor
+    Enemy.call(this,init_x, init_y, game);
+    this.frameWidth = 50;
+    this.frameHeight = 30;
+    this.type = "Chomper"; 
+    this.boundingbox = new BoundingBox(this.game.background.x + this.x + 15, this.y + 5, 20, 25);
+    this.chomp_animation = new Animation(this.sprite, 0, 345, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.current_animation = this.chomp_animation;
+}
+
+Chomper.prototype.draw = function(ctx) {
+    /*
+    ctx.strokeStyle = "red";
+    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+    
+    ctx.drawImage(this.sprite,
+                  0, 345, 
+                  this.frameWidth, this.frameHeight,
+                  645, 130,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);*/
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+}
+
+Chomper.prototype.update = function() {    
+    this.boundingbox = new BoundingBox(this.game.background.x + this.x + 15, this.y + 5, 20, 25);
+}
+
+Chomper.prototype.collide = function(other) {
+    if((other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top) || 
+        (other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left <= this.boundingbox.right)
+        && other.type === 'Mario') { //Check for top collision
+        this.game.isDead = true;
+    } 
+}
+//End Chomper
+
 //QuestionBox
 function QuestionBox(init_x, init_y, game) {
-	    Entity.call(this, game, init_x, init_y);
+	Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.staticAnimation = new Animation(this.sprite, 205, 1, 17, 16, 0.14, 4, true, false);
     this.usedAnimation = new Animation(this.sprite, 1, 86, 16, 16, 0.14, 1, true, false);
@@ -1091,6 +1231,7 @@ function QuestionBox(init_x, init_y, game) {
 
 QuestionBox.prototype = new Entity();
 QuestionBox.prototype.constructor = QuestionBox;
+
 
 QuestionBox.prototype.update = function () {
     //Entity.prototype.update.call(this);
@@ -1604,6 +1745,148 @@ StaticGoldBlock.prototype.draw = function (ctx) {
 
 }
 
+//Bowser the Boss
+function Bowser(init_x, init_y, game) {
+
+    Entity.call(this, game, init_x, init_y);
+    this.isRight = false;
+    this.isJumping = false;
+    this.isWalking = false;
+    this.isStunned = false;
+    this.timeToShoot = false;
+    this.ticker = 0;
+    this.sprite = ASSET_MANAGER.getAsset('images/boss_sprite.png');
+    this.rightBowserShootAnimation = new Animation(this.sprite, 88, 220, 40, 40, 0.22, 5, true, true);
+    this.leftBowserShootAnimation = new Animation(this.sprite, 91, 43, 40, 40, 0.22, 5, true, false);
+
+
+
+    this.jumpRightAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.jumpLeftAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.walkRightAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.walkLeftAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.boundingbox = new BoundingBox(this.x, this.y, 40, 40);
+    this.type = "Bowser";
+}
+
+Bowser.prototype = new Entity();
+Bowser.prototype.constructor = Bowser;
+
+Bowser.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+        if(this.isRight) {
+        	if(this.timeToShoot && this.rightBowserShootAnimation.isDone) {
+				//this.timeToShoot = false;
+        	}
+        } else {
+        	if(this.timeToShoot && this.leftBowserShootAnimation.isDone) {
+        		//this.timeToShoot = false;
+        	}
+        }
+
+}
+
+Bowser.prototype.collide = function(other) {
+    console.log("Bowser collided with Mario");
+}
+
+Bowser.prototype.draw = function (ctx) {
+	//ctx.strokeStyle = "red";
+    //ctx.strokeRect(this.x, this.y, this.rightBowserShootAnimation.frameWidth, this.rightBowserShootAnimation.frameHeight);
+	if(this.timeToShoot) {
+		//console.log("TIME TO SHOOT: " + this.timeToShoot);
+		var direction = "left";
+			if(this.isRight) {
+				direction = "right";
+			}
+			//console.log("IS FACING: " + direction);
+		if(this.isRight) {
+
+			this.rightBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+		} else {
+        	this.leftBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+		}
+
+	} else if(this.moveRight) {
+
+	} else if(this.moveLeft) {
+
+	} else if(this.isJumping) {
+
+	} else {
+		if(this.isRight) {
+			        	//this.rightBowserIdleAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+
+			                ctx.drawImage(this.sprite,
+                  246, 220,  
+                  40, 40,
+                   this.game.background.x + this.x, this.y,
+                  40,
+                  40);
+
+		} else {
+			        	//this.leftBowserIdleAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+			        
+			                ctx.drawImage(this.sprite,
+                  91, 43,  
+                  40, 40,
+                   this.game.background.x + this.x, this.y,
+                  40,
+                  40);
+
+		}
+
+	}
+}
+
+//Fire Boss
+function FireBall(init_x, init_y, game, isRight) {
+
+    Entity.call(this, game, init_x, init_y);
+    this.isRight = isRight;
+    this.sprite = ASSET_MANAGER.getAsset('images/boss_sprite.png');
+    this.leftFireAnimation = new Animation(this.sprite, 92, 10, 40, 40, 0.14, 5, false, false);
+    this.rightFireAnimation = new Animation(this.sprite, 96, 188, 40, 40, 0.14, 5, false, true);
+    this.boundingbox = new BoundingBox(this.x, this.y, 40, 40);
+    this.type = "FireBall";
+}
+
+FireBall.prototype = new Entity();
+FireBall.prototype.constructor = FireBall;
+
+FireBall.prototype.update = function () {
+    if(isRight) {
+    	if(this.rightFireAnimation.isDone) {
+    		this.boundingbox = null;
+        	this.removeFromWorld = true;
+    	} else {
+    		    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+    	}
+    } else {
+    	if(this.leftFireAnimation.isDone) {
+    		this.boundingbox = null;
+        	this.removeFromWorld = true;
+    	} else {
+    		    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+    	}
+    }
+
+}
+
+FireBall.prototype.collide = function(other) {
+    console.log("FireBall collided with Mario");
+}
+
+FireBall.prototype.draw = function (ctx) {
+	if(this.isRight) {
+
+        this.rightFireAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
+	} else {
+		this.leftFireAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
+	}
+}
+
 // GameBoard code below
 function GameBoard() {
 
@@ -1630,7 +1913,11 @@ ASSET_MANAGER.queueDownload('images/pipe.png');
 
 ASSET_MANAGER.queueDownload('images/mariolevels.png');
 ASSET_MANAGER.queueDownload('images/castlepole.gif');
+<<<<<<< HEAD
 ASSET_MANAGER.queueDownload('images/pipeextension.png');
+=======
+ASSET_MANAGER.queueDownload('images/boss_sprite.png');
+>>>>>>> 8926dae1d3fe96adc035579adb83b022dd591b3c
 
 ASSET_MANAGER.downloadAll(function () {
     console.log("starting up da sheild");
