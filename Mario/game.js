@@ -1913,11 +1913,9 @@ ASSET_MANAGER.queueDownload('images/pipe.png');
 
 ASSET_MANAGER.queueDownload('images/mariolevels.png');
 ASSET_MANAGER.queueDownload('images/castlepole.gif');
-<<<<<<< HEAD
 ASSET_MANAGER.queueDownload('images/pipeextension.png');
-=======
 ASSET_MANAGER.queueDownload('images/boss_sprite.png');
->>>>>>> 8926dae1d3fe96adc035579adb83b022dd591b3c
+
 
 ASSET_MANAGER.downloadAll(function () {
     console.log("starting up da sheild");
