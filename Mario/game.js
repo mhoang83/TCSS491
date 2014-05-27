@@ -998,7 +998,7 @@ Mario.prototype.collide = function(other) {
                 this.maxJumpHeight = other.boundingbox.bottom;
                 this.isFalling = true;
 
-            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top+3 < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole") {    
+            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top+3 < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole" && other.type !== "Bowser") {    
             	this.y = other.boundingbox.top - 25;
             	this.isFalling = false;
             	this.isJumping = false;
@@ -1749,22 +1749,29 @@ StaticGoldBlock.prototype.draw = function (ctx) {
 function Bowser(init_x, init_y, game) {
 
     Entity.call(this, game, init_x, init_y);
+    this.initY = init_y;
+    this.game = game;
     this.isRight = false;
     this.isJumping = false;
-    this.isWalking = false;
+    this.isWalking = true;
     this.isStunned = false;
     this.timeToShoot = false;
+    this.isShooting = false;
     this.ticker = 0;
+    this.direction = 0;
+	this.lastDirection = 0;
+	this.jump = null;
+	this.d;
     this.sprite = ASSET_MANAGER.getAsset('images/boss_sprite.png');
-    this.rightBowserShootAnimation = new Animation(this.sprite, 88, 220, 40, 40, 0.22, 5, true, true);
-    this.leftBowserShootAnimation = new Animation(this.sprite, 91, 43, 40, 40, 0.22, 5, true, false);
+    this.rightBowserShootAnimation = new Animation(this.sprite, 88.5, 220, 40, 40, 0.22, 5, true, true);
+    this.leftBowserShootAnimation = new Animation(this.sprite, 90.5, 43, 40, 40, 0.22, 5, true, false);
 
 
 
     this.jumpRightAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
     this.jumpLeftAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
-    this.walkRightAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
-    this.walkLeftAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.walkRightAnimation = new Animation(this.sprite, 92, 136, 40, 40, 0.14, 4, true, false);
+    this.walkLeftAnimation = new Animation(this.sprite, 125, 312, 40, 40, 0.14, 4, true, true);
     this.boundingbox = new BoundingBox(this.x, this.y, 40, 40);
     this.type = "Bowser";
 }
@@ -1773,17 +1780,67 @@ Bowser.prototype = new Entity();
 Bowser.prototype.constructor = Bowser;
 
 Bowser.prototype.update = function () {
-    //Entity.prototype.update.call(this);
-        this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+		//Track Marios location and approach within 10 pixels to attack
+		if((this.game.mario.x - this.x) <= -30 ) { //Mario is on the left, Bowser go right
+			this.isRight = false;
+			this.isWalking = true;
+			this.timeToShoot = false;
+			this.direction--;
+    		this.lastDirection = -1;
+		} else if((this.game.mario.x - this.x) >= 30 ) { //Mario is on the right, Bowser go left
+			this.isRight = true;
+			this.isWalking = true;
+			this.timeToShoot = false;
+			this.direction++;
+    		this.lastDirection = 1;
+		} else {
+			this.isWalking = false;
+			if(this.y = this.initY) {
+				this.timeToShoot = true;
+				this.isShooting = true;
+			}
+
+		}
+		if((this.game.mario.y - this.y) <= -10 ) {
+			this.isJumping = true;
+		} else {
+			//this.isJumping = false;
+		}
+
+    //Do Movemement Adjustments for Walking, or Jumping
         if(this.isRight) {
-        	if(this.timeToShoot && this.rightBowserShootAnimation.isDone) {
-				//this.timeToShoot = false;
+        	if (this.isWalking && !this.isJumping) {
+        		this.x += 0.85;
         	}
         } else {
-        	if(this.timeToShoot && this.leftBowserShootAnimation.isDone) {
-        		//this.timeToShoot = false;
+        	if (this.isWalking && !this.isJumping) {
+        		this.x -= 0.85;
         	}
         }
+        if(this.isJumping) {
+        		if (this.jump === null) {
+    				this.d = this.lastDirection;
+    				this.jump = {
+        				start: {
+            			x: this.x,
+            			y: this.y
+        			},
+        			control: {
+            			x: this.x + 30 * this.d,
+            			y: this.y - 65
+        			},
+        			end: {
+            			x: this.x + 60 * this.d,
+            			y: this.y
+        			},
+        			t: 0
+    				};
+    			} 
+        }
+
+        //console.log("Bowser Location   X: " + this.x   + "    Y: "+ this.y);
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+
 
 }
 
@@ -1791,30 +1848,89 @@ Bowser.prototype.collide = function(other) {
     console.log("Bowser collided with Mario");
 }
 
+// get an x/y point along a quadratic bezier curve
+function getQuadraticBezierXYatT(startPt, controlPt, endPt, T) {
+    var x = Math.pow(1 - T, 2) * startPt.x + 2 * (1 - T) * T * controlPt.x + Math.pow(T, 2) * endPt.x;
+    var y = Math.pow(1 - T, 2) * startPt.y + 2 * (1 - T) * T * controlPt.y + Math.pow(T, 2) * endPt.y;
+    return ({
+        x: x,
+        y: y
+    });
+}
+
+
 Bowser.prototype.draw = function (ctx) {
 	//ctx.strokeStyle = "red";
     //ctx.strokeRect(this.x, this.y, this.rightBowserShootAnimation.frameWidth, this.rightBowserShootAnimation.frameHeight);
-	if(this.timeToShoot) {
-		//console.log("TIME TO SHOOT: " + this.timeToShoot);
-		var direction = "left";
-			if(this.isRight) {
-				direction = "right";
-			}
-			//console.log("IS FACING: " + direction);
+	if(this.timeToShoot && !this.isJumping) {
 		if(this.isRight) {
-
 			this.rightBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+			//this.game.addEntity(new FireBall(this.x + 40, this.y+15, this.game, this.isRight)); //have a fire entity come out of bowsers mouth
+
 		} else {
         	this.leftBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+        	//this.game.addEntity(new FireBall(this.x, this.y +15, this.game, this.isRight)); //have a fire entity come out of bowsers mouth
 		}
 
-	} else if(this.moveRight) {
+	} 
 
-	} else if(this.moveLeft) {
+	else if(this.isJumping) {
+		if (this.jump) {
 
-	} else if(this.isJumping) {
+        var pos = getQuadraticBezierXYatT(this.jump.start, this.jump.control, this.jump.end, this.jump.t / 100);
+        this.x = pos.x;
+        this.y = pos.y;
+        //
+        this.jump.t += 4;
+        if (this.jump.t > 100) {
+            this.jump = null;
+            this.isJumping = false;
+            this.direction = 0;
+        }
 
-	} else {
+    	} else {
+    		this.isJumping = true;
+        	this.x += direction;
+        	direction = 0;
+
+    	}
+    	if(this.isRight) {
+    		ctx.drawImage(this.sprite,
+                  204, 264,  
+                  40, 40,
+                   this.game.background.x + this.x, this.y,
+                  40,
+                  40);
+    	} else {
+    		ctx.drawImage(this.sprite,
+                  136, 88,  
+                  40, 40,
+                   this.game.background.x + this.x, this.y,
+                  40,
+                  40);
+    	}
+    	
+	}
+
+	else if(this.isWalking) {
+		if(this.isRight) {
+			this.walkRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+		} else {
+			this.walkLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+		}
+
+	} 
+
+	else if(this.isStunned) {
+		if(this.isRight) {
+
+		} else {
+			
+		}
+
+	} 
+
+	else {
 		if(this.isRight) {
 			        	//this.rightBowserIdleAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
 
@@ -1856,7 +1972,7 @@ FireBall.prototype = new Entity();
 FireBall.prototype.constructor = FireBall;
 
 FireBall.prototype.update = function () {
-    if(isRight) {
+    if(this.isRight) {
     	if(this.rightFireAnimation.isDone) {
     		this.boundingbox = null;
         	this.removeFromWorld = true;
