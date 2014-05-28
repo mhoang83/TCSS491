@@ -362,13 +362,21 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
 
     // need to make it load from json testing now
     //castle inside entitiies obj from json
-    gameEngine.addEntity(new Castle(this.entitiesObj.castle.init_x, this.entitiesObj.castle.init_y, gameEngine));
+    if(this.entitiesObj.castle) {
+    	    gameEngine.addEntity(new Castle(this.entitiesObj.castle.init_x, this.entitiesObj.castle.init_y, gameEngine));
+    }
 
-    // pole
+    if(this.entitiesObj.pole) {
+    	    // pole
     gameEngine.addEntity(new Pole(this.entitiesObj.pole.init_x, this.entitiesObj.pole.init_y, gameEngine));
+    }
 
-    // Boss
+    if(this.entitiesObj.boss) {
+    	    // Boss
     gameEngine.addEntity(new Bowser(this.entitiesObj.boss.init_x, this.entitiesObj.boss.init_y, gameEngine));
+    }
+
+
 
     //Mario inside Players
     this.marioObj = this.playersObj.mario;
@@ -1248,7 +1256,7 @@ QuestionBox.prototype.update = function () {
 QuestionBox.prototype.collide = function(other) {
     //Check for bottom collision
     
-    if(other.boundingbox.top < this.boundingbox.bottom && other.boundingbox.bottom > this.boundingbox.bottom) { //We have a collsion from below
+    if(other.boundingbox.top < this.boundingbox.bottom && other.boundingbox.bottom > this.boundingbox.bottom && ((other.boundingbox.left < this.boundingbox.right && other.boundingbox.right > this.boundingbox.right) ||(other.boundingbox.right > this.boundingbox.left && other.boundingbox.left < this.boundingbox.left)) ) { //We have a collsion from below
             if(!this.hitAlready) { //if not hit already
                 if(this.hasCoin) {                   
                     this.hitAlready = true;
@@ -1805,13 +1813,13 @@ Bowser.prototype.constructor = Bowser;
 
 Bowser.prototype.update = function () {
 		//Track Marios location and approach within 10 pixels to attack
-		if((this.game.mario.x - this.x) <= -30 ) { //Mario is on the left, Bowser go right
+		if((this.game.mario.x - this.x) <= -40 ) { //Mario is on the left, Bowser go right
 			this.isRight = false;
 			this.isWalking = true;
 			this.timeToShoot = false;
 			this.direction--;
     		this.lastDirection = -1;
-		} else if((this.game.mario.x - this.x) >= 30 ) { //Mario is on the right, Bowser go left
+		} else if((this.game.mario.x - this.x) >= 40 ) { //Mario is on the right, Bowser go left
 			this.isRight = true;
 			this.isWalking = true;
 			this.timeToShoot = false;
@@ -1889,11 +1897,11 @@ Bowser.prototype.draw = function (ctx) {
     //ctx.strokeRect(this.x, this.y, this.rightBowserShootAnimation.frameWidth, this.rightBowserShootAnimation.frameHeight);
 	if(this.timeToShoot && !this.isJumping) {
 		if(this.isRight) {
-			this.rightBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+			this.rightBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y+1);
 			//this.game.addEntity(new FireBall(this.x + 40, this.y+15, this.game, this.isRight)); //have a fire entity come out of bowsers mouth
 
 		} else {
-        	this.leftBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+        	this.leftBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y+1);
         	//this.game.addEntity(new FireBall(this.x, this.y +15, this.game, this.isRight)); //have a fire entity come out of bowsers mouth
 		}
 
@@ -2067,18 +2075,37 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
 
     gameEngine.addEntity(gameboard);
-
+    var levelID = 1;
     try {
-        $.get('services/levelService.php', {id:1}, function(data) {
+        $.get('services/levelService.php', {id:levelID}, function(data) {
             gameEngine.loadLevel(data, gameEngine);
             gameEngine.init(ctx);
             gameEngine.start();
            
-        }).fail(function(error) { gameEngine.loadLevel(level1, gameEngine);
-        gameEngine.init(ctx);
-        gameEngine.start();});
+        }).fail(function(error) { 
+        	if(levelID === 1) {
+        		gameEngine.loadLevel(level1, gameEngine);
+        	} else if(levelID === 2) {
+        	    gameEngine.loadLevel(level2, gameEngine);
+        	} else if(levelID === 3) {
+        	    gameEngine.loadLevel(level3, gameEngine);
+        	}else if (levelID === 4) {
+        	    gameEngine.loadLevel(level4, gameEngine);
+        	}
+
+        	gameEngine.init(ctx);
+        	gameEngine.start();});
+
     } catch (err) {
-        gameEngine.loadLevel(level1, gameEngine);
+    	    if(levelID === 1) {
+        		gameEngine.loadLevel(level1, gameEngine);
+        	} else if(levelID === 2) {
+        	    gameEngine.loadLevel(level2, gameEngine);
+        	} else if(levelID === 3) {
+        	    gameEngine.loadLevel(level3, gameEngine);
+        	}else if (levelID === 4) {
+        	    gameEngine.loadLevel(level4, gameEngine);
+        	}
         gameEngine.init(ctx);
         gameEngine.start();
     }
