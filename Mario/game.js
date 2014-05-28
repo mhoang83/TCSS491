@@ -664,8 +664,9 @@ Entity.prototype.collide = function(other) {
 //mario
 
 function Mario(init_x, init_y, game) {
-     Entity.call(this, game, init_x, init_y);
+    Entity.call(this, game, init_x, init_y);
     this.type = "Mario";
+    this.passThrough = true;
     this.initial_y_floor = init_y;
     this.isRunning = false;
     this.isWalking = false;
@@ -1024,6 +1025,7 @@ function Enemy(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_enemies_sheet.png');
     this.init_x = init_x;
     this.init_y = init_y;
+    this.passThrough = true;
     
     //Call Entity constructor
     Entity.call(this, game, init_x, init_y);
@@ -1083,15 +1085,10 @@ Goomba.prototype.update = function() {
 Goomba.prototype.collide = function(other) {
     
 
-    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && 
-            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
-            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the right
-                    this.direction = 0;
-    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
-            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
-            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
-                    this.direction = 1;
-
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && !other.passThrough) { //Collsion from the right
+        this.direction = 0;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && !other.passThrough) { //Collsion from the left
+        this.direction = 1;
     } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
         this.game.addToScore(100);
         this.squished = true;
@@ -1105,17 +1102,19 @@ Goomba.prototype.collide = function(other) {
 //End Goomba
 
 //Red Koopa code
-function RedKoopa(init_x, init_y, game) {
+function RedKoopa(init_x, init_y, game, initial_state) {
     //Call Enemy super constructor
     Enemy.call(this,init_x, init_y, game);
     this.frameWidth = 40;
     this.frameHeight = 30;
-    this.direction = 1;
     this.type = "RedKoopa"; 
+    this.state = initial_state;
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 20, 25);
-    this.right_animation = new Animation(this.sprite, 200, 248, this.frameWidth, this.frameHeight, .4, 4, true, false);
-    this.left_animation = new Animation(this.sprite, 40, 248, this.frameWidth, this.frameHeight, .4, 4, true, true);
-    this.current_animation = this.right_animation;
+    this.dewinged_right_animation = new Animation(this.sprite, 200, 200, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.dewinged_left_animation = new Animation(this.sprite, 120, 200, this.frameWidth, this.frameHeight, .4, 2, true, true);
+    this.winged_right_animation = new Animation(this.sprite, 200, 248, this.frameWidth, this.frameHeight, .4, 4, true, false);
+    this.winged_left_animation = new Animation(this.sprite, 40, 248, this.frameWidth, this.frameHeight, .4, 4, true, true);
+    this.current_animation = (this.state === 1) ? this.winged_right_animation : this.dewinged_right_animation;
 }
 
 RedKoopa.prototype.draw = function(ctx) {
@@ -1124,7 +1123,7 @@ RedKoopa.prototype.draw = function(ctx) {
     ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
     
     ctx.drawImage(this.sprite,
-                  90, 0, 
+                  200, 200, 
                   this.frameWidth, this.frameHeight,
                   this.game.background.x + this.x, this.y,
                   this.frameWidth * 1,
@@ -1134,30 +1133,27 @@ RedKoopa.prototype.draw = function(ctx) {
 }
 
 RedKoopa.prototype.update = function() {    
-    if(this.direction === 1) {
+    if(this.current_animation === this.dewinged_right_animation) {
         this.x += 1;
-        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 20, 25);        
-    } else {
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y, 20, 25);        
+    } else if(this.current_animation === this.dewinged_left_animation){
+        this.x -= 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y, 20, 25);
+    } else if(this.current_animation === this.winged_right_animation){
+        this.x += 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 20, 25);      
+    }else if(this.current_animation === this.winged_left_animation){
         this.x -= 1;
         this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y + 5, 20, 25);
     }
-
-    
-
 }
 
 RedKoopa.prototype.collide = function(other) {
        
-    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && 
-            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
-            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the right
-                this.direction = 0;
-            this.current_animation = this.left_animation;
-    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
-            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
-            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
-                    this.direction = 1;
-                    this.current_animation = this.right_animation;
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && !other.passThrough) { //Collsion from the right
+        this.current_animation = (this.state === 1) ? this.winged_left_animation : this.dewinged_left_animation;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && !other.passThrough) { //Collsion from the left
+        this.current_animation = (this.state === 1) ? this.winged_right_animation : this.dewinged_right_animation;
     } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
         this.game.addToScore(100);
         this.squished = true;
@@ -1208,7 +1204,8 @@ function QuestionBox(init_x, init_y, game) {
     this.usedAnimation = new Animation(this.sprite, 1, 86, 16, 16, 0.14, 1, true, false);
     this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
     this.hasCoin = true;
-    this.type = "Box"; 
+    this.type = "Box";
+    this.passThrough = false; 
     this.hasPowerUp = false;
     this.gameEngine = game;
     this.hitAlready = false;
@@ -1280,6 +1277,7 @@ function Coin(init_x, init_y, game) {
     this.moveAnimation = new Animation(this.sprite, 422, 0, 16, 16, 0.14, 4, true, false);
     this.boundingbox = new BoundingBox(this.x, this.y, 16, 16);
     this.type = "Coin";
+    this.passThrough = true;
     this.isVisible = true;
 
 
@@ -1316,6 +1314,7 @@ function ShineyGoldBox(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 52, 35, 17, 16, 0.14, 8, true, false);
         this.type = "Box";
+        this.passThrough = false;
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
 
 }
@@ -1338,6 +1337,7 @@ function ShineyBlueBox(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 378, 60, 17, 16, 0.14, 8, true, false);
         this.type = "Box";
+        this.passThrough = false;
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
 
 }
@@ -1360,6 +1360,7 @@ function ColorFullExclamation(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 205, 18, 17, 16, 0.30, 4, true, false);
         this.type = "Box";
+        this.passThrough = false;
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
 
 }
@@ -1382,6 +1383,7 @@ function PinkMusicNote(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 120, 69, 17, 16, 0.20, 4, true, false);
         this.type = "Box";
+        this.passThrough = false;
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
 
 }
@@ -1405,6 +1407,7 @@ function WhiteMusicNote(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 120, 52, 17, 16, 0.20, 4, true, false);
         this.type = "Box";
+        this.passThrough = false;
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
 
 }
@@ -1428,6 +1431,7 @@ function PowBox(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 35, 18, 17, 16, 0.14, 3, true, false);
         this.type = "Box";
+        this.passThrough = false;
         this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
 
 }
@@ -1536,6 +1540,7 @@ function GreenPipe(init_x, init_y, game) {
 	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/pipe.png');
     this.type = "Pipe";
+    this.passThrough = false;
     this.boundingbox = new BoundingBox(this.x+1, this.y-5, 32, 45);
 
 }
@@ -1562,6 +1567,7 @@ function GreenPipeExtension(init_x, init_y, game) {
 	    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/pipeextension.png');
     this.type = "PipeExt";
+    this.passThrough = false;
     this.boundingbox = new BoundingBox(this.x+1, this.y, 32, 15);
 
 }
@@ -1718,6 +1724,7 @@ function StaticGoldBlock(init_x, init_y, game) {
 	Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
      this.type = "Box";
+     this.passThrough = false;
      this.boundingbox = new BoundingBox(this.x, this.y, 17, 16);
 
 }
