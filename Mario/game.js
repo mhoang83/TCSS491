@@ -1284,13 +1284,8 @@ function Coin(init_x, init_y, game, popped) {
     this.moveAnimation = new Animation(this.sprite, 422, 0, 16, 16, 0.14, 4, true, false);
     this.boundingbox = new BoundingBox(this.x, this.y, 16, 16);
     this.type = "Coin";
-    this.popped = false;
     this.Ycoord = 20
-    if(popped === null) {
-    	this.popped = false;
-    } else {
-    	this.popped = true;
-    }
+    this.popped = popped;
     this.givePoints = false;
 
 
@@ -1312,11 +1307,10 @@ Coin.prototype.update = function () {
         	this.popped = false;
         } else {
         	if(this.popped) {
-        		        	console.log("POPPED");
-    		this.Ycoord -= 2;
-    		if(this.Ycoord === 0) {
-        		this.givePoints = true;
-       		}
+    			this.Ycoord -= 2;
+    			if(this.Ycoord === 0) {
+        			this.givePoints = true;
+       			}
         	}
 
         }
@@ -1324,11 +1318,13 @@ Coin.prototype.update = function () {
 
 Coin.prototype.collide = function(other) {
 
-    if(other.type === "Mario" && !this.popped) {
-    	this.givePoints = true;
-    } else if(other.type === "Mario" && this.popped) {
-    	this.givePoints = false;
-    } 
+    if(other.type === "Mario") {
+    	    this.game.addToScore(10);
+        	this.game.addCoin();
+        	this.isVisible = false;
+       		this.boundingbox = null;
+        	this.removeFromWorld = true;
+    }
 }
 
 Coin.prototype.draw = function (ctx) {
