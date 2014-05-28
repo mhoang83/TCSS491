@@ -1253,13 +1253,15 @@ QuestionBox.prototype.collide = function(other) {
                 if(this.hasCoin) {                   
                     this.hitAlready = true;
                     this.popContents = false;
-                    this.gameEngine.addEntity(new Coin(this.x, this.y - 17, this.gameEngine)); //have a coin pop out above the box
+                    this.gameEngine.addEntity(new Coin(this.x, this.y - 17, this.gameEngine, true)); //have a coin pop out above the box
                     this.y -= 10;
                 } else if (hasPowerUp) { //Will not be handled/completed until Final Release. canHavePowerUps will be always set false until then
 
                 }
             }
     }
+
+
     
 }
 
@@ -1275,14 +1277,21 @@ QuestionBox.prototype.draw = function (ctx) {
 }
 
 //Coin
-function Coin(init_x, init_y, game) {
+function Coin(init_x, init_y, game, popped) {
 
     Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 422, 0, 16, 16, 0.14, 4, true, false);
     this.boundingbox = new BoundingBox(this.x, this.y, 16, 16);
     this.type = "Coin";
-    this.isVisible = true;
+    this.popped = false;
+    this.Ycoord = 20
+    if(popped === null) {
+    	this.popped = false;
+    } else {
+    	this.popped = true;
+    }
+    this.givePoints = false;
 
 
 }
@@ -1293,22 +1302,41 @@ Coin.prototype.constructor = Coin;
 Coin.prototype.update = function () {
     //Entity.prototype.update.call(this);
         this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 16, 16);
+        if(this.givePoints) {
+        	this.game.addToScore(10);
+        	this.game.addCoin();
+        	this.isVisible = false;
+       		this.boundingbox = null;
+        	this.removeFromWorld = true;
+        	this.givePoints = false;
+        	this.popped = false;
+        } else {
+        	if(this.popped) {
+        		        	console.log("POPPED");
+    		this.Ycoord -= 2;
+    		if(this.Ycoord === 0) {
+        		this.givePoints = true;
+       		}
+        	}
+
+        }
 }
 
 Coin.prototype.collide = function(other) {
-    if(this.isVisible && other.type === "Mario") {
-        //gameEngine.points.increment(1);
-        this.game.addToScore(10);
-        this.game.addCoin();
-        this.isVisible = false;
-        this.boundingbox = null;
-        this.removeFromWorld = true;
-    }
+
+    if(other.type === "Mario" && !this.popped) {
+    	this.givePoints = true;
+    } else if(other.type === "Mario" && this.popped) {
+    	this.givePoints = false;
+    } 
 }
 
 Coin.prototype.draw = function (ctx) {
-    if(this.isVisible) {
-        this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
+    if(this.popped && !this.givePoints) {
+    	
+        this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y - this.Ycoord);
+    } else {
+    	this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
     }
 }
 
@@ -1846,7 +1874,7 @@ Bowser.prototype.update = function () {
 }
 
 Bowser.prototype.collide = function(other) {
-    console.log("Bowser collided with Mario");
+    //console.log("Bowser collided with Mario");
 }
 
 // get an x/y point along a quadratic bezier curve
