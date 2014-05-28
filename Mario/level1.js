@@ -19,7 +19,7 @@ var level1 = {"levels":
                 },
                 "enemies":{
                     "goomba":[
-                        {"id":1, "init_x":100,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
+                        {"id":1, "init_x":100,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png",initial_state:1},
                         {"id":2, "init_x":910,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
                         {"id":3, "init_x":475,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
                         //{"id":4, "init_x":1180,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
