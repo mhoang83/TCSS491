@@ -486,10 +486,10 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
             var enemyObject = enemyGroupArray[i];
             switch(key) {
                 case "goomba":
-                    gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine, enemyObject.initial_state));
                     break;
                 case "redkoopa":
-                    gameEngine.addEntity(new RedKoopa(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    gameEngine.addEntity(new RedKoopa(enemyObject.init_x, enemyObject.init_y, gameEngine, enemyObject.initial_state));
                     break;
                 case "chomper":
                     gameEngine.addEntity(new Chomper(enemyObject.init_x, enemyObject.init_y, gameEngine));
@@ -680,6 +680,7 @@ function Mario(init_x, init_y, game) {
     this.isWalking = false;
     this.isJumping = false;
     this.isFalling = false;
+    this.passThrough = true;
     this.isRight = true;
     this.isJumpingRunning = false;
     this.isJumpingWalking = false;
@@ -1094,6 +1095,7 @@ function Enemy(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_enemies_sheet.png');
     this.init_x = init_x;
     this.init_y = init_y;
+    this.passThrough = true;
     
     //Call Entity constructor
     Entity.call(this, game, init_x, init_y);
@@ -1103,14 +1105,18 @@ Enemy.prototype = new Entity();
 //End Enemy Base Class
 
 //Goomba code
-function Goomba(init_x, init_y, game) {
+function Goomba(init_x, init_y, game, initial_state) {
     //Call Enemy super constructor
     Enemy.call(this,init_x, init_y, game);
     this.squished = false;
     this.direction = 1;
+    this.state = initial_state;
     this.type = "Goomba"; 
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
-    this.back_forth_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.dewinged_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.winged_animation = new Animation(this.sprite, 90, 0, this.frameWidth, this.frameHeight, .4, 4, true, false);
+    this.current_animation = (this.state === 1) ? this.winged_animation : this.dewinged_animation;
+
     this.cycleCount = 0;
 }
 
@@ -1127,7 +1133,7 @@ Goomba.prototype.draw = function(ctx) {
             this.removeFromWorld = true;
         }
     } else {
-        this.back_forth_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+         this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
     }
 }
 

@@ -482,6 +482,7 @@ BackgroundEditor.prototype.update = function() {
         if ((click.y > 283 && click.y <= 403)) {
             this.game.extension.hide();
                 this.game.coin.hide();
+                this.game.line.hide();
             for (var i = 0; i < this.bgImages.length; i++) {
                 var bg = this.bgImages[i];
                 bg.x = this.backgroundx + bg.init_x;
@@ -532,6 +533,7 @@ BackgroundEditor.prototype.update = function() {
             this.game.levellength.hide();
             this.game.extension.hide();
             this.game.coin.hide();
+            this.game.line.hide();
         } else if (click.y < 256 && click.y > 0 && click.x > 0 && click.x < 1024) {
             if (!this.isGameBoardSelected && this.editor === '')
                 this.isGameBoardSelected = true;
@@ -563,13 +565,35 @@ BackgroundEditor.prototype.update = function() {
             } else if (this.editor === 'enemy' ) {
                 this.game.addEntity(new Enemy(this.ghostEnemy.x, this.ghostEnemy.y, this.game));
             } else if (this.editor === 'worldobjects') {
-                this.game.addEntity(this.makeWO(this.ghostWO.type, this.ghostWO.x, this.ghostWO.y));
+                if (this.stairs && this.stairs.length > 0) {
+                    for (var i = 0; i < this.stairs.length; i++) {
+                        for (var j = 0; j <= i; j++) {
+                           this.game.addEntity(this.makeWO(this.ghostWO.type, this.stairs[i][j].x,  this.stairs[i][j].y));
+                        }
+                    }
+                    $('#stairheight').val("1");
+                    this.stairs = [];
+                } else
+                if (this.ghostWOLine && this.ghostWOLine.length > 0) {
+                    for (var i = 0; i < this.ghostWOLine.length; i++) {
+                        this.game.addEntity(this.makeWO(this.ghostWO.type, this.ghostWOLine[i].x, this.ghostWOLine[i].y));
+                    }
+                    this.ghostWOLine = [];
+                    $('#lineblocks').val("1");
+                    $('#coins').val("none");
+                    //console.log(this.game.line);
+                } else {
+                    this.game.addEntity(this.makeWO(this.ghostWO.type, this.ghostWO.x, this.ghostWO.y));
+                    $('#coins').val("none");
+                }
+
             }
 
         } else if (click.y < 512 && click.y>=430 && click.x > 50 && click.x < 450) {
             this.game.levellength.hide();
             this.game.extension.hide();
             this.game.coin.hide();
+            this.game.line.hide();
             console.log('enemy');
             if (this.editor === 'enemy')
                 this.editor = '';
@@ -593,10 +617,32 @@ BackgroundEditor.prototype.update = function() {
             this.ghostEnemy.x = hover.x - 24;
             this.ghostEnemy.y = hover.y - 20;
         } else if (this.editor === 'worldobjects') {
-            this.ghostWO.x = hover.x - 10;
-            this.ghostWO.y = hover.y - 10;
-            if (this.ghostWO.type === 'pipe')
-                this.ghostWO.update();
+            if (this.ghostWO.type === 'brownblock' && this.stairs && this.stairs.length > 0) {
+                var start_x = hover.x - 10 - Math.floor(this.stairs.length / 2 * this.ghostWO.boundingbox.width);
+                var start_y = hover.y - 10 + Math.floor(this.stairs.length / 2 * this.ghostWO.boundingbox.height);
+                for (var i = 0; i < this.stairs.length; i++) {
+                    for (var j = i; j >= 0; j--) {
+                        this.stairs[i][j].x = start_x + i * (this.ghostWO.boundingbox.width - 4);
+                        this.stairs[i][j].y = start_y - j * (this.ghostWO.boundingbox.height - 4);
+                    }
+                }
+
+            } else
+            if (this.ghostWO.type !== 'pipe' && this.ghostWO.type !== 'pole' && this.ghostWO.type !== 'castle' && this.ghostWOLine && this.ghostWOLine.length > 0) {
+
+               var start_x =  hover.x - 10 - Math.floor(this.ghostWOLine.length / 2 * this.ghostWO.boundingbox.width);
+               for (var i = 0 ; i < this.ghostWOLine.length; i ++) {
+                this.ghostWOLine[i].x = start_x + (this.ghostWO.boundingbox.width - 1) * i;
+                this.ghostWOLine[i].y = hover.y - 10;
+               }
+
+            } else {
+                this.ghostWO.x = hover.x - 10;
+                this.ghostWO.y = hover.y - 10;
+                if (this.ghostWO.type === 'pipe')
+                    this.ghostWO.update();
+            }
+
         }
     }
     
@@ -616,20 +662,49 @@ BackgroundEditor.prototype.makeGhostWO = function(x, y) {
             this.editor = '';
             this.game.extension.hide();
             this.game.coin.hide();
-        } else if (this.editor != 'worldobjects') {
+            this.game.line.hide();
+            this.game.staircase.hide();
+            this.ghostWO = null;
+        } else if (this.editor !== 'worldobjects') {
+
             this.editor = 'worldobjects';
             this.ghostWO = this.makeWO(type, item.x, item.y);
-        } else 
-            this.ghostWO = this.makeWO(type, item.x, item.y);
-        
-        if (this.ghostWO.type === 'pipe')
-           this.game.extension.show();
-        else if (this.ghostWO.type === 'question' || this.ghostWO.type ==='brick') {
-            this.game.coin.show();
+            if (this.ghostWO.type === 'brownblock') {
+                 this.game.line.show();
+                 this.game.staircase.show();
+            } else
+            if (this.ghostWO.type === 'pipe')
+               this.game.extension.show();
+            else if (this.ghostWO.type === 'question' || this.ghostWO.type ==='brick') {
+                this.game.coin.show();
+                this.game.line.show();
+            } else if (this.ghostWO.type !== 'pipe' && this.ghostWO.type !== 'pole' && this.ghostWO.type !== 'castle'){
+                    this.game.line.show();
+                    this.game.coin.hide();
+            } else {
+                this.game.extension.hide();
+                this.game.coin.hide();
+                this.game.line.hide();
+                this.game.staircase.hide();
+            }
         } else {
-            this.game.extension.hide();
-            this.game.coin.hide();
-        }
+            this.ghostWO = this.makeWO(type, item.x, item.y);
+            if (this.ghostWO.type === 'pipe')
+               this.game.extension.show();
+            else if (this.ghostWO.type === 'question' || this.ghostWO.type ==='brick') {
+                this.game.coin.show();
+                this.game.line.show();
+            } else if (this.ghostWO.type !== 'pipe' && this.ghostWO.type !== 'pole' && this.ghostWO.type !== 'castle'){
+                    this.game.line.show();
+                    this.game.coin.hide();
+            } else {
+                this.game.extension.hide();
+                this.game.coin.hide();
+                this.game.line.hide();
+                 this.game.staircase.hide();
+            }
+            //if (this.editor === ' worldobjects')
+
     }
     
 }
@@ -754,7 +829,22 @@ BackgroundEditor.prototype.draw = function(ctx) {
     }
     if (this.editor === 'worldobjects') {
         ctx.globalAlpha = 0.5;
-        this.ghostWO.draw(ctx);
+         if (this.stairs && this.stairs.length > 0) {
+            for (var i = 0; i < this.stairs.length; i++) {
+                for (var j = 0; j <= i; j++) {
+                    this.stairs[i][j].draw(ctx);
+                }
+            }
+
+        } else
+        if (this.ghostWO.type !== 'pipe' && this.ghostWO.type !== 'pole' && this.ghostWO.type !== 'castle'&& this.ghostWOLine &&this.ghostWOLine.length > 0) {
+            for(var i = 0; i < this.ghostWOLine.length; i++){
+                this.ghostWOLine[i].draw(ctx);
+            }
+        } else {
+            this.ghostWO.draw(ctx);
+        }
+
         ctx.globalAlpha = 1;
     }
     this.enemy.draw(ctx);
@@ -1411,10 +1501,27 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
 
     gameEngine.addEntity(gameboard);
-    // need to add controls
-    var coin = $('<div id="extension">');
+     // need to add controls using jquery hide() and show() are jquery functions
+     var editArea = $('#editarea');
+     var staircase = $('<div id="line">');
+     var stairlbl =  $('<span>').text('Staircase Height');
+      var stairheight = $('<select id="stairheight">');
+    for (var i = 1; i < 11; i++)
+        stairheight.append($('<option>').val(i).text(i));
+    staircase.append(stairlbl);
+    staircase.append(stairheight);
+    staircase.hide();
+    var hline = $('<div id="line">');
+    var linelabel = $('<span>').text('Horizontal line of blocks');
+    var hlineblocks = $('<select id="lineblocks">');
+    for (var i = 1; i < 21; i++)
+        hlineblocks.append($('<option>').val(i).text(i));
+    hline.append(linelabel);
+    hline.append(hlineblocks);
+   hline.hide();
+    var coin = $('<div id="coin">');
+
     var coinlab = $('<span>').text('Number of Coins');
-    var editArea = $('#editarea');
     var extension = $('<div id="extension">');
     var extlabel = $('<span>').text('Number of extentions');
     var levellength = $('<div id="length">');
@@ -1423,24 +1530,28 @@ ASSET_MANAGER.downloadAll(function () {
     var levels = $('<select id="levels">');
     for (var i = 4; i < 20; i++)
         levels.append($('<option>').val(i).text(i));
+    levellength.append(levelLabel);
+    levellength.append(levels);
+
     var extensions= $('<select id="extensions">');
     for (var i = 0; i < 13; i++)
         extensions.append($('<option>').val(i).text(i));
-    var coins= $('<select id="extensions">');
-    coins.append($('<option>').val('How many coins').text('How many coins'));
+    extension.append(extlabel);
+    extension.append(extensions);
+    extension.hide();
+    var coins= $('<select id="coins">');
+    coins.append($('<option>').val('none').text('No Coins'));
+
     coins.append($('<option>').val('random').text('random'));
-    for (var i = 0; i < 11; i++)
+    for (var i = 1; i < 11; i++)
         coins.append($('<option>').val(i).text(i));
     coin.append(coinlab);
     coin.append(coins);
     coin.hide();
     editArea.append(coin);
-    extension.append(extlabel);
-    extension.append(extensions);
-    extension.hide();
+    editArea.append(hline);
     editArea.append(extension);
-    levellength.append(levelLabel);
-    levellength.append(levels);
+    editArea.append(staircase);
     editArea.append(levellength);
      gameEngine.background = new BackGround(0,0,gameEngine,7,1);
     gameEngine.editor = new BackgroundEditor(0, 256, gameEngine, 1, 4);
@@ -1448,6 +1559,9 @@ ASSET_MANAGER.downloadAll(function () {
     gameEngine.extension = extension;
     gameEngine.levellength = levellength;
     gameEngine.coin = coin;
+    gameEngine.line = hline;
+    gameEngine.staircase = staircase;
+
    
     levels.change(function() {
          var val = $(this).val();
@@ -1461,18 +1575,55 @@ ASSET_MANAGER.downloadAll(function () {
     coins.change(function(){
         var val = $(this).val();
         var block = gameEngine.editor.ghostWO;
-        if (val === 'random') {
+        if (val === 'random') { // random between 1 and 10
             block.coins = Math.floor(Math.random() * 10) + 1;
 
         } else
             block.coins = parseInt(val);
-        console.log(block);
+            });
+    hlineblocks.change(function() {
+        var val = $(this).val();
+        var editor = gameEngine.editor;
+        var ghostWO = editor.ghostWO;
+        var ghostWOLine = [];
+        console.log(typeof editor.worldItems);
+        if (parseInt(val) === 1 || ghostWO.type === 'pipe' ||  ghostWO.type === 'pole' ||  ghostWO.type === 'castle') {
+            ghostWOLine = [];
+        } else {
+            var howmany = parseInt(val);
+            var start_x = ghostWO.x - Math.floor(howmany / 2 * ghostWO.boundingbox.width);
+            for (var i = 0; i < howmany; i++) {
+                ghostWOLine.push(editor.makeWO(ghostWO.type, start_x + i * (ghostWO.boundingbox.width - 1), ghostWO.y));
+            }
+            console.log(ghostWOLine);
+        }
+        editor.ghostWOLine = ghostWOLine;
+    });
+    stairheight.change(function(){
+        var val = parseInt($(this).val());
+        var stairs = [];
+        var editor = gameEngine.editor;
+        if (parseInt(val) > 1) {
+            stairs = new Array(val);
+            for (var i = 0; i < val; i++) {
+                stairs[i] = new Array(i + 1);
+            }
+             var ghostWO = editor.ghostWO;
+            var start_x = ghostWO.x - Math.floor(val / 2 * ghostWO.boundingbox.width);
+            var start_y = ghostWO.y + Math.floor(val /2 * ghostWO.boundingbox.height);
+            for (var i = 0; i < val; i++) {
+                for (var j = i; j >= 0; j--) {
+                    stairs[i][j] = editor.makeWO(ghostWO.type, start_x + i * (ghostWO.boundingbox.width - 4), start_y - j * (ghostWO.boundingbox.height - 4));
+
+                }
+            }
+        } 
+        console.log(stairs);
+        editor.stairs = stairs;
+
     });
 
     
 
     gameEngine.init(ctx);
     gameEngine.start();
-    
-   
-});

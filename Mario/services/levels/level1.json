@@ -19,16 +19,26 @@
                 },
                 "enemies":{
                     "goomba":[
-                        {"id":1, "init_x":100,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":2, "init_x":910,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":3, "init_x":475,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":4, "init_x":1180,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":5, "init_x":1680,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":6, "init_x":1980,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":7, "init_x":2250,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":8, "init_x":2550,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":9, "init_x":2850,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"},
-                        {"id":10, "init_x":3150,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png"}
+                         
+                        {"id":2, "init_x":910,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
+                        {"id":3, "init_x":475,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
+                        
+                        {"id":5, "init_x":1680,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
+                        
+                        {"id":7, "init_x":2250,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
+                        {"id":8, "init_x":2550,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
+                        {"id":9, "init_x":2850,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1}
+                        
+
+                    ],
+                    "redkoopa":[
+                        {"id":1, "init_x":50,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":0},
+                        {"id":1, "init_x":100,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
+                        {"id":1, "init_x":1980,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
+                        {"id":1, "init_x":3150,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1}
+                    ],
+                    "chomper":[
+                        {"id":1, "init_x":642,"init_y":127,"spritesheet":"images/smb3_enemies_sheet.png"}
                     ]
                 },
 
@@ -38,7 +48,7 @@
                         {"id":1, "init_x":66,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":2},
                         {"id":2, "init_x":168,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":2},
                         {"id":3, "init_x":3200,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":8},
-						{"id":4, "init_x":3356,"init_y":217,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
+                        {"id":4, "init_x":3356,"init_y":217,"spritesheet": "/images/levelRemovedBorder1.png", "count":1},
                         {"id":5, "init_x":1200,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":6},
                         {"id":6, "init_x":1800,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":3},
                         {"id":7, "init_x":2000,"init_y":150,"spritesheet": "/images/levelRemovedBorder1.png", "count":7},
@@ -122,7 +132,7 @@
                         {"id":3, "init_x":2182,"init_y":183,"spritesheet": "/images/pipe.png", "count":3}
 
                     ],
-					"coin": [
+                    "coin": [
                         {"id":1, "init_x":220,"init_y":210,"spritesheet": "/images/levelRemovedBorder1.png", "count":3},
                         {"id":2, "init_x":776,"init_y":120,"spritesheet": "/images/levelRemovedBorder1.png", "count":5},
                         {"id":3, "init_x":940,"init_y":120,"spritesheet": "/images/levelRemovedBorder1.png", "count":5},
@@ -189,6 +199,4 @@
             }
         }
     }
-
-
 
