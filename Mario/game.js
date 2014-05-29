@@ -689,7 +689,7 @@ function Mario(init_x, init_y, game) {
     this.canJump = true;
     this.jumpVelocity = 20;
     // made this the same as the debug box mario already has drawn around him.
-    this.boundingbox = new BoundingBox(this.x + 15, this.y + 5, 18, 17);
+    this.boundingbox = new BoundingBox(this.x + 15, this.y , 18, 17);
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
     this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
     this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
@@ -699,6 +699,17 @@ function Mario(init_x, init_y, game) {
 
 Mario.prototype = new Entity();
 Mario.prototype.constructor = Mario;
+
+function mFireBall(init_x, init_y, isRight) {
+    Entity.call(this, game, init_x, init_y);
+    this.isRight = isRight;
+    this.sprite = ASSET_MANAGER.getAsset('images/smb3_enemies_sheet.png');
+    this.leftFireAnimation = new Animation(this.sprite, 92, 10, 40, 40, 0.14, 5, false, false);
+    this.rightFireAnimation = new Animation(this.sprite, 300, 955, 75, 15, 0.14, 5, false, true);
+    this.boundingbox = new BoundingBox(this.x, this.y, 15, 15);
+    this.type = "FireBall";
+    
+}
 
 Mario.prototype.update = function ()
 {
@@ -817,7 +828,7 @@ Mario.prototype.update = function ()
                     this.walkRightAnimation = new Animation(this.sprite, 200, 243, 40, 40, 0.15, 2, true, false);                 
                     this.runLeftAnimation = new Animation(this.sprite, 90, 243, 40, 40, 0.15, 2, true, true);
                     this.runRightAnimation = new Animation(this.sprite, 250, 243, 40, 40, 0.15, 2, true, false);
-                    this.boundingbox = new BoundingBox(this.x + 15, this.y + 5, 18, 34);
+                    this.boundingbox = new BoundingBox(this.x, this.y, 18, 34);
                 }
             }
             else {
@@ -977,7 +988,7 @@ Mario.prototype.draw = function(ctx) {
                   40);
         } else {
             ctx.drawImage(this.sprite,
-                  40, 80,  // source from sheet
+                  320, 80,  // source from sheet
                   40, 40,
                    this.x, this.y,
                   40,
