@@ -675,6 +675,7 @@ function Mario(init_x, init_y, game) {
      Entity.call(this, game, init_x, init_y);
     this.type = "Mario";
     this.initial_y_floor = init_y;
+    this.isGrowth = false;
     this.isRunning = false;
     this.isWalking = false;
     this.isJumping = false;
@@ -804,7 +805,31 @@ Mario.prototype.update = function ()
                  this.isWalking =true;
             }
 
-        }  else 
+        }
+        else if (code === 87)
+        { //Growth
+            if (!this.isGrowth)
+            {
+                this.isGrowth = true;
+                if (this.isGrowth)
+                {
+                    this.walkLeftAnimation = new Animation(this.sprite, 120, 243, 40, 40, 0.15, 2, true, true);
+                    this.walkRightAnimation = new Animation(this.sprite, 200, 243, 40, 40, 0.15, 2, true, false);                 
+                    this.runLeftAnimation = new Animation(this.sprite, 90, 243, 40, 40, 0.15, 2, true, true);
+                    this.runRightAnimation = new Animation(this.sprite, 250, 243, 40, 40, 0.15, 2, true, false);
+                    this.boundingbox = new BoundingBox(this.x + 15, this.y + 5, 18, 34);
+                }
+            }
+            else {
+                this.isGrowth = false;
+                this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
+                this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
+                this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
+                this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
+            }
+        }
+
+        else
         {
             //this.isJumping = false;
             this.isWalking = false;
@@ -928,21 +953,35 @@ Mario.prototype.draw = function(ctx) {
             ctx.strokeStyle = "green";
             ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
         }
-        if(!this.isRight) {
+        if(!this.isRight && !this.isGrowth) {
                   ctx.drawImage(this.sprite,
                   40, 80,  // source from sheet
                   40, 40,
                    this.x, this.y,
                   40,
                   40);
-        } else {
+
+        } else if (this.isRight && this.isGrowth) {
                   ctx.drawImage(this.sprite,
-                  320, 80,  // source from sheet
+                  320, 243,  // source from sheet
                   40, 40,
                    this.x, this.y,
                   40,
                   40);
-
+        } else if (!this.isRight && this.isGrowth) {
+            ctx.drawImage(this.sprite,
+                  40, 243,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
+        } else {
+            ctx.drawImage(this.sprite,
+                  40, 80,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
         }
         
     } else if (!this.game.finishedLevel)
@@ -976,13 +1015,25 @@ Mario.prototype.draw = function(ctx) {
     }
 
     else {
-        if (this.isRight)
+        if (this.isRight && !this.isGrowth)
             ctx.drawImage(this.sprite,
                   200, 80,  // source from sheet
                   40, 40,
                   this.x, this.y,
                   40,
                   40);
+        else if (this.isRight && this.isGrowth)
+            ctx.drawImage(this.sprite,
+                200, 243,
+                40, 40,
+                this.x, this.y,
+                40, 40);
+        else if (!this.isRight && this.isGrowth)
+            ctx.drawImage(this.sprite,
+                160, 243,
+                40, 40,
+                this.x, this.y,
+                40, 40);
         else
             ctx.drawImage(this.sprite,
                  160, 80,  // source from sheet
