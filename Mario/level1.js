@@ -19,26 +19,31 @@ var level1 = {"levels":
                 },
                 "enemies":{
                     "goomba":[
-                         //{"id":1, "init_x":100,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png",initial_state:1},
-                        {"id":2, "init_x":910,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
-                        {"id":3, "init_x":475,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
-                        //{"id":4, "init_x":1180,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
-                        {"id":5, "init_x":1680,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
-                        //{"id":6, "init_x":1980,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
-                        {"id":7, "init_x":2250,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
-                        {"id":8, "init_x":2550,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
-                        {"id":9, "init_x":2850,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
-                        //{"id":10, "init_x":3150,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1}
-
+                        {"id":1, "init_x":100,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"},
+                        {"id":2, "init_x":910,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"},
+                        {"id":3, "init_x":475,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1}",
+                        {"id":4, "init_x":1180,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"},
+                        {"id":5, "init_x":1680,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"},
+                        {"id":6, "init_x":1980,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"},
+                        {"id":7, "init_x":2250,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"},
+                        {"id":8, "init_x":2550,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"},
+                        {"id":9, "init_x":2850,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"},
+                        {"id":10, "init_x":3150,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"}
                     ],
                     "redkoopa":[
-                        {"id":1, "init_x":50,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":0},
-                        {"id":1, "init_x":100,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
-                        {"id":1, "init_x":1980,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
-                        {"id":1, "init_x":3150,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1}
+                        {"id":1, "init_x":50,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:0"},
+                        {"id":1, "init_x":100,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"},
+                        {"id":1, "init_x":1980,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"},
+                        {"id":1, "init_x":3150,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state:1"}
                     ],
                     "chomper":[
                         {"id":1, "init_x":642,"init_y":127,"spritesheet":"images/smb3_enemies_sheet.png"}
+                    ],
+                    "skeletalturtle":[
+                        {"id":1, "init_x":100,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png"}
+                    ],
+                    "bonybeetle":[
+                        {"id":1, "init_x":50,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png"}
                     ]
                 },
 

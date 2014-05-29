@@ -1238,6 +1238,105 @@ RedKoopa.prototype.collide = function(other) {
 }
 //End RedKoopa
 
+//Skeletal Turtle code
+function SkeletalTurtle(init_x, init_y, game) {
+    //Call Enemy super constructor
+    Enemy.call(this,init_x, init_y, game);
+    this.frameWidth = 50;
+    this.frameHeight = 30;
+    this.type = "SkeletalTurtle"; 
+    this.boundingbox = new BoundingBox(this.x + 17, this.y, 20, 30);
+    this.right_animation = new Animation(this.sprite, 200, 298, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.left_animation = new Animation(this.sprite, 110, 298, this.frameWidth, this.frameHeight, .4, 2, true, true);
+    this.current_animation = this.right_animation;
+}
+
+SkeletalTurtle.prototype.draw = function(ctx) {
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+}
+
+SkeletalTurtle.prototype.update = function() {    
+    if(this.current_animation === this.right_animation) {
+        this.x += 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y, 20, 30);        
+    } else if(this.current_animation === this.left_animation){
+        this.x -= 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y, 20, 30);
+    } 
+}
+
+SkeletalTurtle.prototype.collide = function(other) {
+       
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && !other.passThrough) { //Collsion from the right
+        this.current_animation = this.left_animation;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && !other.passThrough) { //Collsion from the left
+        this.current_animation = this.right_animation;
+    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+        this.game.addToScore(100);
+        this.squished = true;
+        this.removeFromWorld = true;
+    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left <= this.boundingbox.right)
+        && other.type === 'Mario') {
+        this.game.isDead = true;
+    } 
+}
+//End SkeletalTurtle
+
+//BonyBeetle Code
+function BonyBeetle(init_x, init_y, game) {
+    //Call Enemy super constructor
+    Enemy.call(this,init_x, init_y, game);
+    this.frameWidth = 50;
+    this.frameHeight = 30;
+    this.type = "BonyBeetle"; 
+    this.boundingbox = new BoundingBox(this.x + 17, this.y, 20, 30);
+    this.right_animation = new Animation(this.sprite, 110, 745, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.left_animation = new Animation(this.sprite, 0, 745, this.frameWidth, this.frameHeight, .4, 2, true, true);
+    this.current_animation = this.right_animation;
+}
+
+BonyBeetle.prototype.draw = function(ctx) {
+     
+    /*
+    ctx.strokeStyle = "red";
+    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+    
+    ctx.drawImage(this.sprite,
+                  110, 745, 
+                  this.frameWidth, this.frameHeight,
+                  this.game.background.x + this.x, this.y,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);*/
+   
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+}
+
+BonyBeetle.prototype.update = function() {    
+    if(this.current_animation === this.right_animation) {
+        this.x += 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y + 10, 20, 15);        
+    } else if(this.current_animation === this.left_animation){
+        this.x -= 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 10, 20, 15);
+    } 
+}
+
+BonyBeetle.prototype.collide = function(other) {
+       
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && !other.passThrough) { //Collsion from the right
+        this.current_animation = this.left_animation;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && !other.passThrough) { //Collsion from the left
+        this.current_animation = this.right_animation;
+    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+        this.game.isDead = true;
+    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left <= this.boundingbox.right) 
+        && other.type === 'Mario') {
+        this.game.isDead = true;
+    } 
+}
+//End BonyBeetle
 //Chomper code
 function Chomper(init_x, init_y, game) {
     //Call Enemy super constructor
