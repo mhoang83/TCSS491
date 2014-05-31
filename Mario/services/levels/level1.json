@@ -28,11 +28,9 @@
                         {"id":7, "init_x":2250,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
                         {"id":8, "init_x":2550,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
                         {"id":9, "init_x":2850,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1}
-                        
-
                     ],
                     "redkoopa":[
-                        {"id":1, "init_x":50,"init_y":210,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":0},
+                        {"id":1, "init_x":50,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":0},
                         {"id":1, "init_x":100,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
                         {"id":1, "init_x":1980,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1},
                         {"id":1, "init_x":3150,"init_y":205,"spritesheet":"images/smb3_enemies_sheet.png","initial_state":1}
@@ -41,7 +39,6 @@
                         {"id":1, "init_x":642,"init_y":127,"spritesheet":"images/smb3_enemies_sheet.png"}
                     ]
                 },
-
 
                 "blocks":{
                     "staticGoldblocks": [

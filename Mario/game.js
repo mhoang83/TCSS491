@@ -257,7 +257,7 @@ GameEngine.prototype.detectCollisions = function () {
             entity.collide(mario);
         }
 
-        if(entity.type === 'Goomba' || entity.type === 'RedKoopa' || entity.type === 'Chomper') { //TODO
+        if(entity.subType === 'Enemy') { 
            for(var j = 0; j < this.worldEntities.length; j++) {
                 if(entity.boundingbox.isCollision(this.worldEntities[j].boundingbox)){
                     entity.collide(this.worldEntities[j]);
@@ -474,10 +474,10 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
 
     }
     this.addEntity(new LevelOver(this));
-    
+
     //Enemies inside Entities
     this.enemiesObj = this.entitiesObj.enemies;
-
+    
     //Enemies
     for (var key in this.enemiesObj) {
         var enemyGroupArray = this.enemiesObj[key];
@@ -494,14 +494,16 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
                 case "chomper":
                     gameEngine.addEntity(new Chomper(enemyObject.init_x, enemyObject.init_y, gameEngine));
                     break;
+                case "skeletalturtle":
+                    gameEngine.addEntity(new SkeletalTurtle(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+                case "bonybeetle":
+                    gameEngine.addEntity(new BonyBeetle(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
             }
             
         }
     }
-
-
-
-
 }
 
 // bouding box used for determining collisions
@@ -1096,6 +1098,7 @@ function Enemy(init_x, init_y, game) {
     this.init_x = init_x;
     this.init_y = init_y;
     this.passThrough = true;
+    this.subType = 'Enemy';
     
     //Call Entity constructor
     Entity.call(this, game, init_x, init_y);
@@ -1337,6 +1340,7 @@ BonyBeetle.prototype.collide = function(other) {
     } 
 }
 //End BonyBeetle
+
 //Chomper code
 function Chomper(init_x, init_y, game) {
     //Call Enemy super constructor
@@ -1350,16 +1354,6 @@ function Chomper(init_x, init_y, game) {
 }
 
 Chomper.prototype.draw = function(ctx) {
-    /*
-    ctx.strokeStyle = "red";
-    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
-    
-    ctx.drawImage(this.sprite,
-                  0, 345, 
-                  this.frameWidth, this.frameHeight,
-                  645, 130,
-                  this.frameWidth * 1,
-                  this.frameHeight * 1);*/
     this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
 }
 
@@ -1459,6 +1453,7 @@ function Coin(init_x, init_y, game, popped) {
     this.moveAnimation = new Animation(this.sprite, 422, 0, 16, 16, 0.14, 4, true, false);
     this.boundingbox = new BoundingBox(this.x, this.y, 16, 16);
     this.type = "Coin";
+    this.passThrough = true;
     this.Ycoord = 20
     this.popped = popped;
     this.givePoints = false;
