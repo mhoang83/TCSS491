@@ -324,190 +324,112 @@ GameEngine.prototype.addCoin = function() {
 }
 
 
-GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
-    //Change Json String to Javascript Object - parsing
+GameEngine.prototype.loadLevel = function(jSonString) {
     if( typeof jSonString === 'string') {
-        this.mainObj = JSON.parse(jSonString);
+        mainObj = JSON.parse(jSonString);
 
     } else {
 
-            this.mainObj = jSonString;
+            mainObj = jSonString;
     }
-    this.levelObj = this.mainObj.levels;
-    this.score = 0;
-    this.lives = 3;
-    this.coins = 0;
-    //Descriptive String for level type
-    this.id = this.levelObj.id;
-    this.descriptionStr = this.levelObj.description;
+    var levels = mainObj.levels;
+    var background = levels.background;
+    this.background = new BackGround(background.start_x, background.start_y, this, background.length, background.id);
+    this.addEntity(this.background);
+    var entities = levels.entities;
+    for(var i = 0; i < entities.length; i++) {
+        var entity = entities[i];
+        if (entity.type === 'Mario') {
+            var mario = new Mario(entity.start_x, entity.start_y, this);
+            this.addEntity(mario);
+            this.mario = mario;
+        } else if (entity.type !== 'Entity') {
 
-    //Background Object with background information
-    this.backgroundObj = this.levelObj.background;
-    this.spriteSheet = this.backgroundObj.spritesheet;
-    this.start_x = this.backgroundObj.start_x;
-    this.start_y = this.backgroundObj.start_y;
-    this.size_x = this.backgroundObj.size_x;
-    this.size_y = this.backgroundObj.size_y;
-    this.length = this.backgroundObj.length;
-    var background = new BackGround(this.start_x, this.start_y, gameEngine, this.length, this.id);
-    gameEngine.addEntity(background);
-    this.background = background;
-
-
-    //Entities in the level (Player Characters, Enemies Characters, and Blocks
-    this.entitiesObj = this.levelObj.entities;
-    console.log(this.entitiesObj);
-    //Players inside Entities 
-    this.playersObj = this.entitiesObj.players;
-
-    // need to make it load from json testing now
-    //castle inside entitiies obj from json
-    if(this.entitiesObj.castle) {
-    	    gameEngine.addEntity(new Castle(this.entitiesObj.castle.init_x, this.entitiesObj.castle.init_y, gameEngine));
-    }
-
-    if(this.entitiesObj.pole) {
-    	    // pole
-    gameEngine.addEntity(new Pole(this.entitiesObj.pole.init_x, this.entitiesObj.pole.init_y, gameEngine));
-    }
-
-    if(this.entitiesObj.boss) {
-    	    // Boss
-    gameEngine.addEntity(new Bowser(this.entitiesObj.boss.init_x, this.entitiesObj.boss.init_y, gameEngine));
-    }
-
-
-
-    //Mario inside Players
-    this.marioObj = this.playersObj.mario;
-    this.spriteSheetStr = this.marioObj.spritesheet;
-    var mario = new Mario(this.marioObj.init_x, this.marioObj.init_y, gameEngine);
-    gameEngine.addEntity(mario);
-    gameEngine.mario = mario;
-
-    //Blocks inside Entities
-    this.blocksObj = this.entitiesObj.blocks;
-    var blockCount = Object.keys(this.blocksObj).length;
-        console.log("Number of Block Types: " + blockCount);
-    //Blocks
-    var blockTypeInt = 0;
-    for (var key in this.blocksObj) { //for every block type in this Blocks Object, do this
-
-
-        var blockGroupArray = this.blocksObj[key];
-        var arrayLength = blockGroupArray.length;
-        for (i = 0; i < arrayLength; i++) {
-            var blockObject = blockGroupArray[i];
-            var count = blockObject.count;
-            switch (blockTypeInt) {
-
-                /*Each For Loop and the (17 * j) + x coordinate allows the creationg of platforms
-                 based off count value inside the JSON document. Coordinates start from the first block on the
-                 left, and increment 17 pixels to the right ever loop
-                */
-                case 1:
-                    for (j = 0; j < count; j++) {
-                        gameEngine.addEntity(new QuestionBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
-                    }
+            switch(this.superType(entity.type)) {
+                case 'World Object':
+                    var obj = this.makeWO(entity.type,entity.start_x, entity.start_y);
+                    if (entity.coins)
+                        obj.coins = entity.coins;
+                    if (entity.extensions)
+                        obj.setExtensions(entity.extensions);
+                    this.addEntity(obj);
                     break;
-                case 2:
-                    for (j = 0; j < count; j++) {
-                        gameEngine.addEntity(new ShineyGoldBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
-                    }
-                    break;
-                case 3:
-                    for (j = 0; j < count; j++) {
-                        gameEngine.addEntity(new ShineyBlueBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
-                    }
-                    break;
-                case 4:
-                    for (j = 0; j < count; j++) {
-                        gameEngine.addEntity(new WhiteMusicNote(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
-                    }
-                    break;
-                case 5:
-                    for (j = 0; j < count; j++) {
-                        gameEngine.addEntity(new PinkMusicNote(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
-                    }
-                    break;
-                case 6:
-                    for (j = 0; j < count; j++) {
-                        gameEngine.addEntity(new PowBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
-                    }
-                    break;
-                case 7:
-                    for (j = 0; j < count; j++) {
-                        gameEngine.addEntity(new ColorFullExclamation(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
-                    }
-                    break;
-                case 9:
-                    for (j = 0; j < count; j++) {
-                        gameEngine.addEntity(new Coin(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
-                    }
-                    break;
-                case 8:
-
-                    //Enables the construction of a green pipe with a variable height using only two sprite sheets,
-                    //where the actual height of the pipe is = ((count - the top peice) x 15) 
-                    var j;
-                    for (j = 0; j < count; j++) {
-                        // this will be used after the editor is complete.
-                        // var pipe = new GreenPipe(blockObject.init_x, blockObject.init_y, gameEngine);
-                        // if (count > 1)
-                        //     pipe.setExtensions(count);
-                        // gameEngine.addEntity(pipe);
-                        if(count === 1){
-                            gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y-1, gameEngine));
-                        } else if (count > 1 && j == 0) {
-                            gameEngine.addEntity(new GreenPipe(blockObject.init_x, (blockObject.init_y +2) - ((count -1) * 15), gameEngine));
-                        } else if (count > 1 && j >= 0) {
-                            //gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y + 15, gameEngine));
-                            var offset = (j*14)-8 + ((4-count) * 14);
-                            gameEngine.addEntity(new GreenPipeExtension(blockObject.init_x, (blockObject.init_y + offset), gameEngine));
-                        }
-
-                    }
+                case 'Enemy':
+                    this.addEntity(this.makeEnemy(entity.type,entity.start_x, entity.start_y, entity.state));
                     break;
                 default:
-                    for (j = 0; j < count; j++) {
-                        gameEngine.addEntity(new StaticGoldBlock(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
-                    }
-            }
+                    break;
+            }   
         }
-                    blockTypeInt+=1;
-                            console.log("Block type is currently block: " + blockTypeInt);
-
     }
-    this.addEntity(new LevelOver(this));
 
-    //Enemies inside Entities
-    this.enemiesObj = this.entitiesObj.enemies;
-    
-    //Enemies
-    for (var key in this.enemiesObj) {
-        var enemyGroupArray = this.enemiesObj[key];
-        var arrayLength = enemyGroupArray.length;
-        for (i = 0; i < arrayLength; i++) {
-            var enemyObject = enemyGroupArray[i];
-            switch(key) {
-                case "goomba":
-                    gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine, enemyObject.initial_state));
-                    break;
-                case "redkoopa":
-                    gameEngine.addEntity(new RedKoopa(enemyObject.init_x, enemyObject.init_y, gameEngine, enemyObject.initial_state));
-                    break;
-                case "chomper":
-                    gameEngine.addEntity(new Chomper(enemyObject.init_x, enemyObject.init_y, gameEngine));
-                    break;
-                case "skeletalturtle":
-                    gameEngine.addEntity(new SkeletalTurtle(enemyObject.init_x, enemyObject.init_y, gameEngine));
-                    break;
-                case "bonybeetle":
-                    gameEngine.addEntity(new BonyBeetle(enemyObject.init_x, enemyObject.init_y, gameEngine));
-                    break;
-            }
-            
-        }
+
+}
+GameEngine.prototype.superType = function(type) {
+    switch (type) {
+        case 'Goomba': case 'RedKoopa': case 'SkeletalTurtle':
+        case 'BonyBeetle':case 'Chomper':
+           return  'Enemy';
+        case 'question':  case 'shineygold': case 'blue':
+        case 'exclamation': case 'whitenote': case 'pinknote':
+        case 'pow': case 'brick': case 'pipe':  case 'pole':
+        case 'castle': case 'coin': case 'brownblock':
+            return 'World Object'
+        default:
+            'Mario'
+    }
+}
+
+GameEngine.prototype.makeEnemy = function(type, x,y, init_state) {
+    init_state = init_state || 0;
+    console.log(type + ' ' + init_state);
+    switch(type) {
+        case 'Goomba':
+           return  new Goomba(x, y, this, init_state);
+        case 'RedKoopa':
+           return  new RedKoopa(x, y, this);
+        case 'SkeletalTurtle':
+           return  new SkeletalTurtle(x, y, this);
+        case 'BonyBeetle':
+           return  new BonyBeetle(x, y, this);
+        case 'Chomper':
+           return  new Chomper(x, y, this);
+        default :
+           return null;
+    }
+
+}
+
+GameEngine.prototype.makeWO = function(type, x, y) {
+    switch(type) {
+        case 'question':
+           return  new QuestionBox(x, y, this);
+        case 'shineygold':
+           return  new ShineyGoldBox(x, y, this);
+        case 'blue':
+           return  new ShineyBlueBox(x, y, this);
+        case 'exclamation':
+           return  new ColorFullExclamation(x, y, this);
+        case 'whitenote':
+           return  new WhiteMusicNote(x, y, this);
+        case 'pinknote':
+           return  new PinkMusicNote(x, y, this);
+        case 'pow':
+           return  new PowBox(x, y, this);
+        case 'brick':
+           return  new StaticGoldBlock(x, y, this);
+        case 'pipe':
+           return  new GreenPipe(x, y, this);
+        case 'pole':
+           return  new Pole(x, y, this);
+        case 'castle':
+           return  new Castle(x, y, this);
+        case 'coin':
+           return  new Coin(x, y, this);
+        case 'brownblock':
+            return new BrownBlock(x,y,this);
+        default :
+           return null;
     }
 }
 
@@ -1373,6 +1295,33 @@ Chomper.prototype.collide = function(other) {
         && other.type === 'Mario') { //Check for top collision
         this.game.isDead = true;
     } 
+}
+
+function BrownBlock(init_x, init_y, game) {
+    Entity.call(this, game, init_x, init_y);
+    this.sprite = ASSET_MANAGER.getAsset('images/castlepole.gif');
+    this.type = 'brownblock';
+    this.boundingbox = new BoundingBox(this.x, this.y, 20, 20);
+}
+BrownBlock.prototype = new Entity();
+BrownBlock.prototype.constructor = BrownBlock;
+BrownBlock.prototype.draw = function (ctx) {
+    
+         ctx.drawImage(this.sprite,
+                  115, 493,  // source from sheet
+                  21, 21,
+                   this.game.background.x + this.x, this.y,
+                  21,
+                  21);
+    
+     
+}
+
+BrownBlock.prototype.update = function () {
+   // Entity.prototype.update.call(this);
+   this.boundingbox = new BoundingBox(this.game.background.x + this.x, this.y, 20,20);
+  
+
 }
 
 //QuestionBox
@@ -2276,7 +2225,8 @@ ASSET_MANAGER.downloadAll(function () {
     var levelID = "level1";
     try {
         $.get('services/levelService.php', {id:levelID}, function(data) {
-            gameEngine.loadLevel(data, gameEngine);
+           // console.log(data);
+            gameEngine.loadLevel(data);
             gameEngine.init(ctx);
             gameEngine.start();
            
