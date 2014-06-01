@@ -267,7 +267,7 @@ GameEngine.prototype.draw = function (drawCallback) {
     if(this.mario) {
         this.mario.draw(this.ctx);
     }
-    this.editor.draw(this.ctx);
+    
     for (var i = 0; i < this.entities.length; i++) {
 
         this.entities[i].draw(this.ctx);
@@ -275,6 +275,7 @@ GameEngine.prototype.draw = function (drawCallback) {
     if (drawCallback) {
         drawCallback(this);
     }
+    this.editor.draw(this.ctx);
     this.ctx.restore();
 }
 
@@ -310,6 +311,287 @@ GameEngine.prototype.loop = function () {
     this.wheel = null;
     //this.key = null;
 }
+
+GameEngine.prototype.loadLevel = function(jSonString) {
+    if( typeof jSonString === 'string') {
+        mainObj = JSON.parse(jSonString);
+
+    } else {
+
+            mainObj = jSonString;
+    }
+    var levels = mainObj.levels;
+    var background = levels.background;
+    this.background = new BackGround(background.start_x, background.start_y, this, background.length, background.id);
+    this.addEntity(this.background);
+    var entities = levels.entities;
+    for(var i = 0; i < entities.length; i++) {
+        var entity = entities[i];
+        if (entity.type === 'Mario') {
+            var mario = new Mario(entity.start_x, entity.start_y, this);
+            this.addEntity(mario);
+        } else if (entity.type !== 'Entity') {
+
+            switch(this.superType(entity.type)) {
+                case 'World Object':
+                    var obj = this.makeWO(entity.type,entity.start_x, entity.start_y);
+                    if (entity.coins)
+                        obj.coins = entity.coins;
+                    if (entity.extensions)
+                        obj.setExtensions(entity.extensions);
+                    this.addEntity(obj);
+                    break;
+                case 'Enemy':
+                    this.addEntity(this.makeEnemy(entity.type,entity.start_x, entity.start_y, entity.state));
+                    break;
+                default:
+                    break;
+            }   
+        }
+    }
+
+
+}
+GameEngine.prototype.superType = function(type) {
+    switch (type) {
+        case 'Goomba': case 'RedKoopa': case 'SkeletalTurtle':
+        case 'BonyBeetle':case 'Chomper':
+           return  'Enemy';
+        case 'question':  case 'shineygold': case 'blue':
+        case 'exclamation': case 'whitenote': case 'pinknote':
+        case 'pow': case 'brick': case 'pipe':  case 'pole':
+        case 'castle': case 'coin': case 'brownblock':
+            return 'World Object'
+        default:
+            'Mario'
+    }
+}
+
+GameEngine.prototype.makeEnemy = function(type, x,y, init_state) {
+    init_state = init_state || 0;
+    console.log(type + ' ' + init_state);
+    switch(type) {
+        case 'Goomba':
+           return  new Goomba(x, y, this, init_state);
+        case 'RedKoopa':
+           return  new RedKoopa(x, y, this);
+        case 'SkeletalTurtle':
+           return  new SkeletalTurtle(x, y, this);
+        case 'BonyBeetle':
+           return  new BonyBeetle(x, y, this);
+        case 'Chomper':
+           return  new Chomper(x, y, this);
+        default :
+           return null;
+    }
+
+}
+
+GameEngine.prototype.makeWO = function(type, x, y) {
+    switch(type) {
+        case 'question':
+           return  new QuestionBox(x, y, this);
+        case 'shineygold':
+           return  new ShineyGoldBox(x, y, this);
+        case 'blue':
+           return  new ShineyBlueBox(x, y, this);
+        case 'exclamation':
+           return  new ColorFullExclamation(x, y, this);
+        case 'whitenote':
+           return  new WhiteMusicNote(x, y, this);
+        case 'pinknote':
+           return  new PinkMusicNote(x, y, this);
+        case 'pow':
+           return  new PowBox(x, y, this);
+        case 'brick':
+           return  new StaticGoldBlock(x, y, this);
+        case 'pipe':
+           return  new GreenPipe(x, y, this);
+        case 'pole':
+           return  new Pole(x, y, this);
+        case 'castle':
+           return  new Castle(x, y, this);
+        case 'coin':
+           return  new Coin(x, y, this);
+        case 'brownblock':
+            return new BrownBlock(x,y,this);
+        default :
+           return null;
+    }
+}
+GameEngine.prototype.loadLevelOld = function (jSonString, gameEngine) {
+    //Change Json String to Javascript Object - parsing
+    if( typeof jSonString === 'string') {
+        this.mainObj = JSON.parse(jSonString);
+
+    } else {
+
+            this.mainObj = jSonString;
+    }
+    this.levelObj = this.mainObj.levels;
+    this.score = 0;
+    this.lives = 3;
+    this.coins = 0;
+    //Descriptive String for level type
+    this.id = this.levelObj.id;
+    this.descriptionStr = this.levelObj.description;
+
+    //Background Object with background information
+    this.backgroundObj = this.levelObj.background;
+    this.spriteSheet = this.backgroundObj.spritesheet;
+    this.start_x = this.backgroundObj.start_x;
+    this.start_y = this.backgroundObj.start_y;
+    this.size_x = this.backgroundObj.size_x;
+    this.size_y = this.backgroundObj.size_y;
+    this.length = this.backgroundObj.length;
+    var background = new BackGround(this.start_x, this.start_y, gameEngine, this.length, this.id);
+    gameEngine.addEntity(background);
+    this.background = background;
+
+
+    //Entities in the level (Player Characters, Enemies Characters, and Blocks
+    this.entitiesObj = this.levelObj.entities;
+    console.log(this.entitiesObj);
+    //Players inside Entities 
+    this.playersObj = this.entitiesObj.players;
+
+    // need to make it load from json testing now
+    //castle inside entitiies obj from json
+    gameEngine.addEntity(new Castle(this.entitiesObj.castle.init_x, this.entitiesObj.castle.init_y, gameEngine));
+
+    // pole
+    gameEngine.addEntity(new Pole(this.entitiesObj.pole.init_x, this.entitiesObj.pole.init_y, gameEngine));
+
+    // Boss
+   // gameEngine.addEntity(new Bowser(this.entitiesObj.boss.init_x, this.entitiesObj.boss.init_y, gameEngine));
+
+    //Mario inside Players
+    this.marioObj = this.playersObj.mario;
+    this.spriteSheetStr = this.marioObj.spritesheet;
+    var mario = new Mario(this.marioObj.init_x, this.marioObj.init_y, gameEngine);
+    gameEngine.addEntity(mario);
+    gameEngine.mario = mario;
+
+    //Blocks inside Entities
+    this.blocksObj = this.entitiesObj.blocks;
+    var blockCount = Object.keys(this.blocksObj).length;
+        console.log("Number of Block Types: " + blockCount);
+    //Blocks
+    var blockTypeInt = 0;
+    for (var key in this.blocksObj) { //for every block type in this Blocks Object, do this
+
+
+        var blockGroupArray = this.blocksObj[key];
+        var arrayLength = blockGroupArray.length;
+        for (i = 0; i < arrayLength; i++) {
+            var blockObject = blockGroupArray[i];
+            var count = blockObject.count;
+            switch (blockTypeInt) {
+
+                /*Each For Loop and the (17 * j) + x coordinate allows the creationg of platforms
+                 based off count value inside the JSON document. Coordinates start from the first block on the
+                 left, and increment 17 pixels to the right ever loop
+                */
+                case 1:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new QuestionBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 2:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new ShineyGoldBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 3:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new ShineyBlueBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 4:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new WhiteMusicNote(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 5:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new PinkMusicNote(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 6:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new PowBox(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 7:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new ColorFullExclamation(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 9:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new Coin(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+                    break;
+                case 8:
+
+                    //Enables the construction of a green pipe with a variable height using only two sprite sheets,
+                    //where the actual height of the pipe is = ((count - the top peice) x 15) 
+                    var j;
+                    for (j = 0; j < count; j++) {
+                        // this will be used after the editor is complete.
+                        // var pipe = new GreenPipe(blockObject.init_x, blockObject.init_y, gameEngine);
+                        // if (count > 1)
+                        //     pipe.setExtensions(count);
+                        // gameEngine.addEntity(pipe);
+                        if(count === 1){
+                            gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y-1, gameEngine));
+                        } else if (count > 1 && j == 0) {
+                            gameEngine.addEntity(new GreenPipe(blockObject.init_x, (blockObject.init_y +2) - ((count -1) * 15), gameEngine));
+                        } else if (count > 1 && j >= 0) {
+                            //gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y + 15, gameEngine));
+                            var offset = (j*14)-8 + ((4-count) * 14);
+                            gameEngine.addEntity(new GreenPipeExtension(blockObject.init_x, (blockObject.init_y + offset), gameEngine));
+                        }
+
+                    }
+                    break;
+                default:
+                    for (j = 0; j < count; j++) {
+                        gameEngine.addEntity(new StaticGoldBlock(blockObject.init_x + (17 * j), blockObject.init_y, gameEngine));
+                    }
+            }
+        }
+                    blockTypeInt+=1;
+                            console.log("Block type is currently block: " + blockTypeInt);
+
+    }
+    //this.addEntity(new LevelOver(this));
+    
+    //Enemies inside Entities
+    this.enemiesObj = this.entitiesObj.enemies;
+
+    //Enemies
+    for (var key in this.enemiesObj) {
+        var enemyGroupArray = this.enemiesObj[key];
+        var arrayLength = enemyGroupArray.length;
+        for (i = 0; i < arrayLength; i++) {
+            var enemyObject = enemyGroupArray[i];
+            switch(key) {
+                case "goomba":
+                    gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+                case "redkoopa":
+                    gameEngine.addEntity(new RedKoopa(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+                case "chomper":
+                    gameEngine.addEntity(new Chomper(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+            }
+            
+        }
+    }
+}
+
 
 
 // bouding box used for determining collisions
@@ -351,6 +633,21 @@ Entity.prototype.getX = function() {
     return this.game.background.x + this.x;
 
 }
+Entity.prototype.toJSON = function() {
+    var json = {};
+    json.type = this.type;
+    json.start_x = this.x;
+    json.start_y = this.y;
+    if(this.sprite)
+        json.spritesheet = this.sprite.src.substring(30);
+    if(this.extensions)
+        json.extensions = this.extensions.length;
+    if (this.coins)
+        json.coins = this.coins;
+    if (this.state)
+        json.state = this.state;
+    return json;
+}
 
 Entity.prototype.draw = function (ctx) {
     if (this.game.showOutlines && this.radius) {
@@ -387,8 +684,9 @@ Entity.prototype.rotateAndCache = function (image, angle) {
 
 function Mario(init_x, init_y, game, scale) {
 
-    this.type = "Mario";
+   
      Entity.call(this, game, init_x, init_y);
+      this.type = "Mario";
     this.isRunning = false;
     this.isWalking = false;
     this.isJumping = false;
@@ -427,7 +725,13 @@ function BackgroundEditor(init_x, init_y, game, selected,length) {
                     new StaticGoldBlock(730, 450, game), new BrownBlock(755, 450, game), new Coin(780, 450, game), new GreenPipe(805, 450, game), new Pole(840, 450, game, .40), new Castle(860, 450, game, .65)];
     for (var i = 0; i < this.worldItems.length; i++) {
         this.worldItems[i].palletPiece = true;
-     }   
+     }  
+     this.enemys = [new Goomba(160, 449, game, 1), new Goomba(200, 449, game), new RedKoopa(230, 449, game), new BonyBeetle(285, 449, game), new SkeletalTurtle(310, 449, game), new Chomper(340, 449, game)]; 
+     for (var i = 0; i < this.enemys.length; i++) {
+        if ( i == 0)
+            console.log(this.enemys[i]);
+        this.enemys[i].palletPiece = true;
+     }  
     this.init_x = init_x;
     this.init_y = init_y;
     this.prevMouse = {};
@@ -451,8 +755,8 @@ function BackgroundEditor(init_x, init_y, game, selected,length) {
         this.bgImages.push(bg);
     }
     this.mario = new Mario(-15, 445, game, 1.5);
-    this.enemy = new Enemy(240, 449, game, 1.5);
-    this.enemy.palletPiece = true;
+    
+    //this.enemy.palletPiece = true;
 }
 BackgroundEditor.prototype = new Entity();
 BackgroundEditor.prototype.constructor = BackgroundEditor;
@@ -460,11 +764,16 @@ BackgroundEditor.prototype.constructor = BackgroundEditor;
 BackgroundEditor.prototype.update = function() {
     if (this.game.key) {
         var code = this.game.key.keyCode;
-        if (this.editor === 'background')
+        if (this.editor === 'background') {
             if (code === 39 && this.backgroundx < this.init_x)
                 this.backgroundx += 15;
             else if (code === 37 && -this.backgroundx < 6 *(this.x_sum / 10) - 6)
                 this.backgroundx -= 15;
+            for (var i = 0; i < this.bgImages.length; i++) {
+                var bg = this.bgImages[i];
+                bg.x = this.backgroundx + bg.init_x;
+            }
+        }
        // console.log(this.isGameBoardSelected);
         if (this.isGameBoardSelected)
              if (code === 39 && this.game.background.x < 0)
@@ -548,14 +857,20 @@ BackgroundEditor.prototype.update = function() {
                 var entities = this.game.entities;
                 for (var i = 0; i < entities.length; i++) {
                     var entity = entities[i];
-                    if(entity.boundingbox && click.x  >= entity.boundingbox.left && click.x <= entity.boundingbox.right && click.y >= entity.boundingbox.top && click.y <= entity.boundingbox.bottom) {
-                        if (entity.type === 'Enemy' ) {
+
+                    if(entity.boundingbox && click.x >= entity.boundingbox.left && click.x <= entity.boundingbox.right && click.y >= entity.boundingbox.top && click.y <= entity.boundingbox.bottom) {
+                        if (this.superType(entity.type) === 'Enemy' ) {
                              this.editor = 'enemy';
                             //this.game.entities = entities.splice(i,1);
+                            this.ghostEnemy = entity;
+                            entity.palletPiece = true;
+                             console.log(entity);
                             entity.removeFromWorld = true;
-                        } else if (entity.type != 'Mario' || entity.type != 'Enemy') {
+                        } else if (this.superType(entity.type) === 'World Object') {
                             this.editor = 'worldobjects';
+                             entity.palletPiece = true;
                             this.ghostWO = entity;
+                             console.log(entity);
                             entity.removeFromWorld = true;
 
                         }
@@ -563,12 +878,12 @@ BackgroundEditor.prototype.update = function() {
                 }
 
             } else if (this.editor === 'enemy' ) {
-                this.game.addEntity(new Enemy(this.ghostEnemy.x, this.ghostEnemy.y, this.game));
+                this.game.addEntity(this.makeEnemy(this.ghostEnemy.type, this.ghostEnemy.x - this.game.background.x, this.ghostEnemy.y, this.ghostEnemy.state));
             } else if (this.editor === 'worldobjects') {
                 if (this.stairs && this.stairs.length > 0) {
                     for (var i = 0; i < this.stairs.length; i++) {
                         for (var j = 0; j <= i; j++) {
-                           this.game.addEntity(this.makeWO(this.ghostWO.type, this.stairs[i][j].x,  this.stairs[i][j].y));
+                           this.game.addEntity(this.makeWO(this.ghostWO.type, this.stairs[i][j].x - this.game.background.x,  this.stairs[i][j].y));
                         }
                     }
                     $('#stairheight').val("1");
@@ -576,14 +891,17 @@ BackgroundEditor.prototype.update = function() {
                 } else
                 if (this.ghostWOLine && this.ghostWOLine.length > 0) {
                     for (var i = 0; i < this.ghostWOLine.length; i++) {
-                        this.game.addEntity(this.makeWO(this.ghostWO.type, this.ghostWOLine[i].x, this.ghostWOLine[i].y));
+                        this.game.addEntity(this.makeWO(this.ghostWO.type, this.ghostWOLine[i].x - this.game.background.x,  this.ghostWOLine[i].y));
                     }
                     this.ghostWOLine = [];
                     $('#lineblocks').val("1");
                     $('#coins').val("none");
                     //console.log(this.game.line);
                 } else {
-                    this.game.addEntity(this.makeWO(this.ghostWO.type, this.ghostWO.x, this.ghostWO.y));
+                    var wo = this.makeWO(this.ghostWO.type, this.ghostWO.x - this.game.background.x, this.ghostWO.y)
+                    this.game.addEntity(wo);
+                    if(this.ghostWO.coins)
+                        wo.coins = this.ghostWO.coins;
                     $('#coins').val("none");
                 }
             }
@@ -598,8 +916,7 @@ BackgroundEditor.prototype.update = function() {
                 this.editor = '';
             else
                 this.editor = 'enemy';
-            this.ghostEnemy.x = click.x - 24;
-            this.ghostEnemy.y = click.y - 20;
+            this.makeGhostEnemy(click.x, click.y);
         } else if (click.y < 512 && click.y>=430 && click.x > 450 && click.x < 1024) {
             this.makeGhostWO(click.x, click.y);
             this.game.levellength.hide();       
@@ -619,9 +936,12 @@ BackgroundEditor.prototype.update = function() {
             if (this.ghostWO.type === 'brownblock' && this.stairs && this.stairs.length > 0) {
                 var start_x = hover.x - 10 - Math.floor(this.stairs.length / 2 * this.ghostWO.boundingbox.width);
                 var start_y = hover.y - 10 + Math.floor(this.stairs.length / 2 * this.ghostWO.boundingbox.height);
+                var rev = 1;
+                if (this.game.reverse)
+                    rev = -1;
                 for (var i = 0; i < this.stairs.length; i++) {
                     for (var j = i; j >= 0; j--) {
-                        this.stairs[i][j].x = start_x + i * (this.ghostWO.boundingbox.width - 4);
+                        this.stairs[i][j].x = start_x + rev * i * (this.ghostWO.boundingbox.width - 4);
                         this.stairs[i][j].y = start_y - j * (this.ghostWO.boundingbox.height - 4);
                     }
                 }
@@ -645,6 +965,56 @@ BackgroundEditor.prototype.update = function() {
     }
     
     
+}
+
+BackgroundEditor.prototype.makeGhostEnemy = function(x,y) {
+    var items = this.enemys;
+    var type = null;
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (x >= item.boundingbox.left && x <= item.boundingbox.right && y >= item.boundingbox.top && y <= item.boundingbox.bottom) {
+            type = item.type;
+            break;
+        }
+    }
+    console.log(item);
+    this.ghostEnemy = this.makeEnemy(type, item.x, item.y, item.state);
+    this.ghostEnemy.palletPiece = true;
+}
+
+BackgroundEditor.prototype.superType = function(type) {
+    switch (type) {
+        case 'Goomba': case 'RedKoopa': case 'SkeletalTurtle':
+        case 'BonyBeetle':case 'Chomper':
+           return  'Enemy';
+        case 'question':  case 'shineygold': case 'blue':
+        case 'exclamation': case 'whitenote': case 'pinknote':
+        case 'pow': case 'brick': case 'pipe':  case 'pole':
+        case 'castle': case 'coin': case 'brownblock':
+            return 'World Object'
+        default:
+            'Mario'
+    }
+}
+
+BackgroundEditor.prototype.makeEnemy = function(type, x,y, init_state) {
+    init_state = init_state || 0;
+    console.log(type + ' ' + init_state);
+    switch(type) {
+        case 'Goomba':
+           return  new Goomba(x, y, this.game, init_state);
+        case 'RedKoopa':
+           return  new RedKoopa(x, y, this.game);
+        case 'SkeletalTurtle':
+           return  new SkeletalTurtle(x, y, this.game);
+        case 'BonyBeetle':
+           return  new BonyBeetle(x, y, this.game);
+        case 'Chomper':
+           return  new Chomper(x, y, this.game);
+        default :
+           return null;
+    }
+
 }
 
 BackgroundEditor.prototype.makeGhostWO = function(x, y) {
@@ -701,6 +1071,8 @@ BackgroundEditor.prototype.makeGhostWO = function(x, y) {
                  this.game.staircase.hide();
             }
         }
+        if (this.ghostWO)
+        this.ghostWO.palletPiece = true;
         //if (this.editor === ' worldobjects')
             
     }
@@ -844,82 +1216,370 @@ BackgroundEditor.prototype.draw = function(ctx) {
         }
         ctx.globalAlpha = 1;
     }
-    this.enemy.draw(ctx);
+    for (var i = 0; i < this.enemys.length; i++) {
+        this.enemys[i].draw(ctx);
+    };
+    //this.enemy.draw(ctx);
     this.mario.draw(ctx);
      ctx.strokeStyle = style;
      ctx.lineWidth= width; 
      ctx.fillStyle = fill;
 }
+BackgroundEditor.prototype.save = function() {
+    var level = {};
+    //level.id = this.id;
+    var levels = {};
+    level.levels = levels;
+    levels.id = this.game.level; 
+    levels.background = this.game.background.toJSON();
+    levels.description = this.game.description;
+    var entities = [];
+    for (var i = 0; i < this.game.entities.length; i++){
+        entities.push(this.game.entities[i].toJSON());
+    }
+    levels.entities = entities;
+    return JSON.stringify(level);
+}
 
 
 //Enemy Code -- TODO: Enemies will have to be in some type of collection.
-function Enemy(init_x, init_y, game, scale) {
-    Entity.call(this, game, init_x, init_y);
-    var frameWidth = 50;
-    var frameHeight = 25;
-    this.init_x = init_x;
-    this.init_y= init_y;
-    this.type = 'Enemy';
-    this.scale = scale || 1.1;
+// function Enemy(init_x, init_y, game, scale) {
+//     Entity.call(this, game, init_x, init_y);
+//     var frameWidth = 50;
+//     var frameHeight = 25;
+//     this.init_x = init_x;
+//     this.init_y= init_y;
+//     this.type = 'Enemy';
+//     this.scale = scale || 1.1;
+//     this.sprite = ASSET_MANAGER.getAsset('../images/smb3_enemies_sheet.png');
+//     // this.bounceAnimation = new Animation(this.sprite, 0, 0, frameWidth, frameHeight, .4, 2, true, false );
+//     // this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
+//     this.init_x = init_x;
+//     // this.direction = 1;
+    
+    
+// }
+
+
+
+// //Enemy Base Class
+function Enemy(init_x, init_y, game) {
+    this.frameWidth = 50;
+    this.frameHeight = 25;
     this.sprite = ASSET_MANAGER.getAsset('../images/smb3_enemies_sheet.png');
-    this.bounceAnimation = new Animation(this.sprite, 0, 0, frameWidth, frameHeight, .4, 2, true, false );
-    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
     this.init_x = init_x;
-    this.direction = 1;
+    this.init_y = init_y;
     
-    
+    //Call Entity constructor
+    Entity.call(this, game, init_x, init_y);
 }
 
 Enemy.prototype = new Entity();
 Enemy.prototype.constructor = Enemy;
 
-Enemy.prototype.update = function() {
-    // if (!this.ghost) {
-    //     var travelCount = 100;
-    //     if(this.direction === 1) {
-    //         if(this.x === this.init_x + travelCount) {
-    //             this.direction = 0;
-    //         } else {
-    //             this.x += 1;        
-    //         }
-    //     } else {
-    //         if(this.x === this.init_x) {
-    //             this.direction = 1;
-    //         } else {
-    //             this.x -= 1;
-    //         }
-    //     }
-    // }
-    //  this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
+// Enemy.prototype = new Entity();
+//End Enemy Base Class
+
+//Goomba code
+function Goomba(init_x, init_y, game, initial_state) {
+    //Call Enemy super constructor
+    console.log(init_x + ' ' + init_y);
+    //this.prototype = new Enemy();
+     Entity.call(this, game,init_x, init_y);
+    this.frameWidth = 50;
+    this.frameHeight = 25;
+    this.sprite = ASSET_MANAGER.getAsset('../images/smb3_enemies_sheet.png');
+    this.init_x = init_x;
+    this.init_y = init_y;
+    console.log(this.prototype);
+    this.squished = false;
+    this.direction = 1;
+    this.state = initial_state || 0;
+    this.type = "Goomba"; 
+    this.wingedoffset = (this.state)?12:0;
+    this.boundingbox = new BoundingBox(this.x + 17 + this.wingedoffset, this.y + 5, 17, 16);
+    this.dewinged_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.winged_animation = new Animation(this.sprite, 90, 0, this.frameWidth, this.frameHeight, .4, 4, true, false);
+    this.current_animation = (this.state === 1) ? this.winged_animation : this.dewinged_animation;
+
+    this.cycleCount = 0;
 }
 
-Enemy.prototype.draw = function(ctx) {
-    //context.drawImage(img,sx,sy,swidth,sheight,x,y,width,height);
-    //console.log(this.sprite);
-    //console.log(this.ghost);
-    
-        this.bounceAnimation.drawFrame(this.game.clockTick, ctx, this.getX(), this.y, this.scale);
-    
-    /*
-    for(var i = 1; i < 4; i++) {
-        ctx.drawImage(this.sprite,
-                  0, 0,  
-                  i * frameWidth, frameHeight,
-                  this.x + frameWidth, this.y,
-                  i * frameWidth, frameHeight);    
-    }
-    
-    ctx.drawImage(this.sprite,
-                  0, 0,  
-                  frameWidth, frameHeight,
-                  this.x, this.y,
-                  frameWidth, frameHeight);
+Goomba.prototype = new Entity();
+Goomba.prototype.constructor = Goomba;
 
+Goomba.prototype.draw = function(ctx) {
+    if(this.squished) {
+        ctx.drawImage(this.sprite,
+                  this.frameWidth * 6, 0, 
+                  this.frameWidth, this.frameHeight,
+                  this.game.background.x + this.x, this.y + 5,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);
+            this.cycleCount += 1;
+        if(this.cycleCount === 10) {
+            this.removeFromWorld = true;
+        }
+    } else {
+        //console.log('drawing goomba');
+        //ctx.strokeRect(this.boundingbox.left, this.boundingbox.top, this.boundingbox.width, this.boundingbox.height);
+         this.current_animation.drawFrame(this.game.clockTick, ctx, this.getX(), this.y, 1.1);
+    }
+}
+
+Goomba.prototype.update = function() {
+    // if(!this.squished) {
+    //     if(this.direction === 1) {
+    //         this.x += 1;        
+    //     } else {
+    //         this.x -= 1;
+    //     }
+    // }
+     this.boundingbox = new BoundingBox( this.getX() + 17, this.y + 5, 17, 16);
+
+}
+
+Goomba.prototype.collide = function(other) {
+    
+
+    // if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && 
+    //         //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+    //         (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the right
+    //                 this.direction = 0;
+    // } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
+    //         //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+    //         (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
+    //                 this.direction = 1;
+
+    // } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+    //     this.game.addToScore(100);
+    //     this.squished = true;
+    //     this.removeFromWorld = true;
+    // } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+    //     other.boundingbox.left <= this.boundingbox.right)
+    //     && other.type === 'Mario') {
+    //     this.game.isDead = true;
+    // } 
+}
+//End Goomba
+
+//Red Koopa code
+function RedKoopa(init_x, init_y, game) {
+    //Call Enemy super constructor
+     Entity.call(this, game,init_x, init_y);
+    this.sprite = ASSET_MANAGER.getAsset('../images/smb3_enemies_sheet.png');
+    this.init_x = init_x;
+    this.init_y = init_y;
+    this.frameWidth = 40;
+    this.frameHeight = 30;
+    this.direction = 1;
+    this.type = "RedKoopa"; 
+    this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 20, 25);
+    this.right_animation = new Animation(this.sprite, 200, 248, this.frameWidth, this.frameHeight, .4, 4, true, false);
+    this.left_animation = new Animation(this.sprite, 40, 248, this.frameWidth, this.frameHeight, .4, 4, true, true);
+    this.current_animation = this.right_animation;
+}
+RedKoopa.prototype = new Entity();
+RedKoopa.prototype.constructor = RedKoopa;
+
+RedKoopa.prototype.draw = function(ctx) {
+    /*
+    ctx.strokeStyle = "red";
+    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+    
     ctx.drawImage(this.sprite,
-                  0, 0,  
-                  2 * frameWidth, 2 * frameHeight,
-                  this.x + 50, this.y,
-                  2 * frameWidth, 2* frameHeight); */
+                  40, 248, 
+                  this.frameWidth, this.frameHeight,
+                  this.game.background.x + this.x, this.y,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);*/
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.getX(), this.y, 1.1);
+}
+
+RedKoopa.prototype.update = function() {    
+    // if(this.direction === 1) {
+    //     this.x += 1;
+    //     this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 20, 25);        
+    // } else {
+    //     this.x -= 1;
+    //     this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y + 5, 20, 25);
+    // }
+    this.boundingbox = new BoundingBox( this.getX() + 17, this.y + 5, 20, 25);
+    
+
+}
+
+RedKoopa.prototype.collide = function(other) {
+       
+    // if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && 
+    //         //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+    //         (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the right
+    //             this.direction = 0;
+    //         this.current_animation = this.left_animation;
+    // } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
+    //         //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+    //         (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
+    //                 this.direction = 1;
+    //                 this.current_animation = this.right_animation;
+    // } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+    //     this.game.addToScore(100);
+    //     this.squished = true;
+    //     this.removeFromWorld = true;
+    // } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+    //     other.boundingbox.left <= this.boundingbox.right)
+    //     && other.type === 'Mario') {
+    //     this.game.isDead = true;
+    // } 
+}
+//End RedKoopa
+
+//Skeletal Turtle code
+function SkeletalTurtle(init_x, init_y, game) {
+    //Call Enemy super constructor
+     Entity.call(this, game,init_x, init_y);
+    this.sprite = ASSET_MANAGER.getAsset('../images/smb3_enemies_sheet.png');
+    this.init_x = init_x;
+    this.init_y = init_y;
+    this.frameWidth = 50;
+    this.frameHeight = 30;
+    this.type = "SkeletalTurtle"; 
+    this.boundingbox = new BoundingBox(this.x + 17, this.y, 20, 30);
+    this.right_animation = new Animation(this.sprite, 200, 298, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.left_animation = new Animation(this.sprite, 110, 298, this.frameWidth, this.frameHeight, .4, 2, true, true);
+    this.current_animation = this.right_animation;
+}
+
+SkeletalTurtle.prototype = new Entity();
+SkeletalTurtle.prototype.constructor = SkeletalTurtle;
+
+SkeletalTurtle.prototype.draw = function(ctx) {
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.getX(), this.y, 1.1);
+}
+
+SkeletalTurtle.prototype.update = function() {    
+    // if(this.current_animation === this.right_animation) {
+    //     this.x += 1;
+    //     this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y, 20, 30);        
+    // } else if(this.current_animation === this.left_animation){
+    //     this.x -= 1;
+    //     this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y, 20, 30);
+    // } 
+    this.boundingbox = new BoundingBox( this.getX() + 17, this.y, 20, 30);
+}
+
+SkeletalTurtle.prototype.collide = function(other) {
+       
+    // if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && !other.passThrough) { //Collsion from the right
+    //     this.current_animation = this.left_animation;
+    // } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && !other.passThrough) { //Collsion from the left
+    //     this.current_animation = this.right_animation;
+    // } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+    //     this.game.addToScore(100);
+    //     this.squished = true;
+    //     this.removeFromWorld = true;
+    // } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+    //     other.boundingbox.left <= this.boundingbox.right)
+    //     && other.type === 'Mario') {
+    //     this.game.isDead = true;
+    // } 
+}
+//End SkeletalTurtle
+
+//BonyBeetle Code
+function BonyBeetle(init_x, init_y, game) {
+    //Call Enemy super constructor
+     Entity.call(this, game,init_x, init_y);
+    this.sprite = ASSET_MANAGER.getAsset('../images/smb3_enemies_sheet.png');
+    this.init_x = init_x;
+    this.init_y = init_y;
+    this.frameWidth = 50;
+    this.frameHeight = 30;
+    this.type = "BonyBeetle"; 
+    this.boundingbox = new BoundingBox(this.x + 17, this.y, 20, 30);
+    this.right_animation = new Animation(this.sprite, 110, 745, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.left_animation = new Animation(this.sprite, 0, 745, this.frameWidth, this.frameHeight, .4, 2, true, true);
+    this.current_animation = this.right_animation;
+}
+
+BonyBeetle.prototype = new Entity();
+BonyBeetle.prototype.constructor = BonyBeetle;
+
+BonyBeetle.prototype.draw = function(ctx) {
+     
+    /*
+    ctx.strokeStyle = "red";
+    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+    
+    ctx.drawImage(this.sprite,
+                  110, 745, 
+                  this.frameWidth, this.frameHeight,
+                  this.game.background.x + this.x, this.y,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);*/
+   
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.getX(), this.y, 1.1);
+}
+
+BonyBeetle.prototype.update = function() {    
+    // if(this.current_animation === this.right_animation) {
+    //     this.x += 1;
+    //     this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y + 10, 20, 15);        
+    // } else if(this.current_animation === this.left_animation){
+    //     this.x -= 1;
+    //     this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 10, 20, 15);
+    // } 
+    this.boundingbox = new BoundingBox( this.getX() + 17, this.y + 10, 20, 15);
+}
+
+BonyBeetle.prototype.collide = function(other) {
+       
+    // if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && !other.passThrough) { //Collsion from the right
+    //     this.current_animation = this.left_animation;
+    // } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && !other.passThrough) { //Collsion from the left
+    //     this.current_animation = this.right_animation;
+    // } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+    //     this.game.isDead = true;
+    // } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+    //     other.boundingbox.left <= this.boundingbox.right) 
+    //     && other.type === 'Mario') {
+    //     this.game.isDead = true;
+    // } 
+}
+//End BonyBeetle
+
+//Chomper code
+function Chomper(init_x, init_y, game) {
+    //Call Enemy super constructor
+    Entity.call(this, game,init_x, init_y);
+    this.sprite = ASSET_MANAGER.getAsset('../images/smb3_enemies_sheet.png');
+    this.init_x = init_x;
+    this.init_y = init_y;
+    this.frameWidth = 50;
+    this.frameHeight = 30;
+    this.type = "Chomper"; 
+    this.boundingbox = new BoundingBox(this.game.background.x + this.x + 15, this.y + 5, 20, 25);
+    this.chomp_animation = new Animation(this.sprite, 0, 345, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.current_animation = this.chomp_animation;
+}
+
+Chomper.prototype = new Entity();
+Chomper.prototype.constructor = Chomper;
+
+Chomper.prototype.draw = function(ctx) {
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.getX(), this.y, 1.1);
+}
+
+Chomper.prototype.update = function() {    
+    this.boundingbox = new BoundingBox(this.getX()+ 15, this.y + 5, 20, 25);
+}
+
+Chomper.prototype.collide = function(other) {
+    // if((other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top) || 
+    //     (other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+    //     other.boundingbox.left <= this.boundingbox.right)
+    //     && other.type === 'Mario') { //Check for top collision
+    //     this.game.isDead = true;
+    // } 
 }
 
 function Coin(init_x, init_y, game) {
@@ -939,7 +1599,7 @@ Coin.prototype.constructor = Coin;
 
 Coin.prototype.update = function () {
     //Entity.prototype.update.call(this);
-        this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 16, 16);
+        this.boundingbox = new BoundingBox(this.getX(), this.y, 16, 16);
 }
 
 Coin.prototype.collide = function(other) {
@@ -976,6 +1636,7 @@ QuestionBox.prototype.constructor = QuestionBox;
 
 QuestionBox.prototype.update = function () {
     //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox(this.getX(), this.y, 17, 16);
 }
 
 QuestionBox.prototype.draw = function (ctx) {
@@ -1001,6 +1662,7 @@ ShineyGoldBox.prototype.constructor = ShineyGoldBox;
 
 ShineyGoldBox.prototype.update = function () {
     //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox(this.getX(), this.y, 17, 16);
 }
 
 ShineyGoldBox.prototype.draw = function (ctx) {
@@ -1028,6 +1690,7 @@ ShineyBlueBox.prototype.constructor = ShineyBlueBox;
 
 ShineyBlueBox.prototype.update = function () {
     //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox(this.getX(), this.y, 17, 16);
 }
 
 ShineyBlueBox.prototype.draw = function (ctx) {
@@ -1054,6 +1717,7 @@ ColorFullExclamation.prototype.constructor = ColorFullExclamation;
 
 ColorFullExclamation.prototype.update = function () {
     //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox(this.getX(), this.y, 17, 16);
 }
 
 ColorFullExclamation.prototype.draw = function (ctx) {
@@ -1080,6 +1744,7 @@ PinkMusicNote.prototype.constructor = PinkMusicNote;
 
 PinkMusicNote.prototype.update = function () {
     //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox(this.getX(), this.y, 17, 16);
 }
 
 PinkMusicNote.prototype.draw = function (ctx) {
@@ -1107,6 +1772,7 @@ WhiteMusicNote.prototype.constructor = WhiteMusicNote;
 
 WhiteMusicNote.prototype.update = function () {
     //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox(this.getX(), this.y, 17, 16);
 }
 
 WhiteMusicNote.prototype.draw = function (ctx) {
@@ -1134,6 +1800,7 @@ PowBox.prototype.constructor = PowBox;
 
 PowBox.prototype.update = function () {
     //Entity.prototype.update.call(this);
+    this.boundingbox = new BoundingBox(this.getX(), this.y, 17, 16);
 }
 
 PowBox.prototype.draw = function (ctx) {
@@ -1166,6 +1833,18 @@ function BackGround(init_x, init_y, game, length, id) {
 
 BackGround.prototype = new Entity();
 BackGround.prototype.constructor = BackGround;
+
+BackGround.prototype.toJSON = function() {
+    var json = {};
+    json.id = this.id;
+    json.spritesheet = '/images/mariolevels.png';
+    json.start_x = 0;
+    json.start_y = 0;
+    json.sizex = this.sizex;
+    json.sizey = this.sizey;
+    json.length = this.length;
+    return json;
+}
 
 BackGround.prototype.update = function () {
     //Entity.prototype.update.call(this);
@@ -1287,10 +1966,10 @@ GreenPipe.prototype.constructor = GreenPipe;
 
 GreenPipe.prototype.update = function () {
    // Entity.prototype.update.call(this);
-   this.boundingbox = new BoundingBox(this.x+1, this.y + 3, 32, 49 + 14 * this.extensions.length - this.extensions.length );
+   this.boundingbox = new BoundingBox(this.getX()+1, this.y + 3, 32, 49 + 14 * this.extensions.length - this.extensions.length );
    var ext = this.extensions;
    for (var i = 0 ; i < ext.length; i++) {
-        ext[i].x = this.x;
+        ext[i].x = this.getX();
         ext[i].y = this.y + 49 + 14 * i;
     }
 
@@ -1301,9 +1980,9 @@ GreenPipe.prototype.setExtensions = function(count) {
     this.extensions = [];
     //var offset = (j*14)-8 + ((4-count) * 14);
     for (var i = 0; i < count; i++) {
-        this.extensions.push(new GreenPipeExtension(this.x, bottom + i * 14 , this.game));
+        this.extensions.push(new GreenPipeExtension(this.getX(), bottom + i * 14 , this.game));
     }
-    this.boundingbox = new BoundingBox(this.x+1, this.y + 3, 32, 49 + 14 * count - count);
+    this.boundingbox = new BoundingBox(this.getX()+1, this.y + 3, 32, 49 + 14 * count - count);
 
 }
 
@@ -1338,7 +2017,7 @@ GreenPipeExtension.prototype = new Entity();
 GreenPipeExtension.prototype.constructor = GreenPipeExtension;
 
 GreenPipeExtension.prototype.update = function () {
-   this.boundingbox = new BoundingBox( this.game.background.x + this.x+1, this.y, 32, 15);
+   //this.boundingbox = new BoundingBox(this.x+1, this.y, 32, 15);
 }
 
 GreenPipeExtension.prototype.draw = function (ctx) {
@@ -1346,7 +2025,7 @@ GreenPipeExtension.prototype.draw = function (ctx) {
                 ctx.drawImage(this.sprite,
                   0, 0,  // source from sheet
                   35, 15,
-                   this.game.background.x + this.x, this.y,
+                    this.x, this.y,
                   35,
                   15);
 
@@ -1365,8 +2044,7 @@ Castle.prototype = new Entity();
 Castle.prototype.constructor = Castle;
 
 Castle.prototype.update = function () {
-        if(!this.palletPiece)
-            this.boundingbox = new BoundingBox(this.game.background.x + this.x , this.y , 103 * this.scale, 81 * this.scale);
+            this.boundingbox = new BoundingBox(this.getX() , this.y , 103 * this.scale, 81 * this.scale);
 }
 
 Castle.prototype.draw = function (ctx) {
@@ -1403,13 +2081,19 @@ function Pole(init_x, init_y, game, scale) {
      this.topVariable = this.y + 135;
      this.flagY = this.y;
      this.isLowering = false;
+     this.bottomBlock = new BrownBlock(this.x + 14, this.y + 128, game);
+     this.game.addEntity(this.bottomBlock);
 }
 
 Pole.prototype = new Entity();
 Pole.prototype.constructor = Pole;
 
 Pole.prototype.update = function () {
-                
+                this.flagY = this.y;
+                 this.boundingbox = new BoundingBox(this.getX() +5, this.y, 28* this.scale,
+                  140* this.scale);
+                // this.bottomBlock.x = this.x + 20;
+                // this.bottomBlock.y = this.y + 100;
 }
 
 Pole.prototype.draw = function (ctx) {
@@ -1422,7 +2106,7 @@ Pole.prototype.draw = function (ctx) {
       52* this.scale,
       180* this.scale);
       this.moveAnimation.drawFrame(this.game.clockTick, ctx, this.getX() + (23 * this.scale), this.flagY + (15 * this.scale), this.scale);
-                
+        this.bottomBlock.draw(ctx);
 
 
 }
@@ -1446,7 +2130,7 @@ StaticGoldBlock.prototype = new Entity();
 StaticGoldBlock.prototype.constructor = StaticGoldBlock;
 
 StaticGoldBlock.prototype.update = function () {
-
+    this.boundingbox = new BoundingBox(this.getX(), this.y, 17, 16);
 }
 
 StaticGoldBlock.prototype.draw = function (ctx) {
@@ -1461,6 +2145,102 @@ StaticGoldBlock.prototype.draw = function (ctx) {
                   16);
 
 }
+
+//Bowser the Boss
+function Bowser(init_x, init_y, game) {
+
+    Entity.call(this, game, init_x, init_y);
+    this.isRight = false;
+    this.isJumping = false;
+    this.isWalking = false;
+    this.isStunned = false;
+    this.timeToShoot = false;
+    this.ticker = 0;
+    this.sprite = ASSET_MANAGER.getAsset('../images/boss_sprite.png');
+    this.rightBowserShootAnimation = new Animation(this.sprite, 88, 220, 40, 40, 0.22, 5, true, true);
+    this.leftBowserShootAnimation = new Animation(this.sprite, 91, 43, 40, 40, 0.22, 5, true, false);
+
+
+
+    this.jumpRightAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.jumpLeftAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.walkRightAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.walkLeftAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.boundingbox = new BoundingBox(this.x, this.y, 40, 40);
+    this.type = "Bowser";
+}
+
+Bowser.prototype = new Entity();
+Bowser.prototype.constructor = Bowser;
+
+Bowser.prototype.update = function () {
+    //Entity.prototype.update.call(this);
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+        if(this.isRight) {
+            if(this.timeToShoot && this.rightBowserShootAnimation.isDone) {
+                //this.timeToShoot = false;
+            }
+        } else {
+            if(this.timeToShoot && this.leftBowserShootAnimation.isDone) {
+                //this.timeToShoot = false;
+            }
+        }
+
+}
+
+Bowser.prototype.collide = function(other) {
+    console.log("Bowser collided with Mario");
+}
+
+Bowser.prototype.draw = function (ctx) {
+    //ctx.strokeStyle = "red";
+    //ctx.strokeRect(this.x, this.y, this.rightBowserShootAnimation.frameWidth, this.rightBowserShootAnimation.frameHeight);
+    if(this.timeToShoot) {
+        //console.log("TIME TO SHOOT: " + this.timeToShoot);
+        var direction = "left";
+            if(this.isRight) {
+                direction = "right";
+            }
+            //console.log("IS FACING: " + direction);
+        if(this.isRight) {
+
+            this.rightBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+        } else {
+            this.leftBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+        }
+
+    } else if(this.moveRight) {
+
+    } else if(this.moveLeft) {
+
+    } else if(this.isJumping) {
+
+    } else {
+        if(this.isRight) {
+                        //this.rightBowserIdleAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+
+                            ctx.drawImage(this.sprite,
+                  246, 220,  
+                  40, 40,
+                   this.game.background.x + this.x, this.y,
+                  40,
+                  40);
+
+        } else {
+                        //this.leftBowserIdleAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+                    
+                            ctx.drawImage(this.sprite,
+                  91, 43,  
+                  40, 40,
+                   this.game.background.x + this.x, this.y,
+                  40,
+                  40);
+
+        }
+
+    }
+}
+
 
 // GameBoard code below
 function GameBoard() {
@@ -1500,13 +2280,21 @@ ASSET_MANAGER.downloadAll(function () {
     gameEngine.addEntity(gameboard);
     // need to add controls using jquery hide() and show() are jquery functions
      var editArea = $('#editarea');
-     var staircase = $('<div id="line">');
+     var namelevels = $('<select id="namelevels">');
+     var load = $('<input type="button" value="Load">');
+     var save = $('<input type="button" value="Save">');
+     var levelname = $('<input type="text" placeholder="Save As">')
+     var revlbl =  $('<span>').text('Reverse Staircase');
+     var reverse = $('<input type="checkbox">');
+     var staircase = $('<div id="stairs">');
      var stairlbl =  $('<span>').text('Staircase Height');
       var stairheight = $('<select id="stairheight">');
     for (var i = 1; i < 11; i++)
         stairheight.append($('<option>').val(i).text(i));
     staircase.append(stairlbl);
     staircase.append(stairheight);
+    staircase.append(revlbl);
+    staircase.append(reverse);
     staircase.hide();
     var hline = $('<div id="line">');
     var linelabel = $('<span>').text('Horizontal line of blocks');
@@ -1548,6 +2336,10 @@ ASSET_MANAGER.downloadAll(function () {
     editArea.append(extension);
     editArea.append(staircase);
     editArea.append(levellength);
+    editArea.append(namelevels);
+    editArea.append(load);
+    editArea.append(levelname);
+    editArea.append(save);
      gameEngine.background = new BackGround(0,0,gameEngine,7,1);
     gameEngine.editor = new BackgroundEditor(0, 256, gameEngine, 1, 4);
     gameEngine.changeEditor(1);
@@ -1601,12 +2393,15 @@ ASSET_MANAGER.downloadAll(function () {
             for (var i = 0; i < val; i++) {
                 stairs[i] = new Array(i + 1);
             }
+            var rev = 1;
+            if (gameEngine.reverse)
+                rev = -1;
              var ghostWO = editor.ghostWO;
             var start_x = ghostWO.x - Math.floor(val / 2 * ghostWO.boundingbox.width);
             var start_y = ghostWO.y + Math.floor(val /2 * ghostWO.boundingbox.height);
             for (var i = 0; i < val; i++) {
                 for (var j = i; j >= 0; j--) {
-                    stairs[i][j] = editor.makeWO(ghostWO.type, start_x + i * (ghostWO.boundingbox.width - 4), start_y - j * (ghostWO.boundingbox.height - 4));
+                    stairs[i][j] = editor.makeWO(ghostWO.type, start_x + rev * i * (ghostWO.boundingbox.width - 4), start_y - j * (ghostWO.boundingbox.height - 4));
 
                 }
             }
@@ -1614,7 +2409,47 @@ ASSET_MANAGER.downloadAll(function () {
         console.log(stairs);
         editor.stairs = stairs;
     });
+    reverse.change(function() {
+        gameEngine.reverse = $(this)[0].checked;
+    });
+    save.click(function(){
+        var name = levelname.val();
+        console.log(name);
+        var json = gameEngine.editor.save();
+        console.log(json);
+        $.post('../services/levelService.php', {save:true, name:name, data:json}, function(data) {
+            console.log(data);
+            $.get('../services/levelService.php', {levels:true}, function(data) {
 
+                var levelnames = JSON.parse(data).levels;
+                    for (var i = 0; i < levelnames.length; i++) {
+                        var name = levelnames[i].split('/')[1].split('.')[0];
+                        namelevels.append($('<option>').text(name).val(name));
+                    }
+            }).fail(function(err){console.log(err);});
+        }).fail(function(err) {console.log(err)});
+         
+    });
+    load.click(function() {
+        console.log(namelevels.val());
+         $.get('../services/levelService.php', {id:namelevels.val()}, function(data) {
+            var json = JSON.parse(data);
+            if (json.levels.entities.players) {
+                gameEngine.loadLevelOld(json, gameEngine);
+            } else {
+                gameEngine.loadLevel(json);
+            }
+         }).fail(function(err){console.log(err);});
+         levelname.val(namelevels.val());
+    });
+    $.get('../services/levelService.php', {levels:true}, function(data) {
+
+        var levelnames = JSON.parse(data).levels;
+        for (var i = 0; i < levelnames.length; i++) {
+            var name = levelnames[i].split('/')[1].split('.')[0];
+            namelevels.append($('<option>').text(name).val(name));
+        }
+    }).fail(function(err){console.log(err);});
     
 
     gameEngine.init(ctx);

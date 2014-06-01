@@ -443,6 +443,11 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
                     //where the actual height of the pipe is = ((count - the top peice) x 15) 
                     var j;
                     for (j = 0; j < count; j++) {
+                        // this will be used after the editor is complete.
+                        // var pipe = new GreenPipe(blockObject.init_x, blockObject.init_y, gameEngine);
+                        // if (count > 1)
+                        //     pipe.setExtensions(count);
+                        // gameEngine.addEntity(pipe);
                         if(count === 1){
                             gameEngine.addEntity(new GreenPipe(blockObject.init_x, blockObject.init_y-1, gameEngine));
                         } else if (count > 1 && j == 0) {
@@ -1033,14 +1038,18 @@ Enemy.prototype = new Entity();
 //End Enemy Base Class
 
 //Goomba code
-function Goomba(init_x, init_y, game) {
+function Goomba(init_x, init_y, game, initial_state) {
     //Call Enemy super constructor
     Enemy.call(this,init_x, init_y, game);
     this.squished = false;
     this.direction = 1;
+    this.state = initial_state;
     this.type = "Goomba"; 
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
-    this.back_forth_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.dewinged_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.winged_animation = new Animation(this.sprite, 90, 0, this.frameWidth, this.frameHeight, .4, 4, true, false);
+    this.current_animation = (this.state === 1) ? this.winged_animation : this.dewinged_animation;
+
     this.cycleCount = 0;
 }
 
@@ -1049,7 +1058,7 @@ Goomba.prototype.draw = function(ctx) {
         ctx.drawImage(this.sprite,
                   this.frameWidth * 6, 0, 
                   this.frameWidth, this.frameHeight,
-                  this.game.background.x + this.x, this.y + 5,
+                  this.getX(), this.y + 5,
                   this.frameWidth * 1,
                   this.frameHeight * 1);
             this.cycleCount += 1;
@@ -1057,7 +1066,8 @@ Goomba.prototype.draw = function(ctx) {
             this.removeFromWorld = true;
         }
     } else {
-        this.back_forth_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+
+         this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
     }
 }
 
@@ -1162,6 +1172,106 @@ RedKoopa.prototype.collide = function(other) {
 }
 //End RedKoopa
 
+//Skeletal Turtle code
+function SkeletalTurtle(init_x, init_y, game) {
+    //Call Enemy super constructor
+    Enemy.call(this,init_x, init_y, game);
+    this.frameWidth = 50;
+    this.frameHeight = 30;
+    this.type = "SkeletalTurtle"; 
+    this.boundingbox = new BoundingBox(this.x + 17, this.y, 20, 30);
+    this.right_animation = new Animation(this.sprite, 200, 298, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.left_animation = new Animation(this.sprite, 110, 298, this.frameWidth, this.frameHeight, .4, 2, true, true);
+    this.current_animation = this.right_animation;
+}
+
+SkeletalTurtle.prototype.draw = function(ctx) {
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+}
+
+SkeletalTurtle.prototype.update = function() {    
+    if(this.current_animation === this.right_animation) {
+        this.x += 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y, 20, 30);        
+    } else if(this.current_animation === this.left_animation){
+        this.x -= 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y, 20, 30);
+    } 
+}
+
+SkeletalTurtle.prototype.collide = function(other) {
+       
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && !other.passThrough) { //Collsion from the right
+        this.current_animation = this.left_animation;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && !other.passThrough) { //Collsion from the left
+        this.current_animation = this.right_animation;
+    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+        this.game.addToScore(100);
+        this.squished = true;
+        this.removeFromWorld = true;
+    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left <= this.boundingbox.right)
+        && other.type === 'Mario') {
+        this.game.isDead = true;
+    } 
+}
+//End SkeletalTurtle
+
+//BonyBeetle Code
+function BonyBeetle(init_x, init_y, game) {
+    //Call Enemy super constructor
+    Enemy.call(this,init_x, init_y, game);
+    this.frameWidth = 50;
+    this.frameHeight = 30;
+    this.type = "BonyBeetle"; 
+    this.boundingbox = new BoundingBox(this.x + 17, this.y, 20, 30);
+    this.right_animation = new Animation(this.sprite, 110, 745, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.left_animation = new Animation(this.sprite, 0, 745, this.frameWidth, this.frameHeight, .4, 2, true, true);
+    this.current_animation = this.right_animation;
+}
+
+BonyBeetle.prototype.draw = function(ctx) {
+     
+    /*
+    ctx.strokeStyle = "red";
+    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+    
+    ctx.drawImage(this.sprite,
+                  110, 745, 
+                  this.frameWidth, this.frameHeight,
+                  this.game.background.x + this.x, this.y,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);*/
+   
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
+}
+
+BonyBeetle.prototype.update = function() {    
+    if(this.current_animation === this.right_animation) {
+        this.x += 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y + 10, 20, 15);        
+    } else if(this.current_animation === this.left_animation){
+        this.x -= 1;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 10, 20, 15);
+    } 
+}
+
+BonyBeetle.prototype.collide = function(other) {
+       
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && !other.passThrough) { //Collsion from the right
+        this.current_animation = this.left_animation;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && !other.passThrough) { //Collsion from the left
+        this.current_animation = this.right_animation;
+    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+        this.game.isDead = true;
+    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left <= this.boundingbox.right) 
+        && other.type === 'Mario') {
+        this.game.isDead = true;
+    } 
+}
+//End BonyBeetle
+
 //Chomper code
 function Chomper(init_x, init_y, game) {
     //Call Enemy super constructor
@@ -1175,16 +1285,6 @@ function Chomper(init_x, init_y, game) {
 }
 
 Chomper.prototype.draw = function(ctx) {
-    /*
-    ctx.strokeStyle = "red";
-    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
-    
-    ctx.drawImage(this.sprite,
-                  0, 345, 
-                  this.frameWidth, this.frameHeight,
-                  645, 130,
-                  this.frameWidth * 1,
-                  this.frameHeight * 1);*/
     this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
 }
 
@@ -1200,7 +1300,6 @@ Chomper.prototype.collide = function(other) {
         this.game.isDead = true;
     } 
 }
-//End Chomper
 
 //QuestionBox
 function QuestionBox(init_x, init_y, game) {
@@ -1534,29 +1633,61 @@ BackGround.prototype.draw = function (ctx) {
 
 
 //Green pipe
-function GreenPipe(init_x, init_y, game) {
-	    Entity.call(this, game, init_x, init_y);
+function GreenPipe(init_x, init_y, game, extLength) {
+    Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/pipe.png');
-    this.type = "Pipe";
-    this.boundingbox = new BoundingBox(this.x+1, this.y-5, 32, 45);
-
+    //this.moveAnimation = new Animation(this.sprite, 1, 1, 17, 16, 0.22, 4, true, false);
+    this.init_x = init_x;
+    this.init_y = init_y;
+    this.type = 'pipe';
+    this.extensions = [];
+    console.log(extLength);
+    if(extLength)
+        this.setExtensions(extLength);
+    this.boundingbox = new BoundingBox(this.x+1, this.y + 3, 32, 49);
 }
 
 GreenPipe.prototype = new Entity();
 GreenPipe.prototype.constructor = GreenPipe;
 
 GreenPipe.prototype.update = function () {
-   this.boundingbox = new BoundingBox( this.game.background.x + this.x+1, this.y+4, 32, 45);
+   // Entity.prototype.update.call(this);
+   this.boundingbox = new BoundingBox(this.x+1, this.y + 3, 32, 49 + 14 * this.extensions.length - this.extensions.length );
+   var ext = this.extensions;
+   for (var i = 0 ; i < ext.length; i++) {
+        ext[i].x = this.x;
+        ext[i].y = this.y + 49 + 14 * i;
+    }
+
+}
+
+GreenPipe.prototype.setExtensions = function(count) {
+    var bottom = this.y + 49;
+    this.extensions = [];
+    //var offset = (j*14)-8 + ((4-count) * 14);
+    for (var i = 0; i < count; i++) {
+        this.extensions.push(new GreenPipeExtension(this.x, bottom + i * 14 , this.game));
+    }
+    this.boundingbox = new BoundingBox(this.x+1, this.y + 3, 32, 49 + 14 * count - count);
+
 }
 
 GreenPipe.prototype.draw = function (ctx) {
-                ctx.drawImage(this.sprite,
+    
+
+    // if(this.isSelected())
+    //     ctx.strokeRect(this.boundingbox.left, this.boundingbox.top, this.boundingbox.width, this.boundingbox.height);
+    
+         ctx.drawImage(this.sprite,
                   0, 0,  // source from sheet
                   35, 51,
                    this.game.background.x + this.x, this.y,
                   35,
                   51);
-
+     for (var i = 0; i < this.extensions.length; i++) {
+        this.extensions[i].draw(ctx);
+     }
+     
 }
 
 //Green pipe Extension   - Works up to height 5 ONLY. 
@@ -1928,7 +2059,7 @@ ASSET_MANAGER.downloadAll(function () {
     gameEngine.addEntity(gameboard);
 
     try {
-        $.get('services/levelService.php', {id:1}, function(data) {
+        $.get('services/levelService.php', {id:"level1"}, function(data) {
             gameEngine.loadLevel(data, gameEngine);
             gameEngine.init(ctx);
             gameEngine.start();
