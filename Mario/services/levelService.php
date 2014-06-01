@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL & ~E_NOTICE); 
 if (isset($_POST['save'])) {
 	file_put_contents("levels/" .$_POST['name'].".json", $_POST['data']);
 	echo $_POST['data'];
@@ -9,7 +10,7 @@ if (isset($_POST['save'])) {
 } else
 if(isset($_GET['id'])) {
 	
-	echo file_get_contents("levels/" . $_GET['id'].".json");	
+	echo json_encode(json_decode(file_get_contents("levels/" . $_GET['id'].".json")));	
 }
 
 ?>
