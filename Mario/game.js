@@ -257,7 +257,7 @@ GameEngine.prototype.detectCollisions = function () {
             entity.collide(mario);
         }
 
-        if(entity.type === 'Goomba' || entity.type === 'RedKoopa' || entity.type === 'Chomper') { //TODO
+        if(entity.subType === 'Enemy') { 
            for(var j = 0; j < this.worldEntities.length; j++) {
                 if(entity.boundingbox.isCollision(this.worldEntities[j].boundingbox)){
                     entity.collide(this.worldEntities[j]);
@@ -362,13 +362,21 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
 
     // need to make it load from json testing now
     //castle inside entitiies obj from json
-    gameEngine.addEntity(new Castle(this.entitiesObj.castle.init_x, this.entitiesObj.castle.init_y, gameEngine));
+    if(this.entitiesObj.castle) {
+    	    gameEngine.addEntity(new Castle(this.entitiesObj.castle.init_x, this.entitiesObj.castle.init_y, gameEngine));
+    }
 
-    // pole
+    if(this.entitiesObj.pole) {
+    	    // pole
     gameEngine.addEntity(new Pole(this.entitiesObj.pole.init_x, this.entitiesObj.pole.init_y, gameEngine));
+    }
 
-    // Boss
+    if(this.entitiesObj.boss) {
+    	    // Boss
     gameEngine.addEntity(new Bowser(this.entitiesObj.boss.init_x, this.entitiesObj.boss.init_y, gameEngine));
+    }
+
+
 
     //Mario inside Players
     this.marioObj = this.playersObj.mario;
@@ -471,10 +479,10 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
 
     }
     this.addEntity(new LevelOver(this));
-    
+
     //Enemies inside Entities
     this.enemiesObj = this.entitiesObj.enemies;
-
+    
     //Enemies
     for (var key in this.enemiesObj) {
         var enemyGroupArray = this.enemiesObj[key];
@@ -483,22 +491,24 @@ GameEngine.prototype.loadLevel = function (jSonString, gameEngine) {
             var enemyObject = enemyGroupArray[i];
             switch(key) {
                 case "goomba":
-                    gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    gameEngine.addEntity(new Goomba(enemyObject.init_x, enemyObject.init_y, gameEngine, enemyObject.initial_state));
                     break;
                 case "redkoopa":
-                    gameEngine.addEntity(new RedKoopa(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    gameEngine.addEntity(new RedKoopa(enemyObject.init_x, enemyObject.init_y, gameEngine, enemyObject.initial_state));
                     break;
                 case "chomper":
                     gameEngine.addEntity(new Chomper(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+                case "skeletalturtle":
+                    gameEngine.addEntity(new SkeletalTurtle(enemyObject.init_x, enemyObject.init_y, gameEngine));
+                    break;
+                case "bonybeetle":
+                    gameEngine.addEntity(new BonyBeetle(enemyObject.init_x, enemyObject.init_y, gameEngine));
                     break;
             }
             
         }
     }
-
-
-
-
 }
 
 // bouding box used for determining collisions
@@ -672,10 +682,12 @@ function Mario(init_x, init_y, game) {
      Entity.call(this, game, init_x, init_y);
     this.type = "Mario";
     this.initial_y_floor = init_y;
+    this.isGrowth = false;
     this.isRunning = false;
     this.isWalking = false;
     this.isJumping = false;
     this.isFalling = false;
+    this.passThrough = true;
     this.isRight = true;
     this.isJumpingRunning = false;
     this.isJumpingWalking = false;
@@ -685,7 +697,7 @@ function Mario(init_x, init_y, game) {
     this.canJump = true;
     this.jumpVelocity = 20;
     // made this the same as the debug box mario already has drawn around him.
-    this.boundingbox = new BoundingBox(this.x + 15, this.y + 5, 18, 17);
+    this.boundingbox = new BoundingBox(this.x + 15, this.y , 18, 17);
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
     this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
     this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
@@ -695,6 +707,17 @@ function Mario(init_x, init_y, game) {
 
 Mario.prototype = new Entity();
 Mario.prototype.constructor = Mario;
+
+function mFireBall(init_x, init_y, isRight) {
+    Entity.call(this, game, init_x, init_y);
+    this.isRight = isRight;
+    this.sprite = ASSET_MANAGER.getAsset('images/smb3_enemies_sheet.png');
+    this.leftFireAnimation = new Animation(this.sprite, 92, 10, 40, 40, 0.14, 5, false, false);
+    this.rightFireAnimation = new Animation(this.sprite, 300, 955, 75, 15, 0.14, 5, false, true);
+    this.boundingbox = new BoundingBox(this.x, this.y, 15, 15);
+    this.type = "FireBall";
+    
+}
 
 Mario.prototype.update = function ()
 {
@@ -801,7 +824,31 @@ Mario.prototype.update = function ()
                  this.isWalking =true;
             }
 
-        }  else 
+        }
+        else if (code === 87)
+        { //Growth
+            if (!this.isGrowth)
+            {
+                this.isGrowth = true;
+                if (this.isGrowth)
+                {
+                    this.walkLeftAnimation = new Animation(this.sprite, 120, 243, 40, 40, 0.15, 2, true, true);
+                    this.walkRightAnimation = new Animation(this.sprite, 200, 243, 40, 40, 0.15, 2, true, false);                 
+                    this.runLeftAnimation = new Animation(this.sprite, 90, 243, 40, 40, 0.15, 2, true, true);
+                    this.runRightAnimation = new Animation(this.sprite, 250, 243, 40, 40, 0.15, 2, true, false);
+                    this.boundingbox = new BoundingBox(this.x, this.y, 18, 34);
+                }
+            }
+            else {
+                this.isGrowth = false;
+                this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
+                this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
+                this.runLeftAnimation = new Animation(this.sprite, 120, 160, 40, 40, 0.15, 2, true, true);
+                this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
+            }
+        }
+
+        else
         {
             //this.isJumping = false;
             this.isWalking = false;
@@ -925,21 +972,35 @@ Mario.prototype.draw = function(ctx) {
             ctx.strokeStyle = "green";
             ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
         }
-        if(!this.isRight) {
+        if(!this.isRight && !this.isGrowth) {
                   ctx.drawImage(this.sprite,
                   40, 80,  // source from sheet
                   40, 40,
                    this.x, this.y,
                   40,
                   40);
-        } else {
+
+        } else if (this.isRight && this.isGrowth) {
                   ctx.drawImage(this.sprite,
+                  320, 243,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
+        } else if (!this.isRight && this.isGrowth) {
+            ctx.drawImage(this.sprite,
+                  40, 243,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
+        } else {
+            ctx.drawImage(this.sprite,
                   320, 80,  // source from sheet
                   40, 40,
                    this.x, this.y,
                   40,
                   40);
-
         }
         
     } else if (!this.game.finishedLevel)
@@ -973,13 +1034,25 @@ Mario.prototype.draw = function(ctx) {
     }
 
     else {
-        if (this.isRight)
+        if (this.isRight && !this.isGrowth)
             ctx.drawImage(this.sprite,
                   200, 80,  // source from sheet
                   40, 40,
                   this.x, this.y,
                   40,
                   40);
+        else if (this.isRight && this.isGrowth)
+            ctx.drawImage(this.sprite,
+                200, 243,
+                40, 40,
+                this.x, this.y,
+                40, 40);
+        else if (!this.isRight && this.isGrowth)
+            ctx.drawImage(this.sprite,
+                160, 243,
+                40, 40,
+                this.x, this.y,
+                40, 40);
         else
             ctx.drawImage(this.sprite,
                  160, 80,  // source from sheet
@@ -1003,7 +1076,7 @@ Mario.prototype.collide = function(other) {
                 this.maxJumpHeight = other.boundingbox.bottom;
                 this.isFalling = true;
 
-            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top+3 < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole") {    
+            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top+3 < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole" && other.type !== "Bowser") {    
             	this.y = other.boundingbox.top - 25;
             	this.isFalling = false;
             	this.isJumping = false;
@@ -1029,6 +1102,8 @@ function Enemy(init_x, init_y, game) {
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_enemies_sheet.png');
     this.init_x = init_x;
     this.init_y = init_y;
+    this.passThrough = true;
+    this.subType = 'Enemy';
     
     //Call Entity constructor
     Entity.call(this, game, init_x, init_y);
@@ -1066,7 +1141,6 @@ Goomba.prototype.draw = function(ctx) {
             this.removeFromWorld = true;
         }
     } else {
-
          this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
     }
 }
@@ -1347,18 +1421,20 @@ QuestionBox.prototype.update = function () {
 QuestionBox.prototype.collide = function(other) {
     //Check for bottom collision
     
-    if(other.boundingbox.top < this.boundingbox.bottom && other.boundingbox.bottom > this.boundingbox.bottom) { //We have a collsion from below
+    if(other.boundingbox.top < this.boundingbox.bottom && other.boundingbox.bottom > this.boundingbox.bottom && ((other.boundingbox.left < this.boundingbox.right && other.boundingbox.right > this.boundingbox.right) ||(other.boundingbox.right > this.boundingbox.left && other.boundingbox.left < this.boundingbox.left)) ) { //We have a collsion from below
             if(!this.hitAlready) { //if not hit already
                 if(this.hasCoin) {                   
                     this.hitAlready = true;
                     this.popContents = false;
-                    this.gameEngine.addEntity(new Coin(this.x, this.y - 17, this.gameEngine)); //have a coin pop out above the box
+                    this.gameEngine.addEntity(new Coin(this.x, this.y - 17, this.gameEngine, true)); //have a coin pop out above the box
                     this.y -= 10;
                 } else if (hasPowerUp) { //Will not be handled/completed until Final Release. canHavePowerUps will be always set false until then
 
                 }
             }
     }
+
+
     
 }
 
@@ -1374,14 +1450,17 @@ QuestionBox.prototype.draw = function (ctx) {
 }
 
 //Coin
-function Coin(init_x, init_y, game) {
+function Coin(init_x, init_y, game, popped) {
 
     Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/levelRemovedBorder1.png');
     this.moveAnimation = new Animation(this.sprite, 422, 0, 16, 16, 0.14, 4, true, false);
     this.boundingbox = new BoundingBox(this.x, this.y, 16, 16);
     this.type = "Coin";
-    this.isVisible = true;
+    this.passThrough = true;
+    this.Ycoord = 20
+    this.popped = popped;
+    this.givePoints = false;
 
 
 }
@@ -1392,22 +1471,42 @@ Coin.prototype.constructor = Coin;
 Coin.prototype.update = function () {
     //Entity.prototype.update.call(this);
         this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 16, 16);
+        if(this.givePoints) {
+        	this.game.addToScore(10);
+        	this.game.addCoin();
+        	this.isVisible = false;
+       		this.boundingbox = null;
+        	this.removeFromWorld = true;
+        	this.givePoints = false;
+        	this.popped = false;
+        } else {
+        	if(this.popped) {
+    			this.Ycoord -= 2;
+    			if(this.Ycoord === 0) {
+        			this.givePoints = true;
+       			}
+        	}
+
+        }
 }
 
 Coin.prototype.collide = function(other) {
-    if(this.isVisible && other.type === "Mario") {
-        //gameEngine.points.increment(1);
-        this.game.addToScore(10);
-        this.game.addCoin();
-        this.isVisible = false;
-        this.boundingbox = null;
-        this.removeFromWorld = true;
+
+    if(other.type === "Mario") {
+    	    this.game.addToScore(10);
+        	this.game.addCoin();
+        	this.isVisible = false;
+       		this.boundingbox = null;
+        	this.removeFromWorld = true;
     }
 }
 
 Coin.prototype.draw = function (ctx) {
-    if(this.isVisible) {
-        this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
+    if(this.popped && !this.givePoints) {
+    	
+        this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y - this.Ycoord);
+    } else {
+    	this.moveAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
     }
 }
 
@@ -1880,22 +1979,29 @@ StaticGoldBlock.prototype.draw = function (ctx) {
 function Bowser(init_x, init_y, game) {
 
     Entity.call(this, game, init_x, init_y);
+    this.initY = init_y;
+    this.game = game;
     this.isRight = false;
     this.isJumping = false;
-    this.isWalking = false;
+    this.isWalking = true;
     this.isStunned = false;
     this.timeToShoot = false;
+    this.isShooting = false;
     this.ticker = 0;
+    this.direction = 0;
+	this.lastDirection = 0;
+	this.jump = null;
+	this.d;
     this.sprite = ASSET_MANAGER.getAsset('images/boss_sprite.png');
-    this.rightBowserShootAnimation = new Animation(this.sprite, 88, 220, 40, 40, 0.22, 5, true, true);
-    this.leftBowserShootAnimation = new Animation(this.sprite, 91, 43, 40, 40, 0.22, 5, true, false);
+    this.rightBowserShootAnimation = new Animation(this.sprite, 88.5, 220, 40, 40, 0.22, 5, true, true);
+    this.leftBowserShootAnimation = new Animation(this.sprite, 90.5, 43, 40, 40, 0.22, 5, true, false);
 
 
 
     this.jumpRightAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
     this.jumpLeftAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
-    this.walkRightAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
-    this.walkLeftAnimation = new Animation(this.sprite, 248, 52, 40, 40, 0.14, 5, true, false);
+    this.walkRightAnimation = new Animation(this.sprite, 92, 136, 40, 40, 0.14, 4, true, false);
+    this.walkLeftAnimation = new Animation(this.sprite, 125, 312, 40, 40, 0.14, 4, true, true);
     this.boundingbox = new BoundingBox(this.x, this.y, 40, 40);
     this.type = "Bowser";
 }
@@ -1904,48 +2010,158 @@ Bowser.prototype = new Entity();
 Bowser.prototype.constructor = Bowser;
 
 Bowser.prototype.update = function () {
-    //Entity.prototype.update.call(this);
-        this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+		//Track Marios location and approach within 10 pixels to attack
+		if((this.game.mario.x - this.x) <= -40 ) { //Mario is on the left, Bowser go right
+			this.isRight = false;
+			this.isWalking = true;
+			this.timeToShoot = false;
+			this.direction--;
+    		this.lastDirection = -1;
+		} else if((this.game.mario.x - this.x) >= 40 ) { //Mario is on the right, Bowser go left
+			this.isRight = true;
+			this.isWalking = true;
+			this.timeToShoot = false;
+			this.direction++;
+    		this.lastDirection = 1;
+		} else {
+			this.isWalking = false;
+			if(this.y = this.initY) {
+				this.timeToShoot = true;
+				this.isShooting = true;
+			}if((this.game.mario.y - this.y) <= -10 ) {
+			
+			this.isJumping = true;
+		} else {
+			//this.isJumping = false;
+		}
+
+		}
+
+
+    //Do Movemement Adjustments for Walking, or Jumping
         if(this.isRight) {
-        	if(this.timeToShoot && this.rightBowserShootAnimation.isDone) {
-				//this.timeToShoot = false;
+        	if (this.isWalking && !this.isJumping) {
+        		this.x += 0.85;
         	}
         } else {
-        	if(this.timeToShoot && this.leftBowserShootAnimation.isDone) {
-        		//this.timeToShoot = false;
+        	if (this.isWalking && !this.isJumping) {
+        		this.x -= 0.85;
         	}
         }
+        if(this.isJumping) {
+        		if (this.jump === null) {
+    				this.d = this.lastDirection;
+    				this.jump = {
+        				start: {
+            			x: this.x,
+            			y: this.y
+        			},
+        			control: {
+            			x: this.x + 30 * this.d,
+            			y: this.y - 105
+        			},
+        			end: {
+            			x: this.x + 60 * this.d,
+            			y: this.y
+        			},
+        			t: 0
+    				};
+    			} 
+        }
+
+        //console.log("Bowser Location   X: " + this.x   + "    Y: "+ this.y);
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+
 
 }
 
 Bowser.prototype.collide = function(other) {
-    console.log("Bowser collided with Mario");
+    //console.log("Bowser collided with Mario");
 }
+
+// get an x/y point along a quadratic bezier curve
+function getQuadraticBezierXYatT(startPt, controlPt, endPt, T) {
+    var x = Math.pow(1 - T, 2) * startPt.x + 2 * (1 - T) * T * controlPt.x + Math.pow(T, 2) * endPt.x;
+    var y = Math.pow(1 - T, 2) * startPt.y + 2 * (1 - T) * T * controlPt.y + Math.pow(T, 2) * endPt.y;
+    return ({
+        x: x,
+        y: y
+    });
+}
+
 
 Bowser.prototype.draw = function (ctx) {
 	//ctx.strokeStyle = "red";
     //ctx.strokeRect(this.x, this.y, this.rightBowserShootAnimation.frameWidth, this.rightBowserShootAnimation.frameHeight);
-	if(this.timeToShoot) {
-		//console.log("TIME TO SHOOT: " + this.timeToShoot);
-		var direction = "left";
-			if(this.isRight) {
-				direction = "right";
-			}
-			//console.log("IS FACING: " + direction);
+	if(this.timeToShoot && !this.isJumping) {
 		if(this.isRight) {
+			this.rightBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y+1);
+			//this.game.addEntity(new FireBall(this.x + 40, this.y+15, this.game, this.isRight)); //have a fire entity come out of bowsers mouth
 
-			this.rightBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
 		} else {
-        	this.leftBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
+        	this.leftBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y+1);
+        	//this.game.addEntity(new FireBall(this.x, this.y +15, this.game, this.isRight)); //have a fire entity come out of bowsers mouth
 		}
 
-	} else if(this.moveRight) {
+	} 
 
-	} else if(this.moveLeft) {
+	else if(this.isJumping) {
+		if (this.jump) {
 
-	} else if(this.isJumping) {
+        var pos = getQuadraticBezierXYatT(this.jump.start, this.jump.control, this.jump.end, this.jump.t / 100);
+        this.x = pos.x;
+        this.y = pos.y;
+        //
+        this.jump.t += 4;
+        if (this.jump.t > 100) {
+            this.jump = null;
+            this.isJumping = false;
+            this.direction = 0;
+        }
 
-	} else {
+    	} else {
+    		this.isJumping = true;
+        	this.x += direction;
+        	direction = 0;
+
+    	}
+    	if(this.isRight) {
+    		ctx.drawImage(this.sprite,
+                  204, 264,  
+                  40, 40,
+                   this.game.background.x + this.x, this.y,
+                  40,
+                  40);
+    	} else {
+    		ctx.drawImage(this.sprite,
+                  136, 88,  
+                  40, 40,
+                   this.game.background.x + this.x, this.y,
+                  40,
+                  40);
+    	}
+    	
+	}
+
+	else if(this.isWalking) {
+		if(this.isRight) {
+			this.walkRightAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+		} else {
+			this.walkLeftAnimation.drawFrame(this.game.clockTick, ctx, this.x, this.y);
+		}
+
+	} 
+
+	else if(this.isStunned) {
+		if(this.isRight) {
+
+		} else {
+			
+		}
+
+	} 
+
+	else {
 		if(this.isRight) {
 			        	//this.rightBowserIdleAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
 
@@ -1987,7 +2203,7 @@ FireBall.prototype = new Entity();
 FireBall.prototype.constructor = FireBall;
 
 FireBall.prototype.update = function () {
-    if(isRight) {
+    if(this.isRight) {
     	if(this.rightFireAnimation.isDone) {
     		this.boundingbox = null;
         	this.removeFromWorld = true;
@@ -2057,18 +2273,37 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
 
     gameEngine.addEntity(gameboard);
-
+    var levelID = "level1";
     try {
-        $.get('services/levelService.php', {id:"level1"}, function(data) {
+        $.get('services/levelService.php', {id:levelID}, function(data) {
             gameEngine.loadLevel(data, gameEngine);
             gameEngine.init(ctx);
             gameEngine.start();
            
-        }).fail(function(error) { gameEngine.loadLevel(level1, gameEngine);
-        gameEngine.init(ctx);
-        gameEngine.start();});
+        }).fail(function(error) { 
+        	if(levelID === 1) {
+        		gameEngine.loadLevel(level1, gameEngine);
+        	} else if(levelID === 2) {
+        	    gameEngine.loadLevel(level2, gameEngine);
+        	} else if(levelID === 3) {
+        	    gameEngine.loadLevel(level3, gameEngine);
+        	}else if (levelID === 4) {
+        	    gameEngine.loadLevel(level4, gameEngine);
+        	}
+
+        	gameEngine.init(ctx);
+        	gameEngine.start();});
+
     } catch (err) {
-        gameEngine.loadLevel(level1, gameEngine);
+    	    if(levelID === 1) {
+        		gameEngine.loadLevel(level1, gameEngine);
+        	} else if(levelID === 2) {
+        	    gameEngine.loadLevel(level2, gameEngine);
+        	} else if(levelID === 3) {
+        	    gameEngine.loadLevel(level3, gameEngine);
+        	}else if (levelID === 4) {
+        	    gameEngine.loadLevel(level4, gameEngine);
+        	}
         gameEngine.init(ctx);
         gameEngine.start();
     }

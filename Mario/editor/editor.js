@@ -904,6 +904,7 @@ BackgroundEditor.prototype.update = function() {
                         wo.coins = this.ghostWO.coins;
                     $('#coins').val("none");
                 }
+
             }
 
         } else if (click.y < 512 && click.y>=430 && click.x > 50 && click.x < 450) {
@@ -961,6 +962,7 @@ BackgroundEditor.prototype.update = function() {
                 if (this.ghostWO.type === 'pipe')
                     this.ghostWO.update();
             }
+
         }
     }
     
@@ -1034,6 +1036,7 @@ BackgroundEditor.prototype.makeGhostWO = function(x, y) {
             this.game.staircase.hide();
             this.ghostWO = null;
         } else if (this.editor !== 'worldobjects') {
+
             this.editor = 'worldobjects';
             this.ghostWO = this.makeWO(type, item.x, item.y);
             if (this.ghostWO.type === 'brownblock') {
@@ -1074,7 +1077,6 @@ BackgroundEditor.prototype.makeGhostWO = function(x, y) {
         if (this.ghostWO)
         this.ghostWO.palletPiece = true;
         //if (this.editor === ' worldobjects')
-            
     }
     
 }
@@ -1199,7 +1201,7 @@ BackgroundEditor.prototype.draw = function(ctx) {
     }
     if (this.editor === 'worldobjects') {
         ctx.globalAlpha = 0.5;
-        if (this.stairs && this.stairs.length > 0) {
+         if (this.stairs && this.stairs.length > 0) {
             for (var i = 0; i < this.stairs.length; i++) {
                 for (var j = 0; j <= i; j++) {
                     this.stairs[i][j].draw(ctx);
@@ -1214,11 +1216,12 @@ BackgroundEditor.prototype.draw = function(ctx) {
         } else {
             this.ghostWO.draw(ctx);
         }
+
         ctx.globalAlpha = 1;
     }
     for (var i = 0; i < this.enemys.length; i++) {
         this.enemys[i].draw(ctx);
-    };
+    }
     //this.enemy.draw(ctx);
     this.mario.draw(ctx);
      ctx.strokeStyle = style;
@@ -2278,7 +2281,7 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
 
     gameEngine.addEntity(gameboard);
-    // need to add controls using jquery hide() and show() are jquery functions
+     // need to add controls using jquery hide() and show() are jquery functions
      var editArea = $('#editarea');
      var namelevels = $('<select id="namelevels">');
      var load = $('<input type="button" value="Load">');
@@ -2305,8 +2308,8 @@ ASSET_MANAGER.downloadAll(function () {
     hline.append(hlineblocks);
    hline.hide();
     var coin = $('<div id="coin">');
+
     var coinlab = $('<span>').text('Number of Coins');
-   
     var extension = $('<div id="extension">');
     var extlabel = $('<span>').text('Number of extentions');
     var levellength = $('<div id="length">');
@@ -2317,6 +2320,7 @@ ASSET_MANAGER.downloadAll(function () {
         levels.append($('<option>').val(i).text(i));
     levellength.append(levelLabel);
     levellength.append(levels);
+
     var extensions= $('<select id="extensions">');
     for (var i = 0; i < 13; i++)
         extensions.append($('<option>').val(i).text(i));
@@ -2325,6 +2329,7 @@ ASSET_MANAGER.downloadAll(function () {
     extension.hide();
     var coins= $('<select id="coins">');
     coins.append($('<option>').val('none').text('No Coins'));
+
     coins.append($('<option>').val('random').text('random'));
     for (var i = 1; i < 11; i++)
         coins.append($('<option>').val(i).text(i));
@@ -2348,6 +2353,8 @@ ASSET_MANAGER.downloadAll(function () {
     gameEngine.coin = coin;
     gameEngine.line = hline;
     gameEngine.staircase = staircase;
+
+   
     levels.change(function() {
          var val = $(this).val();
          gameEngine.editor.length = parseInt(val);
@@ -2408,6 +2415,7 @@ ASSET_MANAGER.downloadAll(function () {
         } 
         console.log(stairs);
         editor.stairs = stairs;
+
     });
     reverse.change(function() {
         gameEngine.reverse = $(this)[0].checked;
@@ -2454,6 +2462,4 @@ ASSET_MANAGER.downloadAll(function () {
 
     gameEngine.init(ctx);
     gameEngine.start();
-    
-   
 });
