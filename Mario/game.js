@@ -1046,21 +1046,22 @@ function Goomba(init_x, init_y, game, initial_state) {
     this.dewinged_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
     this.winged_animation = new Animation(this.sprite, 90, 0, this.frameWidth, this.frameHeight, .4, 4, true, false);
     this.current_animation = (this.state === 1) ? this.winged_animation : this.dewinged_animation;
-
+    this.game = game;
     this.cycleCount = 0;
 }
 
 Goomba.prototype.draw = function(ctx) {
     if(this.squished) {
-        ctx.drawImage(this.sprite,
-                  this.frameWidth * 6, 0, 
-                  this.frameWidth, this.frameHeight,
-                  this.getX(), this.y + 5,
-                  this.frameWidth * 1,
-                  this.frameHeight * 1);
-            this.cycleCount += 1;
+    		console.log("cycleCount : " + this.cycleCount);
         if(this.cycleCount === 10) {
             this.removeFromWorld = true;
+        } else {
+        	      ctx.drawImage(this.sprite,
+                  this.frameWidth * 6, 0, 
+                  this.frameWidth, this.frameHeight,
+                  this.x, this.y + 5,
+                  this.frameWidth * 1,
+                  this.frameHeight * 1);
         }
     } else {
          this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
@@ -1074,6 +1075,8 @@ Goomba.prototype.update = function() {
         } else {
             this.x -= 1;
         }
+    } else {
+    	this.cycleCount += 1;
     }
     this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 17, 16);
 
@@ -1094,7 +1097,6 @@ Goomba.prototype.collide = function(other) {
     } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
         this.game.addToScore(100);
         this.squished = true;
-        this.removeFromWorld = true;
     } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
         other.boundingbox.left <= this.boundingbox.right)
         && other.type === 'Mario') {
