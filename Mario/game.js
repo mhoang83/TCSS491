@@ -690,11 +690,21 @@ Mario.prototype.update = function ()
                     }
                 }
                 else
-                {
-                    this.game.background.x -= 2.5;
-                    this.platformMinX -= 2.5;
-                    this.platformMaxX -= 2.5;
-                   
+                {                  
+                    if(this.x -this.game.background.x < ((this.game.background.length-1) * 512 -50)) {
+                        this.game.background.x -= 2.5;
+                        this.platformMinX -= 2.5;
+                        this.platformMaxX -= 2.5;
+                    } else {
+                       if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
+                        {
+
+                            this.x += 2.5;
+                        
+                        }
+                    }
+
+  
                 }
             }
             else if (this.steps > 5)
@@ -716,9 +726,18 @@ Mario.prototype.update = function ()
                 }
                 else
                 {
-                    this.game.background.x -= 1;
-                    this.platformMinX -= 1;
-                    this.platformMaxX -= 1;
+
+
+                    if(this.x -this.game.background.x < ((this.game.background.length-1) * 512 -50)) {
+                        this.game.background.x -= 1;
+                        this.platformMinX -= 1;
+                        this.platformMaxX -= 1;
+                    } else {
+                        if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
+                        {
+                            this.x +=1; 
+                        }
+                    }
                 }
             }
             else
@@ -1981,25 +2000,26 @@ Bowser.prototype.constructor = Bowser;
 
 Bowser.prototype.update = function () {
 		//Track Marios location and approach within 10 pixels to attack
-		if((this.game.mario.x - this.x) <= -40 ) { //Mario is on the left, Bowser go right
+		if((this.game.mario.x - this.x) <= -52 ) { //Mario is on the left, Bowser go right
 			this.isRight = false;
+            this.isShooting = false;
 			this.isWalking = true;
 			this.timeToShoot = false;
 			this.direction--;
     		this.lastDirection = -1;
-		} else if((this.game.mario.x - this.x) >= 40 ) { //Mario is on the right, Bowser go left
+		} else if((this.game.mario.x - this.x) >= 52 ) { //Mario is on the right, Bowser go left
 			this.isRight = true;
 			this.isWalking = true;
 			this.timeToShoot = false;
+            this.isShooting = false;
 			this.direction++;
     		this.lastDirection = 1;
 		} else {
 			this.isWalking = false;
 			if(this.y = this.initY) {
 				this.timeToShoot = true;
-				this.isShooting = true;
 			}if((this.game.mario.y - this.y) <= -10 ) {
-			
+			    this.isShooting = false;
 			this.isJumping = true;
 		} else {
 			//this.isJumping = false;
@@ -2061,16 +2081,23 @@ function getQuadraticBezierXYatT(startPt, controlPt, endPt, T) {
 
 
 Bowser.prototype.draw = function (ctx) {
-	//ctx.strokeStyle = "red";
+    //ctx.strokeStyle = "red";
     //ctx.strokeRect(this.x, this.y, this.rightBowserShootAnimation.frameWidth, this.rightBowserShootAnimation.frameHeight);
 	if(this.timeToShoot && !this.isJumping) {
 		if(this.isRight) {
 			this.rightBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y+1);
-			//this.game.addEntity(new FireBall(this.x + 40, this.y+15, this.game, this.isRight)); //have a fire entity come out of bowsers mouth
+            if(!this.isShooting) {
+                this.isShooting = true;
+                this.game.addEntity(new BowserFire(this.x + 35, this.y, this.game, this)); //have a fire entity come out of bowsers mouth
+            }
 
 		} else {
         	this.leftBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y+1);
-        	//this.game.addEntity(new FireBall(this.x, this.y +15, this.game, this.isRight)); //have a fire entity come out of bowsers mouth
+                if(!this.isShooting) {
+                    this.isShooting = true;
+                    this.game.addEntity(new BowserFire(this.x - 35, this.y , this.game, this)); //have a fire entity come out of bowsers mouth
+                }
+
 		}
 
 	} 
@@ -2158,48 +2185,45 @@ Bowser.prototype.draw = function (ctx) {
 }
 
 //Fire Boss
-function FireBall(init_x, init_y, game, isRight) {
+function BowserFire(init_x, init_y, game, bowser) {
 
+    this.bowser = bowser;
     Entity.call(this, game, init_x, init_y);
-    this.isRight = isRight;
+    this.isRight = bowser.isRight;
     this.sprite = ASSET_MANAGER.getAsset('images/boss_sprite.png');
-    this.leftFireAnimation = new Animation(this.sprite, 92, 10, 40, 40, 0.14, 5, false, false);
-    this.rightFireAnimation = new Animation(this.sprite, 96, 188, 40, 40, 0.14, 5, false, true);
-    this.boundingbox = new BoundingBox(this.x, this.y, 40, 40);
-    this.type = "FireBall";
+    this.leftFireAnimation = new Animation(this.sprite, 80.5, 3, 39, 40, 0.14, 5, true, false);
+    this.rightFireAnimation = new Animation(this.sprite, 101.5, 180, 39, 40, 0.14, 5, true, true);
+    this.boundingbox = new BoundingBox(this.x, this.y+ 7, 40, 20);
+    this.type = "BowserFire";
 }
 
-FireBall.prototype = new Entity();
-FireBall.prototype.constructor = FireBall;
+BowserFire.prototype = new Entity();
+BowserFire.prototype.constructor = BowserFire;
 
-FireBall.prototype.update = function () {
-    if(this.isRight) {
-    	if(this.rightFireAnimation.isDone) {
-    		this.boundingbox = null;
+BowserFire.prototype.update = function () {
+
+    	if(!this.bowser.isShooting) {
         	this.removeFromWorld = true;
     	} else {
-    		    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
-    	}
-    } else {
-    	if(this.leftFireAnimation.isDone) {
-    		this.boundingbox = null;
-        	this.removeFromWorld = true;
-    	} else {
-    		    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
-    	}
-    }
 
+            this.boundingbox = new BoundingBox(this.x, this.y+ 7, 40, 20);     
+        }
 }
 
-FireBall.prototype.collide = function(other) {
+BowserFire.prototype.collide = function(other) {
     console.log("FireBall collided with Mario");
 }
 
-FireBall.prototype.draw = function (ctx) {
-	if(this.isRight) {
+BowserFire.prototype.draw = function (ctx) {
 
+
+	if(this.isRight) {
+                //ctx.strokeStyle = "green";
+                //ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, 40, 20);
         this.rightFireAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
 	} else {
+                //ctx.strokeStyle = "green";
+    //ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, 40, 20);
 		this.leftFireAnimation.drawFrame(this.game.clockTick, ctx,  this.game.background.x + this.x, this.y);
 	}
 }
