@@ -357,6 +357,9 @@ GameEngine.prototype.loadLevel = function(jSonString) {
                 case 'Enemy':
                     this.addEntity(this.makeEnemy(entity.type,entity.start_x, entity.start_y, entity.state));
                     break;
+                case 'Boss':
+                    this.addEntity(this.makeBoss(entity.type,entity.start_x, entity.start_y));
+                    break;
                 default:
                     break;
             }   
@@ -374,7 +377,9 @@ GameEngine.prototype.superType = function(type) {
         case 'exclamation': case 'whitenote': case 'pinknote':
         case 'pow': case 'brick': case 'pipe':  case 'pole':
         case 'castle': case 'coin': case 'brownblock':
-            return 'World Object'
+            return 'World Object';
+        case 'Bowser': case 'Superflower': case 'Superghost':
+           return  'Boss';
         default:
             'Mario'
     }
@@ -394,6 +399,20 @@ GameEngine.prototype.makeEnemy = function(type, x,y, init_state) {
            return  new BonyBeetle(x, y, this);
         case 'Chomper':
            return  new Chomper(x, y, this);
+        default :
+           return null;
+    }
+
+}
+
+GameEngine.prototype.makeBoss = function(type, x, y) {
+    switch(type) {
+        case 'Bowser':
+           return  new Bowser(x, y, this);
+        case 'Superflower':
+           
+        case 'Superghost':
+           
         default :
            return null;
     }
@@ -2224,10 +2243,10 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
 
     gameEngine.addEntity(gameboard);
-    var levelID = "level1";
+    var levelID = "level4";
     try {
         $.get('services/levelService.php', {id:levelID}, function(data) {
-           // console.log(data);
+            console.log(data);
             gameEngine.loadLevel(data);
             gameEngine.init(ctx);
             gameEngine.start();
