@@ -131,6 +131,8 @@ function GameEngine() {
     this.surfaceWidth = null;
     this.surfaceHeight = null;
     this.jump = null;
+    this.score = 0;
+    this.coins = 0;
 }
 
 GameEngine.prototype.init = function (ctx) {
@@ -1482,11 +1484,7 @@ Coin.prototype.update = function () {
 Coin.prototype.collide = function(other) {
 
     if(other.type === "Mario") {
-    	    this.game.addToScore(10);
-        	this.game.addCoin();
-        	this.isVisible = false;
-       		this.boundingbox = null;
-        	this.removeFromWorld = true;
+    	    this.givePoints= true;
     }
 }
 
@@ -2267,7 +2265,7 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
 
     gameEngine.addEntity(gameboard);
-    var levelID = "level4";
+    var levelID = "level1";
     try {
         $.get('services/levelService.php', {id:levelID}, function(data) {
             console.log(data);
