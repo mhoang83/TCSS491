@@ -301,17 +301,21 @@ GameEngine.prototype.startOver = function() {
         var coins = this.coins;
     }
     this.entities = [];
-    this.loadLevel(this.mainObj, this);
-    this.finishedLevel = false;
-    this.addToScore(0); // to refresh
-    if (lives > 0) {
-        this.lives = lives;
-         this.coins = coins;
-    }
-    this.isDead = false;
-    $('#score').html("Score: " + this.score);
-    $('#lives').html('Lives: ' + this.lives);
-    $('#coins').html('Coins: ' + this.coins);
+    var me = this;
+    $.get('services/levelService.php', {id:this.levels[this.current_level]}, function(data){
+        me.loadLevel(data);
+        me.finishedLevel = false;
+        me.addToScore(0); // to refresh
+        if (lives > 0) {
+            me.lives = lives;
+             me.coins = coins;
+        }
+        me.isDead = false;
+        $('#score').html("Score: " + me.score);
+        $('#lives').html('Lives: ' + me.lives);
+        $('#coins').html('Coins: ' + me.coins);
+    });
+    
 
 }
 
@@ -335,6 +339,9 @@ GameEngine.prototype.loadLevel = function(jSonString) {
 
             mainObj = jSonString;
     }
+    this.lives = 3;
+    this.score = 0;
+    this.coins = 0;
     var levels = mainObj.levels;
     var background = levels.background;
     this.background = new BackGround(background.start_x, background.start_y, this, background.length, background.id);
@@ -344,8 +351,7 @@ GameEngine.prototype.loadLevel = function(jSonString) {
         var entity = entities[i];
         if (entity.type === 'Mario') {
             var mario = new Mario(entity.start_x, entity.start_y, this);
-            this.addEntity(mario);
-            this.mario = mario;
+            
         } else if (entity.type !== 'Entity') {
 
             switch(this.superType(entity.type)) {
@@ -368,6 +374,11 @@ GameEngine.prototype.loadLevel = function(jSonString) {
             }   
         }
     }
+    // so mario doesnt appear behind castle at the end
+
+    this.addEntity(mario);
+    this.mario = mario;
+    this.addEntity(new LevelOver(this));
 
 
 }
@@ -1983,6 +1994,26 @@ LevelOver.prototype.update = function () {
      if ((this.game.finishedLevel || this.game.isDead )&& this.game.click) {
         var mousex = this.game.click.x, mousey = this.game.click.y,  x = this.x, y = this.y;
          if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 70 && mousey <= y + 110)
+            if (!this.game.isDead && this.game.levels.length > this.game.current_level + 1) {
+                console.log('here');
+                this.game.current_level++;
+                var me = this;
+                $.get('services/levelService.php', {id:this.game.levels[this.game.current_level]}, function(data) {
+                    var score = me.game.score;
+                    var lives = me.game.lives;
+                    var coins = me.game.coins;
+                    me.game.loadLevel(data);
+                    me.game.addToScore(score);
+                    me.game.coins = coins - 1;
+                    me.game.addCoin();
+                    me.game.lives = lives;
+                    $('#lives').html('Lives : ' + lives);
+                });
+        } 
+        else if (!this.game.isDead && this.game.levels.length === this.game.current_level + 1) {
+            //need to load menu and store score
+            ctx.fillText("Play Again?", x- 40, y + 80);
+        } else
             this.game.startOver();
     }
   
@@ -1998,14 +2029,22 @@ LevelOver.prototype.draw = function (ctx) {
          
         if (this.game.isDead) {
             ctx.fillText("You're Dead", x - 40, y);
-        } else 
+        } else
             ctx.fillText("Level Complete!", x - 40, y);
         ctx.fillText("Score : "+this.game.score, x- 40, y + 40);
         if (this.game.mouse) {
             var mousex = this.game.mouse.x, mousey = this.game.mouse.y;
             if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 70 && mousey <= y + 110) { ctx.fillStyle = "blue"; }
         }
-        ctx.fillText("Play Again?", x- 40, y + 80);
+        console.log(this.game.levels);
+        if (this.game.levels.length > this.game.current_level + 1) {
+            ctx.fillText("Continue?", x- 40, y + 80);
+        } 
+        else if (!this.game.isDead && this.game.levels.length === this.game.current_level + 1) {
+            //need to load menu and store score
+            ctx.fillText("Play Again?", x- 40, y + 80);
+        } else
+            ctx.fillText("Play Again?", x- 40, y + 80);
     }
 
        
