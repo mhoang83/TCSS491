@@ -724,7 +724,7 @@ Mario.prototype.update = function ()
   
                 }
             }
-            else if (this.steps > 5)
+            else if (this.steps > 3)
             {
                 this.isRunning = true;
                 this.isWalking = false;
@@ -780,7 +780,7 @@ Mario.prototype.update = function ()
                     this.x -= 2.5;
                 }
             }
-            else if (this.steps > 5)
+            else if (this.steps > 3)
             {
                 this.isRunning = true;
                 this.isWalking = false;
@@ -1052,7 +1052,9 @@ Mario.prototype.draw = function(ctx) {
                 this.isBouncing = false;
                 this.direction = 0;
                 this.isFalling = true;
+                this.steps = 4;
                 this.isJumping = false;
+                this.isRunning = true;
             }
 
         } else {
@@ -1150,6 +1152,9 @@ Mario.prototype.collide = function(other) {
                 this.maxJumpHeight = other.boundingbox.bottom;
                 this.isBouncing = false;
                 this.isFalling = true;
+
+                    this.isRunning = true;
+
                 this.jump = null;
 
     } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top+3 < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole" && other.type !== "Bowser") {    
