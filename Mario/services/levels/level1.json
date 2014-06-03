@@ -127,13 +127,13 @@
 					{"type":"blue","start_x":2717,"start_y":183,"spritesheet":"/images/levelRemovedBorder1.png"},
 					{"type":"blue","start_x":2734,"start_y":183,"spritesheet":"/images/levelRemovedBorder1.png"},
 					{"type":"whitenote","start_x":526,"start_y":165,"spritesheet":"/images/levelRemovedBorder1.png"},
-					{"type":"whitenote","start_x":560,"start_y":165,"spritesheet":"/images/levelRemovedBorder1.png"},
+					{"type":"whitenote","start_x":564,"start_y":165,"spritesheet":"/images/levelRemovedBorder1.png"},
 					{"type":"whitenote","start_x":426,"start_y":165,"spritesheet":"/images/levelRemovedBorder1.png"},
-					{"type":"whitenote","start_x":460,"start_y":165,"spritesheet":"/images/levelRemovedBorder1.png"},
+					{"type":"whitenote","start_x":464,"start_y":165,"spritesheet":"/images/levelRemovedBorder1.png"},
 					{"type":"pinknote","start_x":543,"start_y":181,"spritesheet":"/images/levelRemovedBorder1.png"},
-					{"type":"pinknote","start_x":577,"start_y":181,"spritesheet":"/images/levelRemovedBorder1.png"},
+					{"type":"pinknote","start_x":581,"start_y":181,"spritesheet":"/images/levelRemovedBorder1.png"},
 					{"type":"pinknote","start_x":443,"start_y":181,"spritesheet":"/images/levelRemovedBorder1.png"},
-					{"type":"pinknote","start_x":477,"start_y":181,"spritesheet":"/images/levelRemovedBorder1.png"},
+					{"type":"pinknote","start_x":481,"start_y":181,"spritesheet":"/images/levelRemovedBorder1.png"},
 					{"type":"exclamation","start_x":875,"start_y":217,"spritesheet":"/images/levelRemovedBorder1.png"},
 					{"type":"exclamation","start_x":909,"start_y":217,"spritesheet":"/images/levelRemovedBorder1.png"},
 					{"type":"coin","start_x":220,"start_y":210,"spritesheet":"/images/levelRemovedBorder1.png"},
@@ -210,7 +210,7 @@
 					{"type":"Goomba","start_x":2550,"start_y":210,"spritesheet":"/images/smb3_enemies_sheet.png"},
 					{"type":"Goomba","start_x":2850,"start_y":210,"spritesheet":"/images/smb3_enemies_sheet.png"},
 					{"type":"Goomba","start_x":3150,"start_y":210,"spritesheet":"/images/smb3_enemies_sheet.png"},
-					{"type":"pipe","start_x":644,"start_y":166,"spritesheet":"/images/pipe.png","extensions":1},
-					{"type":"pipe","start_x":1892,"start_y":167,"spritesheet":"/images/pipe.png","extensions":1},
-					{"type":"pipe","start_x":2171,"start_y":153,"spritesheet":"/images/pipe.png","extensions":2}]}}
+					{"type":"pipe","start_x":644,"start_y":181,"spritesheet":"/images/pipe.png","extensions":0},
+					{"type":"pipe","start_x":1892,"start_y":181,"spritesheet":"/images/pipe.png","extensions":0},
+					{"type":"pipe","start_x":2171,"start_y":181,"spritesheet":"/images/pipe.png","extensions":0}]}}
 
