@@ -2214,51 +2214,331 @@ ASSET_MANAGER.queueDownload('images/castlepole.gif');
 ASSET_MANAGER.queueDownload('images/pipeextension.png');
 ASSET_MANAGER.queueDownload('images/boss_sprite.png');
 
+$(function(){
+   
+   
+     var user_id = null;
+    var game = $('#game').hide();
+    if($.cookie('mario')) {
+        user_id = $.cookie('mario');
+        $.post('services/userService.php', {user_id:user_id}, function(data) {
+            console.log(data);
+            name = data;
+            build_menu(data, user_id);
+        });
+        
 
-ASSET_MANAGER.downloadAll(function () {
-    console.log("starting up da sheild");
-    var canvas = document.getElementById('gameWorld');
-    var ctx = canvas.getContext('2d');
+    } else {
+       create_login();
+    }
 
-    var gameEngine = new GameEngine();
-    var gameboard = new GameBoard();
+    
+});
 
-    gameEngine.addEntity(gameboard);
-    var levelID = "level1";
-    try {
-        $.get('services/levelService.php', {id:levelID}, function(data) {
-           // console.log(data);
-            gameEngine.loadLevel(data);
+function init_game(user_id, ls_id, levels) {
+    ASSET_MANAGER.downloadAll(function () {
+        $('#game').show();
+        console.log("starting up da sheild");
+        var canvas = document.getElementById('gameWorld');
+        var ctx = canvas.getContext('2d');
+
+        var gameEngine = new GameEngine();
+        gameEngine.user_id = user_id;
+        gameEngine.ls_id = ls_id;
+        gameEngine.levels = levels;
+        gameEngine.current_level = 0;
+        var gameboard = new GameBoard();
+
+        gameEngine.addEntity(gameboard);
+        var levelID = "level1";
+        try {
+            $.get('services/levelService.php', {id:gameEngine.levels[gameEngine.current_level]}, function(data) {
+               // console.log(data);
+                gameEngine.loadLevel(data);
+                gameEngine.init(ctx);
+                gameEngine.start();
+               
+            }).fail(function(error) { 
+                 if(levelID === 1) {
+                     gameEngine.loadLevel(level1, gameEngine);
+                 } else if(levelID === 2) {
+                     gameEngine.loadLevel(level2, gameEngine);
+                 } else if(levelID === 3) {
+                     gameEngine.loadLevel(level3, gameEngine);
+                 }else if (levelID === 4) {
+                     gameEngine.loadLevel(level4, gameEngine);
+                 }
+
+                 gameEngine.init(ctx);
+                gameEngine.start();
+            });
+
+        } catch (err) {
+             if(levelID === 1) {
+                 gameEngine.loadLevel(level1, gameEngine);
+             } else if(levelID === 2) {
+                 gameEngine.loadLevel(level2, gameEngine);
+             } else if(levelID === 3) {
+                 gameEngine.loadLevel(level3, gameEngine);
+             }else if (levelID === 4) {
+                 gameEngine.loadLevel(level4, gameEngine);
+             }
             gameEngine.init(ctx);
             gameEngine.start();
-           
-        }).fail(function(error) { 
-        	if(levelID === 1) {
-        		gameEngine.loadLevel(level1, gameEngine);
-        	} else if(levelID === 2) {
-        	    gameEngine.loadLevel(level2, gameEngine);
-        	} else if(levelID === 3) {
-        	    gameEngine.loadLevel(level3, gameEngine);
-        	}else if (levelID === 4) {
-        	    gameEngine.loadLevel(level4, gameEngine);
-        	}
+        }
+        
+       
+    });
 
-        	gameEngine.init(ctx);
-        	gameEngine.start();});
+}
 
-    } catch (err) {
-    	    if(levelID === 1) {
-        		gameEngine.loadLevel(level1, gameEngine);
-        	} else if(levelID === 2) {
-        	    gameEngine.loadLevel(level2, gameEngine);
-        	} else if(levelID === 3) {
-        	    gameEngine.loadLevel(level3, gameEngine);
-        	}else if (levelID === 4) {
-        	    gameEngine.loadLevel(level4, gameEngine);
-        	}
-        gameEngine.init(ctx);
-        gameEngine.start();
+function build_menu(name, user_id) {
+    var menu = $('#menu');
+    var error = $('#error');
+    menu.html($('<p>').text('Welcome ' + name));
+    menu.append(error);
+    menu.append($('<h4>').text('Create a Level Sequence'));
+    var seq_name = $('<input type="text" placeholder="Sequence Name">');
+    menu.append(seq_name);
+    menu.append($('<br>'));
+    var namelevels = $('<select id="namelevels">');
+    var sequences = $('<select id="sequences">');
+    var addSequences = function() {
+        sequences.html('');
+        $.get('services/levelService.php', {sequences:true}, function(data) {
+            var seqs = JSON.parse(data);
+            console.log(seqs);
+            $.each(seqs, function(index, value) {
+                sequences.append($('<option>').val(index).text(value));
+            });
+                
+            
+        });
     }
+    addSequences();
+    var add = $('<input type="button" value="Add">');
+    var build_levels = function() {
+        $.get('services/levelService.php', {levels:true}, function(data) {
+
+            var levelnames = JSON.parse(data).levels;
+            namelevels.html('');
+            for (var i = 0; i < levelnames.length; i++) {
+                var name = levelnames[i].split('/')[1].split('.')[0];
+                if ($.inArray(name, levels) < 0) {
+                    namelevels.append($('<option>').text(name).val(name));
+                }
+            }
+            if ($('#namelevels option').length == 0) {
+                namelevels.hide();
+                add.hide();
+            } else {
+                namelevels.show();
+                add.show();
+            }
+            
+        }).fail(function(err){console.log(err);});
+    }
+    var levels = [];
+    var domLevels = $('<div id="levels">');
+    menu.append(domLevels);
+
+    var addlevels = function() {
+        domLevels.html('');
+        for (var i = 0; i < levels.length; i++) {
+            var levelname = levels[i];
+            var level = $('<div>');
+            var label = $('<span>').text(levelname);
+            level.append(label);
+            var remove = $('<input type="button" value="Remove">');
+            level.append(remove);
+            remove.click(function () {
+                levels = $.grep(levels, function(n, i) { return n !== levelname});
+                build_levels();
+                addlevels();
+
+            });
+            domLevels.append(level);
+             build_levels();
+        }
+    }
+    build_levels();
+    menu.append(namelevels);
     
+    menu.append(add);
+    add.click(function() {
+        levels.push(namelevels.val());
+        addlevels();
+        build_levels();
+    });
+    menu.append($('<br>'));
+    var create = $('<input type="button" value="Create Sequence">');
+    menu.append(create);
+    create.click(function() {
+        console.log('create');
+        console.log(error);
+        if (seq_name.val() === '') {
+            console.log(seq_name.val());
+
+            error.html('Please name your sequence');
+        } else if (levels.length === 0) {
+            console.log(levels.length);
+             error.html('Please add levels to your sequence');
+        } else {
+            $.post('services/levelService.php', {seq:seq_name.val(), user_id:user_id, levels:levels}, function(data) {
+                console.log(data);
+                 addSequences();
+            }).fail(function(err){
+                console.log(err)
+            });
+        }
+    });
+     menu.append($('<br>'));
+     menu.append($('<p>').text('Choose a sequence to play'));
+      menu.append(sequences);
+      var play = $('<input type="button"value="play">');
+      play.click(function() {
+            $.get('services/levelService.php', {seq_levels:sequences.val()}, function(data) {
+                var jsondata = JSON.parse(data);
+                levels = [];
+                $.each(jsondata, function(index, value) {
+                    levels.push(value);
+                });
+                console.log(levels);
+               init_game(user_id, sequences.val(), levels);
+                menu.html('');
+                var user_scores = $('<div id="user_scores">');
+                set_user_scores(user_scores, user_id);
+                menu.append(user_scores);
+                 var global_scores = $('<div id="global_scores">');
+                set_global_scores(global_scores);
+                menu.append(global_scores);
+            });
+      });
+      menu.append(play);
+    menu.append($('<br>'));
+   // console.log($('body #lout'));
    
-});
+       var logout = $('<input id="lout" type="button" value="Logout">');
+        $('body').append(logout);
+        logout.click(function() {
+            $(this).hide();
+            $.removeCookie('mario', {path: '/'});
+            create_login();
+        });
+}
+
+function set_user_scores(score_area, user_id) {
+    $.get('services/userService.php', {userscores:true, user_id:user_id}, function(data) {
+        console.log(data);
+        data = JSON.parse(data);
+        score_area.html('');
+        score_area.append($('<div>').text("Top 10 user scores"));
+        $.each(data, function(index, value) {
+            var row = $('<div>');
+            div.append($('<span>').text(index + ' '));
+            div.append($('<span>').text(value));
+            score_area.append(row);
+        });
+        var refresh = $('<input type="button" value ="Refresh">');
+        refresh.click(function() {set_user_scores(score_area, user_id)});
+        score_area.append(refresh);
+        console.log(score_area);
+    }).fail(function(err){console.log(err)}); 
+
+}
+
+function set_global_scores(score_area) {
+    $.get('services/userService.php', {globalscores:true}, function(data) {
+        console.log(data);
+        data = JSON.parse(data);
+        score_area.html('');
+        score_area.append($('<div>').text("Top 10 global scores"));
+        $.each(data, function(index, value) {
+            var row = $('<div>');
+            div.append($('<span>').text(index + ' '));
+            div.append($('<span>').text(value[0]));
+             div.append($('<span>').text(value[1]));
+            score_area.append(row);
+        });
+        var refresh = $('<input type="button" value ="Refresh">');
+        refresh.click(function() {set_global_scores(score_area)});
+        score_area.append(refresh);
+    }).fail(function(err){console.log(err)}); 
+
+}
+
+function create_login() {
+     var attempts = 3;
+         var login_error = 'Invalid username/password combination or user does not exist';
+        var menu = $('#menu');
+        menu.html('');
+        var error = $('#error');
+        //error.html('Invalid username/password');
+
+        menu.append($('<p>').text('Login'));
+        var name = $('<input id="uname" type="text" placeholder="Username">');
+        menu.append(name);
+        menu.append($('<br>'));
+        var pword = $('<input id="password" type="password" placeholder="Password">');
+        menu.append(pword);
+         menu.append($('<br>'));
+         var login = $('<input type="button" value="Login">');
+        menu.append(login);
+        var reg = $('<input type="button" value="Register">');
+        menu.append(reg);
+       
+        login.click(function() {
+            if (name.val() === '') {
+                error.html('Please enter a Username.');
+            } else if(pword.val() === '') {
+                 error.html('Please enter a Password.');
+            } else if (attempts > 0) {
+                $.post('services/userService.php', {login:true, name: name.val(), pword:pword.val()}, function(data) {
+                    console.log(data);
+                    if (attempts === 0) {
+                        error.html('too many unsuccesful attempts made');
+                    } else
+                    if(data === 'user not found;') {
+                        error.html(login_error);
+                        attempts--;
+                    } else {
+                        user_id = parseInt(data);
+                        $.cookie('mario', user_id, {expires: 7 , path: '/'});
+                        
+                        build_menu(name.val());
+                    }
+                   
+
+                }).fail(function(err) {
+                    error.html('Could not login server error');
+                    //attempts--;
+                });
+                
+            }
+        });
+
+         reg.click(function() {
+            if (name.val() === '') {
+                error.html('Please enter a Username.');
+            } else if(pword.val() === '') {
+                 error.html('Please enter a Password.');
+            } else if (attempts > 0) {
+                $.post('services/userService.php', {register:true, name: name.val(), pword:pword.val()}, function(data) {
+                    console.log(data);
+                    if(data === 'user already exists') {
+                        error.html(data);
+                    } else {
+                        user_id = parseInt(data);
+                         $.cookie('mario', user_id, {expires: 7, path: '/'});
+                         alert($.cookie('mario'));
+                         build_menu(build_menu(name.val()));
+                    }
+                   
+
+                }).fail(function(err) {
+                    error.html('Could not register server error');
+                });
+                
+            }
+        });
+}

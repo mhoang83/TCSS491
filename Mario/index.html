@@ -4,24 +4,30 @@
 <head>
     <meta charset="utf-8">
     <title>Mario</title>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="jquery-1.11.0.min.js"></script>
+     <script type="text/javascript" src="jquery.cookie.js"></script>
     <script type="text/javascript" src="level1.js"></script>
     <script type="text/javascript" src="game.js"></script>
 
 </head>
 <body>
-    <div>Right click and "Inspect Element".  Select the Console Tab to see the debugger output.</div>
-  <div id='score' style="position: absolute; left: 15px; top: 30px; width: 400px; height: 30px; background-color: rgba(0,0,0,0); font-family: Impact, Charcoal, sans-serif; font-size: 12pt;">
-  	Score: 0
-  </div>
-   <div id='coins' style="position: absolute; left: 480px; top: 30px; width: 400px; height: 30px; background-color: rgba(0,0,0,0); font-family: Impact, Charcoal, sans-serif; font-size: 12pt;">
-  	Coins: 0
-  </div>
-   <div id="lives" style="position: absolute; left: 960px; top: 30px; width: 100px; height: 30px; background-color: rgba(0,0,0,0); font-family: Impact, Charcoal, sans-serif; font-size: 12pt; color: green; ">
-        Lives: 3
+  <div id="game">
+      <div>Right click and "Inspect Element".  Select the Console Tab to see the debugger output.</div>
+    <div id='score' style="position: absolute; left: 15px; top: 30px; width: 400px; height: 30px; background-color: rgba(0,0,0,0); font-family: Impact, Charcoal, sans-serif; font-size: 12pt;">
+    	Score: 0
     </div>
-    <canvas tabindex="1" id="gameWorld" width="1024" height="256" style="border: 1px solid brown;">
+     <div id='coins' style="position: absolute; left: 480px; top: 30px; width: 400px; height: 30px; background-color: rgba(0,0,0,0); font-family: Impact, Charcoal, sans-serif; font-size: 12pt;">
+    	Coins: 0
+    </div>
+     <div id="lives" style="position: absolute; left: 960px; top: 30px; width: 100px; height: 30px; background-color: rgba(0,0,0,0); font-family: Impact, Charcoal, sans-serif; font-size: 12pt; color: green; ">
+          Lives: 3
+      </div>
+      <canvas tabindex="1" id="gameWorld" width="1024" height="256" style="border: 1px solid brown;">
 
-    </canvas>
+      </canvas>
+  </div>
+  <div id="menu">
+    <div id="error" style="color:red;font-style:bold;"></div>
+  </div>
 </body>
 </html>

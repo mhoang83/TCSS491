@@ -2272,7 +2272,9 @@ ASSET_MANAGER.queueDownload('../images/castlepole.gif');
 ASSET_MANAGER.queueDownload('../images/pipeextension.png');
 ASSET_MANAGER.queueDownload('../images/mariolevels.png');
 
+
 ASSET_MANAGER.downloadAll(function () {
+    
     console.log("starting up da sheild");
     var canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
@@ -2425,7 +2427,7 @@ ASSET_MANAGER.downloadAll(function () {
         console.log(name);
         var json = gameEngine.editor.save();
         console.log(json);
-        $.post('../services/levelService.php', {save:true, name:name, data:json}, function(data) {
+        $.post('../services/levelService.php', {save:true,name:name, data:json}, function(data) {
             console.log(data);
             $.get('../services/levelService.php', {levels:true}, function(data) {
 

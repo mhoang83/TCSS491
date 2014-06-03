@@ -3,13 +3,19 @@
 <head>
     <meta charset="utf-8">
     <title>Game Project Shell</title>
-     <script type="text/javascript" src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+     <script type="text/javascript" src="../jquery-1.11.0.min.js"></script>
+     <script type="text/javascript" src="../jquery.cookie.js"></script>
     <script type="text/javascript" src="editor.js"></script>
 </head>
 <body>
-    <div>Right click and "Inspect Element".  Select the Console Tab to see the debugger output.</div>
+	<div id="game">
+	    <div>Right click and "Inspect Element".  Select the Console Tab to see the debugger output.</div>
 
-    <canvas id="gameWorld" tabindex="0" width="1024" height="512" style="border: 1px solid brown; background: white"></canvas>
-    <div id="editarea"></div>
+	    <canvas id="gameWorld" tabindex="0" width="1024" height="512" style="border: 1px solid brown; background: white"></canvas>
+	    <div id="editarea"></div>
+	</div>
+	    <div id="menu">
+    		<div id="error" style="color:red;font-style:bold;"></>
+  		</div>
 </body>
 </html>
