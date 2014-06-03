@@ -121,6 +121,7 @@ Timer.prototype.tick = function () {
 
 function GameEngine() {
     this.entities = [];
+    this.hasWon = false;
     this.worldEntities = [];
     this.mario = null;
     this.ctx = null;
@@ -631,6 +632,7 @@ function Mario(init_x, init_y, game) {
     this.isJumping = false;
     this.isFalling = false;
     this.passThrough = true;
+    this.isBouncing = false;
     this.isRight = true;
     this.isJumpingRunning = false;
     this.isJumpingWalking = false;
@@ -639,6 +641,11 @@ function Mario(init_x, init_y, game) {
     this.onSomething = false;
     this.canJump = true;
     this.jumpVelocity = 20;
+    this.ticker = 0;
+    this.direction = 0;
+    this.lastDirection = 0;
+    this.jump = null;
+    this.d;
     // made this the same as the debug box mario already has drawn around him.
     this.boundingbox = new BoundingBox(this.x + 15, this.y , 18, 17);
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
@@ -674,7 +681,7 @@ Mario.prototype.update = function ()
     if (!this.game.finishedLevel && !this.game.isDead)
     if ((this.game.key || this.game.jump ) ) {
        var code = this.game.key?this.game.key.keyCode:null;
-        if ( code === 39)
+        if ( code === 39 && !this.isBouncing)
         { //RIGHT
             if (!this.isRight)
             {
@@ -750,7 +757,7 @@ Mario.prototype.update = function ()
             }
            
         }
-        else if (code=== 37)
+        else if (code=== 37 && !this.isBouncing)
         { //LEFT
             if (this.isRight)
             {
@@ -787,6 +794,7 @@ Mario.prototype.update = function ()
             }
 
         }
+
         else if (code === 87)
         { //Growth
             if (!this.isGrowth)
@@ -809,6 +817,7 @@ Mario.prototype.update = function ()
                 this.runRightAnimation = new Animation(this.sprite, 200, 160, 40, 40, 0.15, 2, true, false);
             }
         }
+
 
         else
         {
@@ -876,8 +885,7 @@ Mario.prototype.update = function ()
         
 
        
-    } else
-    {
+    } else {
             this.isWalking = false;
             this.isRunning = false;
             this.steps = 0;
@@ -896,7 +904,7 @@ Mario.prototype.update = function ()
             this.isJumping = false;  //On collision of platform, need to set to false as well if landed on it
 
     }
-    if (this.isFalling) {
+    if (this.isFalling && !this.isBouncing) {
        if (this.y < floorLevel)
        {
            this.isFalling = true;
@@ -912,6 +920,33 @@ Mario.prototype.update = function ()
             this.isJumping = false; 
         }
     } 
+
+    if(this.isBouncing) {
+        if (this.jump === null) {
+                    var direct;
+                    if(this.isRight) {
+                        direct = 1;
+                    } else {
+                        direct = -1;
+                    }
+                    this.d = direct;
+                    this.jump = {
+                        start: {
+                        x: this.x,
+                        y: this.y
+                    },
+                    control: {
+                        x: this.x + 30 * this.d,
+                        y: this.y - 105
+                    },
+                    end: {
+                        x: this.x + 60 * this.d,
+                        y: this.y
+                    },
+                    t: 0
+                    };
+                } 
+        }
        
     this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 18, 17);    
     
@@ -927,14 +962,14 @@ Mario.prototype.draw = function(ctx) {
                   40,
                   40);
 
-    } else if (this.isFalling || this.isJumping) {
+    } else if ((this.isFalling || this.isJumping) && !this.isBouncing) {
         if (this.boxes) {
             ctx.strokeStyle = "red";
             ctx.strokeRect(this.x + 17, this.y + 8, this.fallAnimation.frameWidth, this.fallAnimation.frameHeight);
             ctx.strokeStyle = "green";
             ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
         }
-        if(!this.isRight && !this.isGrowth) {
+        if(!this.isRight && !this.isGrowth) { //LEFT AND SMALL
                   ctx.drawImage(this.sprite,
                   40, 80,  // source from sheet
                   40, 40,
@@ -942,21 +977,22 @@ Mario.prototype.draw = function(ctx) {
                   40,
                   40);
 
-        } else if (this.isRight && this.isGrowth) {
-                  ctx.drawImage(this.sprite,
-                  320, 243,  // source from sheet
-                  40, 40,
-                   this.x, this.y,
-                  40,
-                  40);
-        } else if (!this.isRight && this.isGrowth) {
+        } else if (!this.isRight && this.isGrowth) { //LEFT AND BIG
             ctx.drawImage(this.sprite,
                   40, 243,  // source from sheet
                   40, 40,
                    this.x, this.y,
                   40,
                   40);
-        } else {
+        }
+        else if (this.isRight && this.isGrowth) { //RIGHT AND BIG
+                  ctx.drawImage(this.sprite,
+                  320, 243,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
+        } else if (this.isRight && !this.isGrowth) { //RIGHT AND SMALL
             ctx.drawImage(this.sprite,
                   320, 80,  // source from sheet
                   40, 40,
@@ -995,7 +1031,61 @@ Mario.prototype.draw = function(ctx) {
         }
     }
 
-    else {
+    else if(this.isBouncing) {
+        if (this.jump) {
+
+            var pos = getQuadraticBezierXYatT(this.jump.start, this.jump.control, this.jump.end, this.jump.t / 100);
+            this.x = pos.x;
+            this.y = pos.y;
+        //
+            this.jump.t += 4;
+            if (this.jump.t > 100) {
+                this.jump = null;
+                this.isBouncing = false;
+                this.direction = 0;
+                this.isFalling = true;
+                this.isJumping = false;
+            }
+
+        } else {
+            this.isBouncing = true;
+            this.x += this.direction;
+            this.direction = 0;
+
+        }
+        if(!this.isRight && !this.isGrowth) { //LEFT AND SMALL
+                  ctx.drawImage(this.sprite,
+                  40, 80,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
+
+        } else if (!this.isRight && this.isGrowth) { //LEFT AND BIG
+            ctx.drawImage(this.sprite,
+                  40, 243,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
+        }
+        else if (this.isRight && this.isGrowth) { //RIGHT AND BIG
+                  ctx.drawImage(this.sprite,
+                  320, 243,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
+        } else if (this.isRight && !this.isGrowth) { //RIGHT AND SMALL
+            ctx.drawImage(this.sprite,
+                  320, 80,  // source from sheet
+                  40, 40,
+                   this.x, this.y,
+                  40,
+                  40);
+        }
+        
+    } else {
         if (this.isRight && !this.isGrowth)
             ctx.drawImage(this.sprite,
                   200, 80,  // source from sheet
@@ -1036,7 +1126,9 @@ Mario.prototype.collide = function(other) {
 
             else if(this.boundingbox.top < other.boundingbox.bottom && this.boundingbox.bottom > other.boundingbox.bottom && other.type !== "Coin" && other.type !== "Pole") { //Collision from below
                 this.maxJumpHeight = other.boundingbox.bottom;
+                this.isBouncing = false;
                 this.isFalling = true;
+                this.jump = null;
 
             } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top+3 < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole" && other.type !== "Bowser") {    
             	this.y = other.boundingbox.top - 25;
@@ -1049,10 +1141,19 @@ Mario.prototype.collide = function(other) {
                 this.platformMinX = other.boundingbox.left;
                  this.jumpComplete = false; 
             	this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 18, 17);
-            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top + 3 < other.boundingbox.top && other.type == "Goomba" ) {
+            } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top + 3 < other.boundingbox.top && (other.type == "Goomba" || other.type == "Bowser") ) {
                 this.y = other.boundingbox.top - 45;
-                this.isFalling = true;
+
+                //this.isFalling = true;
+                //this.isJumping = false;
+
+                this.isBouncing = true;
+                this.isFalling = false;
                 this.isJumping = false;
+                this.isWalking = false;
+                this.isRunning = false;
+                this.isJumpingRunning = false;
+                this.isJumpingWalking = false;
             }
 }
 
@@ -1974,11 +2075,13 @@ function Bowser(init_x, init_y, game) {
     this.isStunned = false;
     this.timeToShoot = false;
     this.isShooting = false;
+    this.isStunnedTimer = 0;
     this.ticker = 0;
     this.direction = 0;
 	this.lastDirection = 0;
 	this.jump = null;
 	this.d;
+    this.stunCounter = 0;
     this.sprite = ASSET_MANAGER.getAsset('images/boss_sprite.png');
     this.rightBowserShootAnimation = new Animation(this.sprite, 88.5, 220, 40, 40, 0.22, 5, true, true);
     this.leftBowserShootAnimation = new Animation(this.sprite, 90.5, 43, 40, 40, 0.22, 5, true, false);
@@ -1998,14 +2101,28 @@ Bowser.prototype.constructor = Bowser;
 
 Bowser.prototype.update = function () {
 		//Track Marios location and approach within 10 pixels to attack
-		if((this.game.mario.x - this.x) <= -52 ) { //Mario is on the left, Bowser go right
+        if(this.isStunned) {
+            this.isStunnedTimer++;
+            if(this.isStunnedTimer >= 120) {
+                this.isStunned = false;
+                this.isStunnedTimer = 0;
+            } else if(this.isStunnedTimer > 0  && this.isStunnedTimer < 120) {
+                this.isShooting = false;
+                this.isWalking = false;
+                this.timeToShoot = false;
+                //this.isJumping = false;
+            }
+
+
+        }
+		else if((this.game.mario.x - this.x) <= -52 ) { //Mario is on the left, Bowser go left
 			this.isRight = false;
             this.isShooting = false;
 			this.isWalking = true;
 			this.timeToShoot = false;
 			this.direction--;
     		this.lastDirection = -1;
-		} else if((this.game.mario.x - this.x) >= 52 ) { //Mario is on the right, Bowser go left
+		} else if((this.game.mario.x - this.x) >= 52 ) { //Mario is on the right, Bowser go right
 			this.isRight = true;
 			this.isWalking = true;
 			this.timeToShoot = false;
@@ -2018,7 +2135,7 @@ Bowser.prototype.update = function () {
 				this.timeToShoot = true;
 			}if((this.game.mario.y - this.y) <= -10 ) {
 			    this.isShooting = false;
-			this.isJumping = true;
+			    this.isJumping = true;
 		} else {
 			//this.isJumping = false;
 		}
@@ -2064,7 +2181,29 @@ Bowser.prototype.update = function () {
 }
 
 Bowser.prototype.collide = function(other) {
-    //console.log("Bowser collided with Mario");
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && 
+            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the right
+                    this.direction = 0;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
+            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
+            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
+                    this.direction = 1;
+
+    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+        this.game.addToScore(200);
+        this.stunCounter += 1;
+        this.isStunned = true;
+        this.isShooting = false;
+        this.timeToShoot = false;
+        if(this.stunCounter === 10) {
+            this.game.hasWon = true;
+        } 
+    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario LEFT RIGHT
+        other.boundingbox.left <= this.boundingbox.right)
+        && other.type === 'Mario') {
+        this.game.isDead = true;
+    }
 }
 
 // get an x/y point along a quadratic bezier curve
@@ -2079,8 +2218,6 @@ function getQuadraticBezierXYatT(startPt, controlPt, endPt, T) {
 
 
 Bowser.prototype.draw = function (ctx) {
-    //ctx.strokeStyle = "red";
-    //ctx.strokeRect(this.x, this.y, this.rightBowserShootAnimation.frameWidth, this.rightBowserShootAnimation.frameHeight);
 	if(this.timeToShoot && !this.isJumping) {
 		if(this.isRight) {
 			this.rightBowserShootAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y+1);
@@ -2103,16 +2240,16 @@ Bowser.prototype.draw = function (ctx) {
 	else if(this.isJumping) {
 		if (this.jump) {
 
-        var pos = getQuadraticBezierXYatT(this.jump.start, this.jump.control, this.jump.end, this.jump.t / 100);
-        this.x = pos.x;
-        this.y = pos.y;
-        //
-        this.jump.t += 4;
-        if (this.jump.t > 100) {
-            this.jump = null;
-            this.isJumping = false;
-            this.direction = 0;
-        }
+            var pos = getQuadraticBezierXYatT(this.jump.start, this.jump.control, this.jump.end, this.jump.t / 100);
+            this.x = pos.x;
+            this.y = pos.y;
+        
+            this.jump.t += 4;
+            if (this.jump.t > 100) {
+                this.jump = null;
+                this.isJumping = false;
+                this.direction = 0;
+            }
 
     	} else {
     		this.isJumping = true;
@@ -2147,15 +2284,6 @@ Bowser.prototype.draw = function (ctx) {
 
 	} 
 
-	else if(this.isStunned) {
-		if(this.isRight) {
-
-		} else {
-			
-		}
-
-	} 
-
 	else {
 		if(this.isRight) {
 			        	//this.rightBowserIdleAnimation.drawFrame(this.game.clockTick, ctx,  this.x, this.y);
@@ -2180,6 +2308,10 @@ Bowser.prototype.draw = function (ctx) {
 		}
 
 	}
+
+    this.boundingbox = new BoundingBox( this.game.background.x + this.x, this.y, 40, 40);
+    //ctx.strokeStyle = "red";
+    //ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.rightBowserShootAnimation.frameWidth, this.rightBowserShootAnimation.frameHeight);
 }
 
 //Fire Boss
@@ -2209,7 +2341,7 @@ BowserFire.prototype.update = function () {
 }
 
 BowserFire.prototype.collide = function(other) {
-    console.log("FireBall collided with Mario");
+    this.game.isDead = true;
 }
 
 BowserFire.prototype.draw = function (ctx) {
@@ -2265,7 +2397,7 @@ ASSET_MANAGER.downloadAll(function () {
     var gameboard = new GameBoard();
 
     gameEngine.addEntity(gameboard);
-    var levelID = "level1";
+    var levelID = "level4";
     try {
         $.get('services/levelService.php', {id:levelID}, function(data) {
             console.log(data);
