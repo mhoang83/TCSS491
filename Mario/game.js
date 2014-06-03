@@ -308,7 +308,7 @@ GameEngine.prototype.startOver = function() {
         me.addToScore(0); // to refresh
         if (lives > 0) {
             me.lives = lives;
-             me.coins = coins;
+            me.coins = coins;
         }
         me.isDead = false;
         $('#score').html("Score: " + me.score);
@@ -1481,7 +1481,7 @@ Chomper.prototype.collide = function(other) {
 function BrownBlock(init_x, init_y, game) {
     Entity.call(this, game, init_x, init_y);
     this.sprite = ASSET_MANAGER.getAsset('images/castlepole.gif');
-    this.type = 'brownblock';
+    this.type = "Box";
     this.boundingbox = new BoundingBox(this.x, this.y, 20, 20);
 }
 BrownBlock.prototype = new Entity();
