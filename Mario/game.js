@@ -1219,45 +1219,57 @@ Enemy.prototype = new Entity();
 function Goomba(init_x, init_y, game, initial_state) {
     //Call Enemy super constructor
     Enemy.call(this,init_x, init_y, game);
-    this.squished = false;
     this.direction = 1;
     this.state = initial_state;
     this.type = "Goomba"; 
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
     this.dewinged_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
     this.winged_animation = new Animation(this.sprite, 90, 0, this.frameWidth, this.frameHeight, .4, 4, true, false);
+    this.squished_animation = new Animation(this.sprite, this.frameWidth * 6, 0, this.frameWidth, this.frameHeight, .1, 1, false, false);
     this.current_animation = (this.state === 1) ? this.winged_animation : this.dewinged_animation;
     this.game = game;
     this.cycleCount = 0;
 }
 
 Goomba.prototype.draw = function(ctx) {
-    if(this.squished) {
-        if(this.cycleCount === 10) {
-            this.removeFromWorld = true;
-        } else {
-        	      ctx.drawImage(this.sprite,
-                  this.frameWidth * 6, 0, 
-                  this.frameWidth, this.frameHeight,
-                  this.x, this.y + 5,
-                  this.frameWidth * 1,
-                  this.frameHeight * 1);
-        }
-    } else {
-         this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
-    }
+    this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);                  
 }
 
 Goomba.prototype.update = function() {
-    if(!this.squished) {
+    //Updates state when stepped on
+    if(this.steppedOn && this.state >= 0) {
+        this.state--;
+        this.steppedOn = false;
+        this.game.addToScore(100);
+    } 
+
+    //Set current animation
+    switch(this.state){
+        case 1:
+            this.current_animation = this.winged_animation;
+            break;
+        case 0:
+            this.current_animation = this.dewinged_animation;
+            break;
+        default:
+            this.current_animation = this.squished_animation;
+            break;
+    }
+    
+    //Set direction
+    if(this.state >= 0) {
         if(this.direction === 1) {
-            this.x += 1;        
+            this.x += 1;       
         } else {
             this.x -= 1;
         }
     } else {
-    	this.cycleCount += 1;
+        if(this.cycleCount === 50) 
+            this.removeFromWorld = true;
+        else 
+            this.cycleCount += 1;
     }
+    
     this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 17, 16);
 
 }
@@ -1275,8 +1287,8 @@ Goomba.prototype.collide = function(other) {
                     this.direction = 1;
 
     } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
-        this.game.addToScore(100);
-        this.squished = true;
+        this.steppedOn = true;
+        //this.squished = true;
     } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
         other.boundingbox.left <= this.boundingbox.right)
         && other.type === 'Mario') {
@@ -1286,69 +1298,74 @@ Goomba.prototype.collide = function(other) {
 //End Goomba
 
 //Red Koopa code
-function RedKoopa(init_x, init_y, game) {
+function RedKoopa(init_x, init_y, game, initial_state) {
     //Call Enemy super constructor
     Enemy.call(this,init_x, init_y, game);
     this.frameWidth = 40;
     this.frameHeight = 30;
-    this.direction = 1;
     this.type = "RedKoopa"; 
+    this.direction = 1;
+    this.cycleCount = 0;
+    this.state = initial_state || 1;
+    this.steppedOn = false;
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 20, 25);
-    this.right_animation = new Animation(this.sprite, 200, 248, this.frameWidth, this.frameHeight, .4, 4, true, false);
-    this.left_animation = new Animation(this.sprite, 40, 248, this.frameWidth, this.frameHeight, .4, 4, true, true);
-    this.current_animation = this.right_animation;
+    this.dewinged_right_animation = new Animation(this.sprite, 200, 200, this.frameWidth, this.frameHeight, .4, 2, true, false);
+    this.dewinged_left_animation = new Animation(this.sprite, 120, 200, this.frameWidth, this.frameHeight, .4, 2, true, true);
+    this.winged_right_animation = new Animation(this.sprite, 200, 248, this.frameWidth, this.frameHeight, .4, 4, true, false);
+    this.winged_left_animation = new Animation(this.sprite, 40, 248, this.frameWidth, this.frameHeight, .4, 4, true, true);
+    this.current_animation = (this.state === 1) ? this.winged_right_animation : this.dewinged_right_animation;
 }
 
 RedKoopa.prototype.draw = function(ctx) {
-    /*
-    ctx.strokeStyle = "red";
-    ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
-    
-    ctx.drawImage(this.sprite,
-                  40, 248, 
-                  this.frameWidth, this.frameHeight,
-                  this.game.background.x + this.x, this.y,
-                  this.frameWidth * 1,
-                  this.frameHeight * 1);*/
     this.current_animation.drawFrame(this.game.clockTick, ctx, this.game.background.x + this.x, this.y, 1.1);
 }
 
 RedKoopa.prototype.update = function() {    
-    if(this.direction === 1) {
+    //Updates state when stepped on
+    if(this.steppedOn && this.state >= 0) {
+        this.state--;
+        this.steppedOn = false;
+        this.game.addToScore(100);
+    } 
+
+    if(this.state === 0 && this.direction === 1) {
         this.x += 1;
-        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 20, 25);        
-    } else {
+        this.current_animation = this.dewinged_right_animation;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y, 20, 25);        
+    } else if(this.state === 0 && this.direction === 0) {
         this.x -= 1;
+        this.current_animation = this.dewinged_left_animation;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y, 20, 25);
+    } else if(this.state === 1 && this.direction === 1) {
+        this.x += 1;
+        this.current_animation = this.winged_right_animation;
+        this.boundingbox = new BoundingBox( this.game.background.x + this.x + 17, this.y + 5, 20, 25);      
+    } else if(this.state === 1 && this.direction === 0) {
+        this.x -= 1;
+        this.current_animation = this.winged_left_animation;
         this.boundingbox = new BoundingBox( this.game.background.x + this.x + 3, this.y + 5, 20, 25);
+    } else {
+        if(this.cycleCount === 50) 
+            this.removeFromWorld = true;
+        else 
+            this.cycleCount += 1;
     }
-
-    
-
 }
 
 RedKoopa.prototype.collide = function(other) {
        
-    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && 
-            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
-            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the right
-                this.direction = 0;
-            this.current_animation = this.left_animation;
-    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
-            //(this.boundingbox.bottom + 2 === other.boundingbox.bottom || this.boundingbox.bottom === other.boundingbox.bottom) && 
-            (other.type === 'Pipe' || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
-                    this.direction = 1;
-                    this.current_animation = this.right_animation;
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && !other.passThrough) { //Collsion from the right
+        this.direction = 1;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && !other.passThrough) { //Collsion from the left
+        this.direction = 0;
     } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
-        this.game.addToScore(100);
-        this.squished = true;
-        this.removeFromWorld = true;
+        this.steppedOn = true;
     } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
         other.boundingbox.left <= this.boundingbox.right)
         && other.type === 'Mario') {
         this.game.isDead = true;
     } 
 }
-//End RedKoopa
 
 //Skeletal Turtle code
 function SkeletalTurtle(init_x, init_y, game) {
