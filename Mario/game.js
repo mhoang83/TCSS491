@@ -1221,7 +1221,7 @@ function Goomba(init_x, init_y, game, initial_state) {
     Enemy.call(this,init_x, init_y, game);
     this.squished = false;
     this.direction = 1;
-    this.state = 1;//initial_state;
+    this.state = initial_state;
     this.type = "Goomba"; 
     this.boundingbox = new BoundingBox(this.x + 17, this.y + 5, 17, 16);
     this.dewinged_animation = new Animation(this.sprite, 0, 0, this.frameWidth, this.frameHeight, .4, 2, true, false);
