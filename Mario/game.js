@@ -300,7 +300,8 @@ GameEngine.prototype.startOver = function() {
         var lives = this.lives - 1;
         var coins = this.coins;
     }
-    this.entities = [];
+    this.entities.splice(0, this.entities.length);
+    this.worldEntities.splice(0, this.worldEntities.length);
     var me = this;
     $.get('services/levelService.php', {id:this.levels[this.current_level]}, function(data){
         me.loadLevel(data);
@@ -2007,6 +2008,9 @@ LevelOver.prototype.update = function () {
                     var score = me.game.score;
                     var lives = me.game.lives;
                     var coins = me.game.coins;
+                    me.game.entities.splice(0, me.game.entities.length);
+                    me.game.worldEntities.splice(0, me.game.worldEntities.length);
+                    me.game.LevelOver = false;
                     me.game.loadLevel(data);
                     me.game.addToScore(score);
                     me.game.coins = coins - 1;
@@ -2041,7 +2045,7 @@ LevelOver.prototype.draw = function (ctx) {
             var mousex = this.game.mouse.x, mousey = this.game.mouse.y;
             if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 70 && mousey <= y + 110) { ctx.fillStyle = "blue"; }
         }
-        console.log(this.game.levels);
+        //console.log(this.game.levels);
         if (this.game.levels.length > this.game.current_level + 1) {
             ctx.fillText("Continue?", x- 40, y + 80);
         } 
