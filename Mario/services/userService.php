@@ -28,6 +28,22 @@ if (isset($_POST['login'])) {
 	} else 
 		die('user already exists');
 	
+} else if (isset($_POST['score'])) {
+	$score = $db->quote($_POST['score']);
+	$user_id = $db->quote($_POST['user_id']);
+	$ls_id= $db->quote($_POST['ls_id']);
+	$stmnt = $db->prepare("Select * from Scores where user_id = $user_id and ls_id = $ls_id;" );
+	$stmnt->execute();
+	if ($stmnt->rowCount() === 0) {
+		$stmnt = $db->prepare("Insert into Scores(user_id, ls_id, score) values ($user_id, $ls_id, $score);" );
+		$stmnt->execute();
+	} else {
+		$row = $stmnt->fetch(PDO::FETCH_ASSOC);
+		if ($row['score'] < $score) {
+			$stmnt = $db->prepare("Update Scores set score = $score where user_id = $user_id and ls_id = $ls_id;");
+			$stmnt->execute();
+		}
+	}
 } else if (isset($_POST['user_id'])) {
 	$id = $name = $db->quote($_POST['user_id']);
 	$stmnt = $db->prepare("Select user_name from User where user_id = $id ;" );
@@ -52,6 +68,6 @@ if (isset($_POST['login'])) {
 		$arr[$row['ls_name']] = array($row['user_name'], $row['score'] ); 
 	}
 	echo json_encode($arr);
-}
+} 
 
 ?>

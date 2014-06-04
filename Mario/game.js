@@ -2018,12 +2018,22 @@ LevelOver.prototype.update = function () {
                     me.game.lives = lives;
                     $('#lives').html('Lives : ' + lives);
                 });
-        } 
-        else if (!this.game.isDead && this.game.levels.length === this.game.current_level + 1) {
-            //need to load menu and store score
-            ctx.fillText("Play Again?", x- 40, y + 80);
-        } else
-            this.game.startOver();
+            } else if (!this.game.isDead && this.game.levels.length === this.game.current_level + 1) {
+                //need to load menu and store score
+                var me = this;
+                $.post('services/userService.php', {score:this.game.score, user_id:this.game.user_id,ls_id:this.game.ls_id}, function(data) { 
+                        console.log('updating score');
+                        // update global scores view
+                        set_global_scores($('#global_scores'));
+                        // update user scores view
+                        set_user_scores($('#user_scores'), me.game.user_id);
+                        
+                });
+                this.game.current_level = 0;
+                this.game.startOver();
+
+            } else
+                this.game.startOver();
     }
   
 }
@@ -2051,6 +2061,7 @@ LevelOver.prototype.draw = function (ctx) {
         } 
         else if (!this.game.isDead && this.game.levels.length === this.game.current_level + 1) {
             //need to load menu and store score
+            console.log('levelComplete');
             ctx.fillText("Play Again?", x- 40, y + 80);
         } else
             ctx.fillText("Play Again?", x- 40, y + 80);
@@ -2656,12 +2667,13 @@ function build_menu(name, user_id) {
                 console.log(levels);
                init_game(user_id, sequences.val(), levels);
                 menu.html('');
+                 var global_scores = $('<div id="global_scores" style="float:left;">');
+                set_global_scores(global_scores);
+                menu.append(global_scores);
                 var user_scores = $('<div id="user_scores">');
                 set_user_scores(user_scores, user_id);
                 menu.append(user_scores);
-                 var global_scores = $('<div id="global_scores">');
-                set_global_scores(global_scores);
-                menu.append(global_scores);
+                
             });
       });
       menu.append(play);
@@ -2682,17 +2694,23 @@ function set_user_scores(score_area, user_id) {
         console.log(data);
         data = JSON.parse(data);
         score_area.html('');
-        score_area.append($('<div>').text("Top 10 user scores"));
+         var set = $('<fieldset style=" display: inline-block;">').append($('<legend>').text("Top 10 global scores"));
+         var table = $('<table>');
+        set.append(table);
+        score_area.append(set);
+           var row = $('<tr>');
+            row.append($('<th style="padding:10px 5px 10px 5px;">').text('Username'));
+             row.append($('<th style="padding:10px 5px 10px 5px;">').text('Score'));
+            table.append(row);
         $.each(data, function(index, value) {
-            var row = $('<div>');
-            div.append($('<span>').text(index + ' '));
-            div.append($('<span>').text(value));
-            score_area.append(row);
+            row = $('<tr>');
+            row.append($('<td style="padding:5px;">').text(index));
+            row.append($('<td style="padding:5px;">').text(value));
+            table.append(row);
         });
         var refresh = $('<input type="button" value ="Refresh">');
         refresh.click(function() {set_user_scores(score_area, user_id)});
-        score_area.append(refresh);
-        console.log(score_area);
+        set.append(refresh);
     }).fail(function(err){console.log(err)}); 
 
 }
@@ -2702,17 +2720,27 @@ function set_global_scores(score_area) {
         console.log(data);
         data = JSON.parse(data);
         score_area.html('');
-        score_area.append($('<div>').text("Top 10 global scores"));
+        var set = $('<fieldset style=" display: inline-block;">').append($('<legend>').text("Top 10 global scores"));
+        var table = $('<table>');
+        set.append(table);
+        score_area.append(set);
+             var row = $('<tr>');
+             row.append($('<th style="padding:10px 5px 10px 5px;">').text('User name'));
+            row.append($('<th style="padding:10px 5px 10px 5px;">').text('Level Sequence'));
+            
+             row.append($('<th style="padding:10px 5px 10px 5px;">').text('Score'));
+            table.append(row);
         $.each(data, function(index, value) {
-            var row = $('<div>');
-            div.append($('<span>').text(index + ' '));
-            div.append($('<span>').text(value[0]));
-             div.append($('<span>').text(value[1]));
-            score_area.append(row);
+            row = $('<tr>');
+            row.append($('<td style="padding:5px;">').text(value[0]));
+            row.append($('<td style="padding:5px;">').text(index));
+            
+             row.append($('<td style="padding:5px;">').text(value[1]));
+            table.append(row);
         });
         var refresh = $('<input type="button" value ="Refresh">');
         refresh.click(function() {set_global_scores(score_area)});
-        score_area.append(refresh);
+        set.append(refresh);
     }).fail(function(err){console.log(err)}); 
 
 }
