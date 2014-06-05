@@ -2748,6 +2748,7 @@ function build_menu(name, user_id, restart, game) {
         menu.html(error);
     } else
     	menu.html($('<p>').text('Welcome ' + name));
+        menu.append($('<a href="/TCSS491/Mario/editor">').html('editor'));
     menu.append(error);
     menu.append($('<h4>').text('Create a Level Sequence'));
     var seq_name = $('<input type="text" placeholder="Sequence Name">');

@@ -2352,6 +2352,8 @@ ASSET_MANAGER.downloadAll(function () {
     editArea.append(load);
     editArea.append(levelname);
     editArea.append(save);
+     editArea.append($('<br>'));
+     editArea.append($('<a href="/TCSS491/Mario">').html('game'));
      gameEngine.background = new BackGround(0,0,gameEngine,7,1);
     gameEngine.editor = new BackgroundEditor(0, 256, gameEngine, 1, 4);
     gameEngine.changeEditor(1);
