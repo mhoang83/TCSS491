@@ -230,12 +230,15 @@ GameEngine.prototype.draw = function (drawCallback) {
     if (drawCallback) {
         drawCallback(this);
     }
+    this.bgwall.draw(this.ctx);
+    this.levelOver.draw(this.ctx);
     this.ctx.restore();
 }
 
 GameEngine.prototype.update = function () {
     var entitiesCount = this.entities.length;
-
+    this.bgwall.update();
+    this.levelOver.update();
     for (var i = 0; i < entitiesCount; i++) {
         var entity = this.entities[i];
 
@@ -392,7 +395,9 @@ GameEngine.prototype.loadLevel = function(jSonString) {
 
     this.addEntity(mario);
     this.mario = mario;
-    this.addEntity(new LevelOver(this));
+    this.levelOver = new LevelOver(this);
+    if(!this.bgwall)
+        this.bgwall = new BGWall(this);
 
 
 }
@@ -1376,6 +1381,7 @@ Goomba.prototype.collide = function(other) {
         other.boundingbox.left < this.boundingbox.right)
         && other.type === 'Mario') {
         this.game.isDead = true;
+         this.game.bgwall.down = true;
     } 
 }
 //End Goomba
@@ -1449,6 +1455,7 @@ RedKoopa.prototype.collide = function(other) {
         other.boundingbox.left < this.boundingbox.right)
         && other.type === 'Mario') {
         this.game.isDead = true;
+         this.game.bgwall.down = true;
     } 
 }
 
@@ -1493,6 +1500,7 @@ SkeletalTurtle.prototype.collide = function(other) {
         other.boundingbox.left <= this.boundingbox.right)
         && other.type === 'Mario') {
         this.game.isDead = true;
+         this.game.bgwall.down = true;
     } 
 }
 //End SkeletalTurtle
@@ -1544,10 +1552,12 @@ BonyBeetle.prototype.collide = function(other) {
         this.current_animation = this.right_animation;
     } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
         this.game.isDead = true;
+         this.game.bgwall.down = true;
     } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
         other.boundingbox.left <= this.boundingbox.right) 
         && other.type === 'Mario') {
         this.game.isDead = true;
+         this.game.bgwall.down = true;
     } 
 }
 //End BonyBeetle
@@ -2075,8 +2085,48 @@ Castle.prototype.draw = function (ctx) {
 Castle.prototype.collide = function(entity) {
     
     if (entity.type === 'Mario') {
+        this.game.bgwall.down = true;
         this.game.finishedLevel = true;
     }
+}
+
+function BGWall(game) {
+    // ASSET_MANAGER.queueDownload('images/backgroundBoxesMario.png');
+    // ASSET_MANAGER.queueDownload('images/backgroundGoldSmallMario.png');
+     Entity.call(this, game, 0, -256 );
+     this.sprite = ASSET_MANAGER.getAsset('images/backgroundBoxesMario.png');
+}
+
+BGWall.prototype = new Entity();
+BGWall.prototype.constructor = BGWall;
+
+BGWall.prototype.update = function () {
+     if (this.down) {
+        this.y += 5;
+        if (this.y >=0) {
+            this.y = 0;
+            this.down = false;
+        }
+     }else if (this.up) {
+        this.y -= 5;
+        if (this.y <= - 256) {
+            this.y = - 256;
+            this.up = false;
+        }
+     }
+  
+}
+
+BGWall.prototype.draw = function (ctx) {
+    
+    ctx.drawImage(this.sprite,
+              0, 0,  
+              1024, 256,
+               0, this.y,
+              1024,
+              256);
+       
+
 }
 
 function LevelOver(game) {
@@ -2090,11 +2140,16 @@ LevelOver.prototype.reset = function () {
     this.game.finishedLevel = false;
 }
 LevelOver.prototype.update = function () {
-     if ((this.game.finishedLevel || this.game.isDead )&& this.game.click) {
+     if ((this.game.finishedLevel || this.game.isDead )&& this.game.click && !this.game.bgwall.down) {
         var mousex = this.game.click.x, mousey = this.game.click.y,  x = this.x, y = this.y;
          if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 100 && mousey <= y + 125) {
+            if (!this.game.isDead && this.game.levels.length === this.game.current_level + 1) {
+                this.game.startOver();
+                this.game.bgwall.up = true;
+            }    
          	$('#game').hide();
             this.game.levelComplete = false;
+            this.game.finishedLevel = false;
             this.game.current_level = 0;
             this.game.isDead =false;
             this.game.entities = [];
@@ -2108,9 +2163,11 @@ LevelOver.prototype.update = function () {
                 this.game.current_level++;
                 var me = this;
                 $.get('services/levelService.php', {id:this.game.levels[this.game.current_level]}, function(data) {
+                    
                     var score = me.game.score;
                     var lives = me.game.lives;
                     var coins = me.game.coins;
+                     me.game.finishedLevel = false;
                     me.game.entities.splice(0, me.game.entities.length);
                     me.game.worldEntities.splice(0, me.game.worldEntities.length);
                     me.game.LevelOver = false;
@@ -2120,6 +2177,7 @@ LevelOver.prototype.update = function () {
                     me.game.addCoin();
                     me.game.lives = lives;
                     $('#lives').html('Lives : ' + lives);
+                    setTimeout(function() {me.game.bgwall.up = true;}, 500);
                 });
             } else if (!this.game.isDead && this.game.levels.length === this.game.current_level + 1) {
                 //need to load menu and store score
@@ -2134,9 +2192,14 @@ LevelOver.prototype.update = function () {
                 });
                 this.game.current_level = 0;
                 this.game.startOver();
+                setTimeout(function() {me.game.bgwall.up = true;}, 500);
+                
 
-            } else
+            } else {
+                var me = this;
                 this.game.startOver();
+                setTimeout(function() {me.game.bgwall.up = true;}, 500);
+            }
     }
   
 }
@@ -2159,12 +2222,12 @@ LevelOver.prototype.draw = function (ctx) {
             if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 60 && mousey <= y + 85) { ctx.fillStyle = "blue"; }
         }
         //console.log(this.game.levels);
-        if (this.game.levels.length > this.game.current_level + 1) {
+        if (!this.game.isDead && this.game.levels.length > this.game.current_level + 1) {
             ctx.fillText("Continue?", x- 40, y + 80);
         } 
         else if (!this.game.isDead && this.game.levels.length === this.game.current_level + 1) {
             //need to load menu and store score
-            console.log('levelComplete');
+           // console.log('levelComplete');
             ctx.fillText("Play Again?", x- 40, y + 80);
         } else
             ctx.fillText("Play Again?", x- 40, y + 80);
@@ -2578,7 +2641,8 @@ ASSET_MANAGER.queueDownload('images/levelRemovedBorder1.png');
 ASSET_MANAGER.queueDownload('images/smb3_mario_sheet.png');
 ASSET_MANAGER.queueDownload('images/smb3_enemies_sheet.png');
 ASSET_MANAGER.queueDownload('images/pipe.png');
-
+ASSET_MANAGER.queueDownload('images/backgroundBoxesMario.png');
+ASSET_MANAGER.queueDownload('images/backgroundGoldSmallMario.png');
 ASSET_MANAGER.queueDownload('images/mariolevels.png');
 ASSET_MANAGER.queueDownload('images/castlepole.gif');
 ASSET_MANAGER.queueDownload('images/pipeextension.png');
