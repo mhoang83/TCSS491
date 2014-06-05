@@ -253,20 +253,31 @@ GameEngine.prototype.detectCollisions = function () {
 
     var entities = this.entities;
     var mario = this.mario;
+    var distance = 0;
     for (var i = 0; i < entities.length; i++) {
         var entity = entities[i];
-        if (mario.boundingbox.isCollision(entity.boundingbox) && mario.type !== entity.type) {
-            mario.collide(entity);
-            entity.collide(mario);
+        if(entity.type != "Mario") {
+
+        		if (mario.boundingbox.isCollision(entity.boundingbox)) {
+        			entity.collide(mario);
+            		mario.collide(entity);
+        		}
+
+
+
+        	if(entity.subType === 'Enemy') { 
+           		for(var j = 0; j < this.worldEntities.length; j++) {
+                	if(entity.boundingbox.isCollision(this.worldEntities[j].boundingbox)){
+                    	entity.collide(this.worldEntities[j]);
+                	}
+           		}
+        	}
+
+        	
         }
 
-        if(entity.subType === 'Enemy') { 
-           for(var j = 0; j < this.worldEntities.length; j++) {
-                if(entity.boundingbox.isCollision(this.worldEntities[j].boundingbox)){
-                    entity.collide(this.worldEntities[j]);
-                }
-            }
-        }
+
+        
     }
 }
 
@@ -482,8 +493,9 @@ function BoundingBox(x, y, width, height) {
 }
 
 BoundingBox.prototype.isCollision = function (otherEntityBoundingBox) {
-
+	var isMessagesOn = false;
     if(otherEntityBoundingBox) {
+
        //TRUE = Collision on that side, false otherwise
         var leftCheck = false;
         var rightCheck = false;
@@ -512,18 +524,29 @@ BoundingBox.prototype.isCollision = function (otherEntityBoundingBox) {
 
         //Check mario collision with an entity on his top right side
         if(rightCheck && topCheck) {
+        	if(isMessagesOn) {
+				console.log("Collide Right and Top");
+        	}
+        	
             return true;
-
         }
 
         //Check mario collision with an entity on his top left side
         else if(leftCheck && topCheck) {
+        	if(isMessagesOn) {
+        		console.log("Collide Left and Top");
+        	}
+        	        	
             return true;
 
         }
 
         //Check mario collision with an entity on his bottom right
         else if(rightCheck && bottomCheck) {
+        	if(isMessagesOn) {
+        		console.log("Collide Right and Botton");
+        	}
+        	        	
             return true;
         }
 
@@ -531,34 +554,66 @@ BoundingBox.prototype.isCollision = function (otherEntityBoundingBox) {
         //Check Mario Collision with an enitity  on his bottom left
 
         else if(leftCheck && bottomCheck) {
+        	 if(isMessagesOn) {
+        		console.log("Collide Left and Botton");
+        	}
+        	        	
             return true;
 
         }
 
         //Check for a collision on the right, but Mario is at equal level of the entity
         else if(rightCheck && (this.bottom === oth.bottom)) {
+        	 if(isMessagesOn) {
+        		console.log("Collide Right and bottom equals bottom");
+        	}
+        	        	
             return true;
 
         }
 
         //Check for collision on the left, but Mario is at equal level of the entity
         else if(leftCheck && (this.bottom === oth.bottom)) {
+        	if(isMessagesOn) {
+        		console.log("Collide Left and bottom equals bottom");
+        	}
+        	        	
             return true;
 
         } else if(bottomCheck && this.right > oth.left && this.left > oth.left && this.right < oth.right && this.left < oth.right) { //Ontop of a larger box then marios boundboox
+        	 if(isMessagesOn) {
+        		console.log("Collide Bottom and mario is smaller then other");
+        	}
+        	        	
         	return true;
 
         } else if(bottomCheck && this.right > oth.left && this.left < oth.left) { //Ontop of a larger box then marios boundboox
+        	 if(isMessagesOn) {
+        		console.log("Collide Bottom and right");
+        	}
+        	        	
         	return true;
 
         } else if(bottomCheck && this.left < oth.right && this.right > oth.right) { //Ontop of a larger box then marios boundboox
+        	 if(isMessagesOn) {
+        		console.log("Collide Bottom and left");
+        	}
+        	        	
         	return true;
 
         } 
-        if(rightCheck && this.top > oth.top && this.bottom < oth.bottom) { //Collision on right of Mario with something larger then himself (like a pipe)
+        else if(rightCheck && this.top > oth.top && this.bottom < oth.bottom) { //Collision on right of Mario with something larger then himself (like a pipe)
+        	 if(isMessagesOn) {
+        		console.log("Collide Right and Bigger then mario");
+        	}
+        	        	
             return true;
 
-        } if(leftCheck && this.top > oth.top && this.bottom < oth.bottom) { //Collision on left of Mario with something larger then himself (like a pipe)
+        } else if(leftCheck && this.top > oth.top && this.bottom < oth.bottom) { //Collision on left of Mario with something larger then himself (like a pipe)
+        	 if(isMessagesOn) {
+        		       	console.log("Collide Left and Bigger then mario");
+        	}
+
 
             return true;
 
@@ -567,10 +622,10 @@ BoundingBox.prototype.isCollision = function (otherEntityBoundingBox) {
 
         //If not of the above apply, then the collision is not legit
         else {
-    return false;
+    		return false;
         }
     
-}
+	}
 
 
 }
@@ -667,7 +722,7 @@ function Mario(init_x, init_y, game) {
     this.jump = null;
     this.d;
     // made this the same as the debug box mario already has drawn around him.
-    this.boundingbox = new BoundingBox(this.x + 15, this.y , 18, 17);
+    this.boundingbox = new BoundingBox(this.x + 15, this.y , 17, 16);
     this.sprite = ASSET_MANAGER.getAsset('images/smb3_mario_sheet.png');
     this.walkLeftAnimation = new Animation(this.sprite, 120, 80, 40, 40, 0.15, 2, true, true);
     this.walkRightAnimation = new Animation(this.sprite, 200, 80, 40, 40, 0.15, 2, true, false);
@@ -968,12 +1023,18 @@ Mario.prototype.update = function ()
                 } 
         }
        
-    this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 18, 17);    
+    this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 17, 16);    
     
 }
 
 
 Mario.prototype.draw = function(ctx) {
+	if (true) {
+            //ctx.strokeStyle = "red";
+            //ctx.strokeRect(this.x + 17, this.y + 8, this.fallAnimation.frameWidth, this.fallAnimation.frameHeight);
+            //ctx.strokeStyle = "green";
+            //ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
+    }
     if (this.game.isDead) {
         ctx.drawImage(this.sprite,
                   360, 200,  // source from sheet
@@ -983,12 +1044,7 @@ Mario.prototype.draw = function(ctx) {
                   40);
 
     } else if ((this.isFalling || this.isJumping) && !this.isBouncing) {
-        if (this.boxes) {
-            ctx.strokeStyle = "red";
-            ctx.strokeRect(this.x + 17, this.y + 8, this.fallAnimation.frameWidth, this.fallAnimation.frameHeight);
-            ctx.strokeStyle = "green";
-            ctx.strokeRect(this.boundingbox.x, this.boundingbox.y, this.boundingbox.width, this.boundingbox.height);
-        }
+
         if(!this.isRight && !this.isGrowth) { //LEFT AND SMALL
                   ctx.drawImage(this.sprite,
                   40, 80,  // source from sheet
@@ -1139,36 +1195,12 @@ Mario.prototype.draw = function(ctx) {
 }
 
 Mario.prototype.collide = function(other) {
-
-    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left ) {
-        if(other.type === "Box") {
-            if(this.boundingbox.bottom === other.boundingbox.bottom+1 || this.boundingbox.bottom === other.boundingbox.bottom) {
-               this.x = other.boundingbox.left - 33; 
-            }
-        } else if(other.type === "Pipe") {
-            this.x = other.boundingbox.left - 33;
-        }
-    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right) {
-        if(other.type === "Box") {
-            if(this.boundingbox.bottom === other.boundingbox.bottom+1 || this.boundingbox.bottom === other.boundingbox.bottom) {
-                this.x = other.boundingbox.right - 15;
-            }
-        } else if(other.type === "Pipe" ) {
-            this.x = other.boundingbox.right - 15;
-        }
-
-    }
-
-
     if(this.boundingbox.top < other.boundingbox.bottom && this.boundingbox.bottom > other.boundingbox.bottom && other.type !== "Coin" && other.type !== "Pole") { //Collision from below
                 this.maxJumpHeight = other.boundingbox.bottom;
                 this.isBouncing = false;
                 this.isFalling = true;
-
-                    this.isRunning = true;
-
+                //this.isRunning = true;
                 this.jump = null;
-
     } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top+3 < other.boundingbox.top && other.type !== "Goomba" && other.type !== "Coin" && other.type !== "Pole" && other.type !== "Bowser") {    
             	this.y = other.boundingbox.top - 25;
                 this.isBouncing = false;
@@ -1179,14 +1211,10 @@ Mario.prototype.collide = function(other) {
             	this.isJumpingRunning = false;
                 this.platformMaxX = other.boundingbox.right;
                 this.platformMinX = other.boundingbox.left;
-                 this.jumpComplete = false; 
-            	this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 18, 17);
+                this.jumpComplete = false; 
+                this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 17, 16);
     } else if (this.boundingbox.bottom > other.boundingbox.top && this.boundingbox.top + 3 < other.boundingbox.top && (other.type == "Goomba" || other.type == "Bowser") ) {
                 this.y = other.boundingbox.top - 45;
-
-                //this.isFalling = true;
-                //this.isJumping = false;
-
                 this.isBouncing = true;
                 this.isFalling = false;
                 this.isJumping = false;
@@ -1194,7 +1222,66 @@ Mario.prototype.collide = function(other) {
                 this.isRunning = false;
                 this.isJumpingRunning = false;
                 this.isJumpingWalking = false;
-     }
+                this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 17, 16);
+
+    } 
+
+     if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right ) { //Collision Left SIDE Other
+        	if(other.type === "Box") {
+            	if( (this.boundingbox.top - other.boundingbox.top < 17 && this.boundingbox.top - other.boundingbox.top > -17) &&
+            		(this.boundingbox.bottom - other.boundingbox.bottom < 17 && this.boundingbox.bottom - other.boundingbox.bottom > -17) 
+            		){
+            			if(this.isFalling) {
+
+            			} else {
+            				this.x = other.boundingbox.right -15; 
+           				 	this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 17, 16);
+            			}
+        		}
+
+        	} else if(other.type === "Pipe") {
+        		if( (this.boundingbox.top - other.boundingbox.top < 48 && this.boundingbox.top - other.boundingbox.top > -48) &&
+            		(this.boundingbox.bottom - other.boundingbox.bottom < 48 && this.boundingbox.bottom - other.boundingbox.bottom > -48) 
+            		){
+            			if(this.isFalling) {
+
+            			} else {
+            				this.x = other.boundingbox.right - 15; 
+           					this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 17, 16);
+            			}
+            		
+        		}
+        	}
+    }
+
+    else if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left ) { //Collision Left SIDE Other
+        	if(other.type === "Box") {
+            	if( (this.boundingbox.top - other.boundingbox.top < 17 && this.boundingbox.top - other.boundingbox.top > -17) &&
+            		(this.boundingbox.bottom - other.boundingbox.bottom < 17 && this.boundingbox.bottom - other.boundingbox.bottom > -17) 
+            		){
+            			if(this.isFalling) {
+
+            			} else {
+            				this.x = other.boundingbox.left - 33; 
+           					this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 17, 16);
+            			}
+            		
+        		}
+        	} else if(other.type === "Pipe") {
+        		if( (this.boundingbox.top - other.boundingbox.top < 48 && this.boundingbox.top - other.boundingbox.top > -48) &&
+            		(this.boundingbox.bottom - other.boundingbox.bottom < 48 && this.boundingbox.bottom - other.boundingbox.bottom > -48) 
+            		){
+            			if(this.isFalling) {
+
+            			} else {
+            				this.x = other.boundingbox.left - 33; 
+           					this.boundingbox = new BoundingBox(this.x + 14, this.y + 8, 17, 16);
+            			}
+            		
+        		}
+        	}
+    }
+     
 }
 
 
@@ -1286,11 +1373,11 @@ Goomba.prototype.collide = function(other) {
             (other.type === "Pipe" || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
                     this.direction = 1;
 
-    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+    } else if(other.boundingbox.bottom > this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === "Mario") { //Check for top collision
         this.steppedOn = true;
         //this.squished = true;
-    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
-        other.boundingbox.left <= this.boundingbox.right)
+    } else if((other.boundingbox.right > this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left < this.boundingbox.right)
         && other.type === 'Mario') {
         this.game.isDead = true;
     } 
@@ -1885,7 +1972,6 @@ function GreenPipe(init_x, init_y, game, extLength) {
     this.bottom = this.y + 49;
     this.type = "Pipe";
     this.extensions = [];
-    console.log(extLength);
     if(extLength) {
 
         this.setExtensions(extLength);
@@ -1921,11 +2007,6 @@ GreenPipe.prototype.setExtensions = function(count) {
 }
 
 GreenPipe.prototype.draw = function (ctx) {
-    
-
-    // if(this.isSelected())
-    //     ctx.strokeRect(this.boundingbox.left, this.boundingbox.top, this.boundingbox.width, this.boundingbox.height);
-    
          ctx.drawImage(this.sprite,
                   0, 0,  // source from sheet
                   35, 51,
@@ -1935,9 +2016,6 @@ GreenPipe.prototype.draw = function (ctx) {
      for (var i = 0; i < this.extensions.length; i++) {
         this.extensions[i].draw(ctx);
      }
-
-    //ctx.strokeStyle = "red";
-    //ctx.strokeRect(this.boundingbox.left, this.boundingbox.top, this.boundingbox.width, this.boundingbox.height);
      
 }
 
