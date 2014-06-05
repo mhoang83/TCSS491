@@ -799,7 +799,7 @@ Mario.prototype.update = function ()
             }
            
         }
-        else if (code === 82) {
+        else if (code === 16) {
             if (this.isWalking) {
                 this.isRunning = true;
                 this.isWAlking = false;
