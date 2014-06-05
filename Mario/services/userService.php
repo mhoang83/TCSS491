@@ -39,7 +39,7 @@ if (isset($_POST['login'])) {
 		$stmnt->execute();
 	} else {
 		$row = $stmnt->fetch(PDO::FETCH_ASSOC);
-		if ($row['score'] < $score) {
+		if (intval($row['score']) < intval($_POST['score'])) {
 			$stmnt = $db->prepare("Update Scores set score = $score where user_id = $user_id and ls_id = $ls_id;");
 			$stmnt->execute();
 		}
