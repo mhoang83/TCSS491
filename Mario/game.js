@@ -763,40 +763,7 @@ Mario.prototype.update = function ()
                 this.steps = 0;
                 this.isRight = true;
             }
-            if (this.isRunning)
-            {
-                if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
-                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
-                    {
-
-                        this.x += 2.5;
-                        
-                    }
-                }
-                else
-                {                  
-                    if(this.x -this.game.background.x < ((this.game.background.length-1) * 512 -50)) {
-                        this.game.background.x -= 2.5;
-                        this.platformMinX -= 2.5;
-                        this.platformMaxX -= 2.5;
-                    } else {
-                       if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
-                        {
-
-                            this.x += 2.5;
-                        
-                        }
-                    }
-
-  
-                }
-            }
-            else if (this.steps > 3)
-            {
-                this.isRunning = true;
-                this.isWalking = false;
-            }
-            else if (this.isWalking)
+            if (this.isWalking)
             {
                 if (this.walkRightAnimation.elapsedTime + this.game.clockTick >= this.walkRightAnimation.totalTime && !this.game.jump)
                 {
@@ -832,6 +799,43 @@ Mario.prototype.update = function ()
             }
            
         }
+        else if (code === 16) {
+            if (this.isWalking) {
+                this.isRunning = true;
+                this.isWAlking = false;
+    
+                if (this.isRunning && this.isRight) {
+                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
+                        if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40) {
+
+                            this.x += 2.5;
+
+                        }
+                    }
+                    else {
+                        if (this.x - this.game.background.x < ((this.game.background.length - 1) * 512 - 50)) {
+                            this.game.background.x -= 2.5;
+                            this.platformMinX -= 2.5;
+                            this.platformMaxX -= 2.5;
+                        } else {
+                            if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40) {
+
+                                this.x += 2.5;
+
+                            }
+                        }
+
+
+                    }
+                }
+                if (this.isRunning && !this.isRight) {
+                    if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25) {
+                        this.x -= 2.5;
+                    }
+                }
+            }
+
+        }
         else if (code=== 37 && !this.isBouncing)
         { //LEFT
             if (this.isRight)
@@ -840,19 +844,7 @@ Mario.prototype.update = function ()
                 this.isRight = false;
             }
             
-            if (this.isRunning)
-            {
-                if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25)
-                {
-                    this.x -= 2.5;
-                }
-            }
-            else if (this.steps > 3)
-            {
-                this.isRunning = true;
-                this.isWalking = false;
-            }
-            else if (this.isWalking)
+            if (this.isWalking)
             {
                 if (this.walkLeftAnimation.elapsedTime + this.game.clockTick >= this.walkLeftAnimation.totalTime && !this.game.jump)
                 {
@@ -2098,7 +2090,13 @@ LevelOver.prototype.update = function () {
         var mousex = this.game.click.x, mousey = this.game.click.y,  x = this.x, y = this.y;
          if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 100 && mousey <= y + 125) {
          	$('#game').hide();
-         	build_menu(null, this.game.user_id);
+            this.game.levelComplete = false;
+            this.game.current_level = 0;
+            this.game.isDead =false;
+            this.game.entities = [];
+            this.game.worldEntities = [];
+         	build_menu(null, this.game.user_id, true, this.game);
+             //$.get('services/levelService.php', {id:this.game.levels[this.game.current_level]}, function(data) {});
          } else
          if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 60 && mousey <= y + 85)
             if (!this.game.isDead && this.game.levels.length > this.game.current_level + 1) {
@@ -2166,13 +2164,14 @@ LevelOver.prototype.draw = function (ctx) {
             ctx.fillText("Play Again?", x- 40, y + 80);
         } else
             ctx.fillText("Play Again?", x- 40, y + 80);
+             ctx.fillStyle = "red";  
+        if (this.game.mouse) {
+            var mousex = this.game.mouse.x, mousey = this.game.mouse.y;
+            if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 100 && mousey <= y + 125) { ctx.fillStyle = "blue"; }
+        }
+        ctx.fillText("Menu", x- 40, y + 120);
     }
-     ctx.fillStyle = "red";  
-    if (this.game.mouse) {
-        var mousex = this.game.mouse.x, mousey = this.game.mouse.y;
-        if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 100 && mousey <= y + 125) { ctx.fillStyle = "blue"; }
-    }
-    ctx.fillText("Menu", x- 40, y + 120);
+    
        
 
 }
@@ -2602,6 +2601,20 @@ $(function(){
     
 });
 
+function restart_game(ls_id, levels, game) {
+     $('#game').show();
+     game.ls_id = ls_id;
+     game.levels = levels;
+      // $.get('services/levelService.php', {id:game.levels[game.current_level]}, function(data) {
+               // console.log(data);
+                //game.loadLevel(data);
+                // gameEngine.init(ctx);
+                // gameEngine.start();
+                game.startOver();
+               
+            // })
+}
+
 function init_game(user_id, ls_id, levels) {
     ASSET_MANAGER.downloadAll(function () {
         $('#game').show();
@@ -2659,12 +2672,13 @@ function init_game(user_id, ls_id, levels) {
 
 }
 
-function build_menu(name, user_id) {
+function build_menu(name, user_id, restart, game) {
     var menu = $('#menu');
     var error = $('#error');
-    if(!name)
-    	 menu.html('');
-    else
+    if(!name) {
+    	  var error = $('#error');
+        menu.html(error);
+    } else
     	menu.html($('<p>').text('Welcome ' + name));
     menu.append(error);
     menu.append($('<h4>').text('Create a Level Sequence'));
@@ -2767,6 +2781,23 @@ function build_menu(name, user_id) {
       menu.append(sequences);
       var play = $('<input type="button"value="play">');
       play.click(function() {
+        if(restart) 
+            $.get('services/levelService.php', {seq_levels:sequences.val()}, function(data) {
+                var jsondata = JSON.parse(data);
+                levels = [];
+                $.each(jsondata, function(index, value) {
+                    levels.push(value);
+                });
+                restart_game(sequences.val(), levels, game);
+                menu.html('');
+                 var global_scores = $('<div id="global_scores" style="float:left;">');
+                set_global_scores(global_scores);
+                menu.append(global_scores);
+                var user_scores = $('<div id="user_scores">');
+                set_user_scores(user_scores, user_id);
+                menu.append(user_scores);
+            });
+        else
             $.get('services/levelService.php', {seq_levels:sequences.val()}, function(data) {
                 var jsondata = JSON.parse(data);
                 levels = [];
@@ -2787,14 +2818,16 @@ function build_menu(name, user_id) {
       menu.append(play);
     menu.append($('<br>'));
    // console.log($('body #lout'));
-   
+    if (!restart) {
        var logout = $('<input id="lout" type="button" value="Logout">');
         $('body').append(logout);
         logout.click(function() {
             $(this).hide();
+            $('#game').hide();
             $.removeCookie('mario', {path: '/'});
             create_login();
         });
+    }
 }
 
 function set_user_scores(score_area, user_id) {
@@ -2857,7 +2890,11 @@ function create_login() {
      var attempts = 3;
          var login_error = 'Invalid username/password combination or user does not exist';
         var menu = $('#menu');
-        menu.html('');
+         var error = $('#error');
+         console.log(error[0]);
+         if (!error[0])
+             error = $('<div id="error" style="color:red;font-style:bold;">');
+        menu.html(error);
         var error = $('#error');
         //error.html('Invalid username/password');
 
