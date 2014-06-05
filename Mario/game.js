@@ -208,13 +208,15 @@ GameEngine.prototype.startInput = function () {
 
 GameEngine.prototype.addEntity = function (entity) {
     //console.log('added entity' + entity.type);
-    this.entities.push(entity);
-    
-    //Copy world entities into another collection for collision detection
-    if(entity.type !== 'Mario' || entity.type !== 'Goomba') { //Temp
-        this.worldEntities.push(entity); //Push world entities
+    if (entity) {
+        this.entities.push(entity);
+        
+        //Copy world entities into another collection for collision detection
+        if(entity.type !== 'Mario' || entity.type !== 'Goomba') { //Temp
+            this.worldEntities.push(entity); //Push world entities
 
-    } 
+        } 
+    }
 }
 
 
@@ -256,7 +258,7 @@ GameEngine.prototype.detectCollisions = function () {
     var distance = 0;
     for (var i = 0; i < entities.length; i++) {
         var entity = entities[i];
-        if(entity.type != "Mario") {
+        if(entity && entity.type != "Mario") {
 
         		if (mario.boundingbox.isCollision(entity.boundingbox)) {
         			entity.collide(mario);
@@ -1367,6 +1369,8 @@ Goomba.prototype.collide = function(other) {
 
     } else if(other.boundingbox.bottom > this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === "Mario") { //Check for top collision
         this.steppedOn = true;
+        if (this.state === 0)
+            this.y = -5000;
         //this.squished = true;
     } else if((other.boundingbox.right > this.boundingbox.left ||  //Check for collision with Mario
         other.boundingbox.left < this.boundingbox.right)
@@ -2833,7 +2837,7 @@ function set_user_scores(score_area, user_id) {
         console.log(data);
         data = JSON.parse(data);
         score_area.html('');
-         var set = $('<fieldset style=" display: inline-block;">').append($('<legend>').text("Top 10 global scores"));
+         var set = $('<fieldset style=" display: inline-block;">').append($('<legend>').text("Top 10 user scores"));
          var table = $('<table>');
         set.append(table);
         score_area.append(set);
@@ -2889,7 +2893,6 @@ function create_login() {
          var login_error = 'Invalid username/password combination or user does not exist';
         var menu = $('#menu');
          var error = $('#error');
-         console.log(error[0]);
          if (!error[0])
              error = $('<div id="error" style="color:red;font-style:bold;">');
         menu.html(error);
@@ -2926,7 +2929,7 @@ function create_login() {
                         user_id = parseInt(data);
                         $.cookie('mario', user_id, {expires: 7 , path: '/'});
                         
-                        build_menu(name.val());
+                        build_menu(name.val(), user_id);
                     }
                    
 

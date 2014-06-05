@@ -330,6 +330,7 @@ GameEngine.prototype.loadLevel = function(jSonString) {
         if (entity.type === 'Mario') {
             var mario = new Mario(entity.start_x, entity.start_y, this);
             this.addEntity(mario);
+            this.mario = mario;
         } else if (entity.type !== 'Entity') {
 
             switch(this.superType(entity.type)) {
@@ -1237,8 +1238,12 @@ BackgroundEditor.prototype.save = function() {
     levels.background = this.game.background.toJSON();
     levels.description = this.game.description;
     var entities = [];
+    entities.push(this.game.mario.toJSON());
     for (var i = 0; i < this.game.entities.length; i++){
-        entities.push(this.game.entities[i].toJSON());
+        var entity = this.game.entities[i];
+        if (entity.type !== 'Entity' && entity.x >= 0 && entity.x <= 1024 && entity.y >= 0 && entity.y <= 256) {
+            entities.push(entity.toJSON());
+        }
     }
     levels.entities = entities;
     return JSON.stringify(level);
