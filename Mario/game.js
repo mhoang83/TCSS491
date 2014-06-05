@@ -1397,6 +1397,7 @@ function RedKoopa(init_x, init_y, game, initial_state) {
     this.winged_right_animation = new Animation(this.sprite, 200, 248, this.frameWidth, this.frameHeight, .4, 4, true, false);
     this.winged_left_animation = new Animation(this.sprite, 40, 248, this.frameWidth, this.frameHeight, .4, 4, true, true);
     this.current_animation = (this.state === 1) ? this.winged_right_animation : this.dewinged_right_animation;
+    this.flag = false;
 }
 
 RedKoopa.prototype.draw = function(ctx) {
@@ -1436,15 +1437,16 @@ RedKoopa.prototype.update = function() {
 }
 
 RedKoopa.prototype.collide = function(other) {
-       
-    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && !other.passThrough) { //Collsion from the right
-        this.direction = 1;
-    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && !other.passThrough) { //Collsion from the left
-        this.direction = 0;
-    } else if(other.boundingbox.bottom >= this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === 'Mario') { //Check for top collision
+    if(this.boundingbox.right > other.boundingbox.left && this.boundingbox.left < other.boundingbox.left && 
+            (other.type === "Pipe" || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the right
+                    this.direction = 0;
+    } else if(this.boundingbox.left < other.boundingbox.right && this.boundingbox.right > other.boundingbox.right && 
+            (other.type === "Pipe" || other.type === 'Box' || other.type === 'PipeExt')) { //Collsion from the left
+                    this.direction = 1;
+    } else if(other.boundingbox.bottom > this.boundingbox.top && other.boundingbox.top < this.boundingbox.top && other.type === "Mario") { //Check for top collision
         this.steppedOn = true;
-    } else if((other.boundingbox.right >= this.boundingbox.left ||  //Check for collision with Mario
-        other.boundingbox.left <= this.boundingbox.right)
+    } else if((other.boundingbox.right > this.boundingbox.left ||  //Check for collision with Mario
+        other.boundingbox.left < this.boundingbox.right)
         && other.type === 'Mario') {
         this.game.isDead = true;
     } 
