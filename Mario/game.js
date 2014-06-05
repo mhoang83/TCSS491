@@ -2702,8 +2702,6 @@ function build_menu(name, user_id) {
                 var user_scores = $('<div id="user_scores">');
                 set_user_scores(user_scores, user_id);
                 menu.append(user_scores);
-                 $('#game').show();
-                
             });
       });
       menu.append(play);
