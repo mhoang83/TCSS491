@@ -2016,7 +2016,11 @@ LevelOver.prototype.reset = function () {
 LevelOver.prototype.update = function () {
      if ((this.game.finishedLevel || this.game.isDead )&& this.game.click) {
         var mousex = this.game.click.x, mousey = this.game.click.y,  x = this.x, y = this.y;
-         if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 70 && mousey <= y + 110)
+         if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 100 && mousey <= y + 125) {
+         	$('#game').hide();
+         	build_menu(null, this.game.user_id);
+         } else
+         if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 60 && mousey <= y + 85)
             if (!this.game.isDead && this.game.levels.length > this.game.current_level + 1) {
                 console.log('here');
                 this.game.current_level++;
@@ -2070,7 +2074,7 @@ LevelOver.prototype.draw = function (ctx) {
         ctx.fillText("Score : "+this.game.score, x- 40, y + 40);
         if (this.game.mouse) {
             var mousex = this.game.mouse.x, mousey = this.game.mouse.y;
-            if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 70 && mousey <= y + 110) { ctx.fillStyle = "blue"; }
+            if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 60 && mousey <= y + 85) { ctx.fillStyle = "blue"; }
         }
         //console.log(this.game.levels);
         if (this.game.levels.length > this.game.current_level + 1) {
@@ -2083,7 +2087,12 @@ LevelOver.prototype.draw = function (ctx) {
         } else
             ctx.fillText("Play Again?", x- 40, y + 80);
     }
-
+     ctx.fillStyle = "red";  
+    if (this.game.mouse) {
+        var mousex = this.game.mouse.x, mousey = this.game.mouse.y;
+        if (mousex >= x - 60 && mousex <= x + 60 && mousey >=y + 100 && mousey <= y + 125) { ctx.fillStyle = "blue"; }
+    }
+    ctx.fillText("Menu", x- 40, y + 120);
        
 
 }
@@ -2573,7 +2582,10 @@ function init_game(user_id, ls_id, levels) {
 function build_menu(name, user_id) {
     var menu = $('#menu');
     var error = $('#error');
-    menu.html($('<p>').text('Welcome ' + name));
+    if(!name)
+    	 menu.html('');
+    else
+    	menu.html($('<p>').text('Welcome ' + name));
     menu.append(error);
     menu.append($('<h4>').text('Create a Level Sequence'));
     var seq_name = $('<input type="text" placeholder="Sequence Name">');
@@ -2690,6 +2702,7 @@ function build_menu(name, user_id) {
                 var user_scores = $('<div id="user_scores">');
                 set_user_scores(user_scores, user_id);
                 menu.append(user_scores);
+                 $('#game').show();
                 
             });
       });
