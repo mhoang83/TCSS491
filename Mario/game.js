@@ -763,40 +763,7 @@ Mario.prototype.update = function ()
                 this.steps = 0;
                 this.isRight = true;
             }
-            if (this.isRunning)
-            {
-                if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x ) + this.x  + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
-                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
-                    {
-
-                        this.x += 2.5;
-                        
-                    }
-                }
-                else
-                {                  
-                    if(this.x -this.game.background.x < ((this.game.background.length-1) * 512 -50)) {
-                        this.game.background.x -= 2.5;
-                        this.platformMinX -= 2.5;
-                        this.platformMaxX -= 2.5;
-                    } else {
-                       if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40)
-                        {
-
-                            this.x += 2.5;
-                        
-                        }
-                    }
-
-  
-                }
-            }
-            else if (this.steps > 3)
-            {
-                this.isRunning = true;
-                this.isWalking = false;
-            }
-            else if (this.isWalking)
+            if (this.isWalking)
             {
                 if (this.walkRightAnimation.elapsedTime + this.game.clockTick >= this.walkRightAnimation.totalTime && !this.game.jump)
                 {
@@ -832,6 +799,43 @@ Mario.prototype.update = function ()
             }
            
         }
+        else if (code === 16) {
+            if (this.isWalking) {
+                this.isRunning = true;
+                this.isWAlking = false;
+    
+                if (this.isRunning && this.isRight) {
+                    if (this.x < this.game.ctx.canvas.getBoundingClientRect().right / 2 - 50 || -(this.game.background.x) + this.x + 50 + this.game.background.length >= this.game.background.sizex * (this.game.length - 1)) {
+                        if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40) {
+
+                            this.x += 2.5;
+
+                        }
+                    }
+                    else {
+                        if (this.x - this.game.background.x < ((this.game.background.length - 1) * 512 - 50)) {
+                            this.game.background.x -= 2.5;
+                            this.platformMinX -= 2.5;
+                            this.platformMaxX -= 2.5;
+                        } else {
+                            if (this.x < this.game.ctx.canvas.getBoundingClientRect().right - 40) {
+
+                                this.x += 2.5;
+
+                            }
+                        }
+
+
+                    }
+                }
+                if (this.isRunning && !this.isRight) {
+                    if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25) {
+                        this.x -= 2.5;
+                    }
+                }
+            }
+
+        }
         else if (code=== 37 && !this.isBouncing)
         { //LEFT
             if (this.isRight)
@@ -840,19 +844,7 @@ Mario.prototype.update = function ()
                 this.isRight = false;
             }
             
-            if (this.isRunning)
-            {
-                if (this.x > this.game.ctx.canvas.getBoundingClientRect().left - 25)
-                {
-                    this.x -= 2.5;
-                }
-            }
-            else if (this.steps > 3)
-            {
-                this.isRunning = true;
-                this.isWalking = false;
-            }
-            else if (this.isWalking)
+            if (this.isWalking)
             {
                 if (this.walkLeftAnimation.elapsedTime + this.game.clockTick >= this.walkLeftAnimation.totalTime && !this.game.jump)
                 {
