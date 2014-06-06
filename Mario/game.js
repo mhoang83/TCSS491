@@ -1588,6 +1588,7 @@ Chomper.prototype.collide = function(other) {
         other.boundingbox.left <= this.boundingbox.right)
         && other.type === 'Mario') { //Check for top collision
         this.game.isDead = true;
+    	this.game.bgwall.down = true;
     } 
 }
 
@@ -2196,6 +2197,8 @@ LevelOver.prototype.update = function () {
                 
 
             } else {
+            	if (this.game.lives - 1 === 0 )
+            		this.game.current_level = 0;
                 var me = this;
                 this.game.startOver();
                 setTimeout(function() {me.game.bgwall.up = true;}, 500);
