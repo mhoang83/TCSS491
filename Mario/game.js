@@ -2900,28 +2900,44 @@ function build_menu(name, user_id, restart, game) {
 }
 
 function set_user_scores(score_area, user_id) {
-    $.get('services/userService.php', {userscores:true, user_id:user_id}, function(data) {
+    $.get('services/userService.php', { userscores: true, user_id: user_id }, function (data) {
         console.log(data);
         data = JSON.parse(data);
         score_area.html('');
-         var set = $('<fieldset style=" display: inline-block;">').append($('<legend>').text("Top 10 user scores"));
-         var table = $('<table>');
+        var set = $('<fieldset style=" display: inline-block;">').append($('<legend>').text("Top 10 user scores"));
+        var table = $('<table>');
+        var set2 = $('<fieldset style=" vertical-align: top; display: inline-block;">').append($('<legend>').text("Control"));
+        var table2 = $('<table>');
         set.append(table);
+        set2.append(table2);
         score_area.append(set);
-           var row = $('<tr>');
-            row.append($('<th style="padding:10px 5px 10px 5px;">').text('Username'));
-             row.append($('<th style="padding:10px 5px 10px 5px;">').text('Score'));
-            table.append(row);
-        $.each(data, function(index, value) {
+        var row = $('<tr>');
+        row.append($('<th style="padding:10px 5px 10px 5px;">').text('Username'));
+        row.append($('<th style="padding:10px 5px 10px 5px;">').text('Score'));
+        table.append(row);
+        score_area.append(set2);
+        var row2 = $('<tr>');
+        row2.append($('<th style="padding:10px 5px 10px 5px;">').text('Left Key'));
+        row2.append($('<th style="padding:10px 5px 10px 5px;">').text('Right Key'));
+        row2.append($('<th style="padding:10px 5px 10px 5px;">').text('Up Key'));
+        row2.append($('<th style="padding:10px 5px 10px 5px;">').text('Shift Key'));
+        var row3 = $('<tr>');
+        row3.append($('<td style="color:blue;padding:5px;">').text('Walking Left'));
+        row3.append($('<td style="color:blue;padding:5px;">').text('Walking Right'));
+        row3.append($('<td style="color:blue;padding:5px;">').text('Jump'));
+        row3.append($('<td style="color:blue;padding:5px;">').text('Run'));
+        table2.append(row2);
+        table2.append(row3);
+        $.each(data, function (index, value) {
             row = $('<tr>');
             row.append($('<td style="padding:5px;">').text(index));
             row.append($('<td style="padding:5px;">').text(value));
             table.append(row);
         });
         var refresh = $('<input type="button" value ="Refresh">');
-        refresh.click(function() {set_user_scores(score_area, user_id)});
+        refresh.click(function () { set_user_scores(score_area, user_id) });
         set.append(refresh);
-    }).fail(function(err){console.log(err)}); 
+    }).fail(function (err) { console.log(err) });
 
 }
 
